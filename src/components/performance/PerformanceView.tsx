@@ -236,6 +236,7 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
         onClose={() => setIsModalOpen(false)}
         onSave={handleSaveReview}
         employees={employees}
+        roles={roles}
         defaultQuestions={defaultQuestions}
       />
     </div>
