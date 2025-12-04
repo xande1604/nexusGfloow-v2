@@ -3,6 +3,7 @@ import { ClipboardCheck, Plus, Calendar, User, Star, ChevronRight, Search, Trash
 import { Employee, JobRole } from '@/types';
 import { PerformanceReview, usePerformanceReviews } from '@/hooks/usePerformanceReviews';
 import { ReviewFormModal } from './ReviewFormModal';
+import { ReviewDetailView } from './ReviewDetailView';
 import { cn } from '@/lib/utils';
 
 interface PerformanceViewProps {
@@ -16,7 +17,7 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<PerformanceReview | null>(null);
 
-  const { reviews, loading, saveReview, deleteReview, defaultQuestions } = usePerformanceReviews();
+  const { reviews, loading, saveReview, updateReview, deleteReview, defaultQuestions } = usePerformanceReviews();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -68,6 +69,21 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
       </div>
+    );
+  }
+
+  // Show detail view if a review is selected
+  if (selectedReview) {
+    return (
+      <ReviewDetailView
+        review={selectedReview}
+        onBack={() => setSelectedReview(null)}
+        onUpdate={async (id, updates) => {
+          await updateReview(id, updates);
+          // Update the local selected review with new data
+          setSelectedReview(prev => prev ? { ...prev, ...updates } : null);
+        }}
+      />
     );
   }
 
