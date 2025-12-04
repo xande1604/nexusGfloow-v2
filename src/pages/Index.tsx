@@ -8,9 +8,10 @@ import { SkillsView } from '@/components/skills/SkillsView';
 import { RoadmapView } from '@/components/roadmap/RoadmapView';
 import { SettingsView } from '@/components/settings/SettingsView';
 import { PerformanceView } from '@/components/performance/PerformanceView';
-import { AppView, Employee, CompanyContext, CareerRoadmap } from '@/types';
+import { AppView, Employee, CompanyContext } from '@/types';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useSkills } from '@/hooks/useSkills';
+import { useRoadmaps } from '@/hooks/useRoadmaps';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2 } from 'lucide-react';
 
@@ -31,7 +32,6 @@ const Index = () => {
   const [activeView, setActiveView] = useState<AppView>(AppView.DASHBOARD);
   const [employees] = useState<Employee[]>(initialEmployees);
   const [companyContext, setCompanyContext] = useState<CompanyContext>(initialContext);
-  const [roadmaps, setRoadmaps] = useState<CareerRoadmap[]>([]);
 
   const { isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
@@ -46,20 +46,19 @@ const Index = () => {
   // Supabase hooks
   const { roles, loading: rolesLoading, saveRole, deleteRole } = useJobRoles();
   const { skills, loading: skillsLoading, saveSkill, deleteSkill } = useSkills();
+  const { roadmaps, loading: roadmapsLoading, saveRoadmap } = useRoadmaps();
 
-  const handleGenerateRoadmap = (sourceRole: string, targetRole: string, employeeName?: string) => {
-    const newRoadmap: CareerRoadmap = {
-      id: crypto.randomUUID(),
+  const handleGenerateRoadmap = async (sourceRole: string, targetRole: string, employeeName?: string) => {
+    // For now, create a simple roadmap - later this can use AI
+    await saveRoadmap({
       sourceRoleTitle: sourceRole,
       targetRoleTitle: targetRole,
       employeeName,
       steps: [
-        { title: 'Fase 1', description: 'Desenvolvimento inicial', estimatedDuration: '6 meses', requiredSkills: ['React', 'TypeScript'] },
-        { title: 'Fase 2', description: 'Aprofundamento técnico', estimatedDuration: '12 meses', requiredSkills: ['Arquitetura', 'DevOps'] },
+        { title: 'Fase 1', description: 'Desenvolvimento inicial', estimatedDuration: '6 meses', requiredSkills: ['Fundamentos', 'Prática'] },
+        { title: 'Fase 2', description: 'Aprofundamento técnico', estimatedDuration: '12 meses', requiredSkills: ['Especialização', 'Liderança'] },
       ],
-      createdAt: new Date().toISOString(),
-    };
-    setRoadmaps(prev => [...prev, newRoadmap]);
+    });
   };
 
   // Show loading while checking auth
@@ -76,7 +75,7 @@ const Index = () => {
     return null;
   }
 
-  const isLoading = rolesLoading || skillsLoading;
+  const isLoading = rolesLoading || skillsLoading || roadmapsLoading;
 
   const renderView = () => {
     if (isLoading) {
