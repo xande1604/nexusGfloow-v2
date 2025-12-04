@@ -222,13 +222,18 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
 
             <div className="mb-6">
               <label className="block text-sm font-medium text-foreground mb-1.5">Colaborador (opcional)</label>
-              <input
-                type="text"
+              <select
                 value={employeeName}
                 onChange={(e) => setEmployeeName(e.target.value)}
-                placeholder="Nome do colaborador para personalização"
                 className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-              />
+              >
+                <option value="">Selecione um colaborador...</option>
+                {employees.map(employee => (
+                  <option key={employee.id} value={employee.name}>
+                    {employee.name}
+                  </option>
+                ))}
+              </select>
             </div>
 
             <button

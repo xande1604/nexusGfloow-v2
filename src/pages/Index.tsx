@@ -8,21 +8,15 @@ import { SkillsView } from '@/components/skills/SkillsView';
 import { RoadmapView } from '@/components/roadmap/RoadmapView';
 import { SettingsView } from '@/components/settings/SettingsView';
 import { PerformanceView } from '@/components/performance/PerformanceView';
-import { AppView, Employee, CompanyContext } from '@/types';
+import { AppView, CompanyContext } from '@/types';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useSkills } from '@/hooks/useSkills';
 import { useRoadmaps } from '@/hooks/useRoadmaps';
+import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
-
-// Demo employees (will be connected to Supabase later)
-const initialEmployees: Employee[] = [
-  { id: '1', name: 'Maria Silva', roleId: '2', email: 'maria@gfloow.com', admissionDate: '2023-03-15' },
-  { id: '2', name: 'João Santos', roleId: '1', email: 'joao@gfloow.com', admissionDate: '2022-08-01' },
-  { id: '3', name: 'Ana Costa', roleId: '4', email: 'ana@gfloow.com', admissionDate: '2023-06-20' },
-];
 
 const initialContext: CompanyContext = {
   mission: 'Transformar a gestão de talentos através de tecnologia e inteligência artificial.',
@@ -32,7 +26,6 @@ const initialContext: CompanyContext = {
 
 const Index = () => {
   const [activeView, setActiveView] = useState<AppView>(AppView.DASHBOARD);
-  const [employees] = useState<Employee[]>(initialEmployees);
   const [companyContext, setCompanyContext] = useState<CompanyContext>(initialContext);
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
 
@@ -51,6 +44,7 @@ const Index = () => {
   const { roles, loading: rolesLoading, saveRole, deleteRole } = useJobRoles();
   const { skills, loading: skillsLoading, saveSkill, deleteSkill } = useSkills();
   const { roadmaps, loading: roadmapsLoading, saveRoadmap } = useRoadmaps();
+  const { employees, loading: employeesLoading } = useEmployees();
 
   const handleGenerateRoadmap = async (sourceRole: string, targetRole: string, employeeName?: string) => {
     setIsGeneratingRoadmap(true);
@@ -102,7 +96,7 @@ const Index = () => {
     return null;
   }
 
-  const isLoading = rolesLoading || skillsLoading || roadmapsLoading;
+  const isLoading = rolesLoading || skillsLoading || roadmapsLoading || employeesLoading;
 
   const renderView = () => {
     if (isLoading) {
