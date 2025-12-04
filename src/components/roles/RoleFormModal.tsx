@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
-import { X, Check, Sparkles, Target, BookOpen, Wrench, Heart, DollarSign } from 'lucide-react';
+import { X, Check, Sparkles, Target, BookOpen, Wrench, Heart, DollarSign, Loader2 } from 'lucide-react';
 import { JobRole, Skill } from '@/types';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface RoleFormModalProps {
   isOpen: boolean;
@@ -15,6 +17,8 @@ const levels: JobRole['level'][] = ['Estagiário', 'Trainee', 'Júnior', 'Pleno'
 const departments = ['Tecnologia', 'Produto', 'Design', 'Marketing', 'Vendas', 'RH', 'Financeiro', 'Operações', 'Jurídico', 'Administrativo', 'Operacional'];
 
 export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFormModalProps) => {
+  const { toast } = useToast();
+  const [isRefining, setIsRefining] = useState(false);
   const [form, setForm] = useState<Partial<JobRole>>({
     title: '',
     level: 'Pleno',
@@ -50,6 +54,55 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
       setBaseSalary(0);
     }
   }, [role, isOpen]);
+
+  const handleRefineWithAI = async () => {
+    if (!form.title?.trim()) {
+      toast({
+        title: 'Título obrigatório',
+        description: 'Preencha o título do cargo para usar a IA.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsRefining(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('refine-role', {
+        body: { 
+          roleTitle: form.title,
+          currentDescription: form.description 
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      setForm(prev => ({
+        ...prev,
+        description: data.description || prev.description,
+        technicalKnowledge: data.technicalKnowledge || prev.technicalKnowledge,
+        hardSkills: data.hardSkills || prev.hardSkills,
+        softSkills: data.softSkills || prev.softSkills,
+        keyDeliverables: data.deliverables || prev.keyDeliverables,
+      }));
+
+      toast({
+        title: 'Sugestões geradas',
+        description: 'Revise e edite os campos conforme necessário.',
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao refinar',
+        description: error.message || 'Não foi possível gerar sugestões.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsRefining(false);
+    }
+  };
 
   const toggleSkill = (skillId: string) => {
     setForm(prev => ({
@@ -221,10 +274,21 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
               <label className="text-sm font-medium text-foreground">Descrição Detalhada do Cargo</label>
               <button
                 type="button"
-                className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 font-medium transition-colors"
+                onClick={handleRefineWithAI}
+                disabled={isRefining}
+                className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
-                <Sparkles className="w-3.5 h-3.5" />
-                Refinar com IA
+                {isRefining ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    Gerando...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    Refinar com IA
+                  </>
+                )}
               </button>
             </div>
             <textarea
