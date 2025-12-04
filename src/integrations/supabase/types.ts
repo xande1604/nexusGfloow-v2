@@ -104,6 +104,8 @@ export type Database = {
           hard_skills: string | null
           id: string
           owner_admin_id: string | null
+          salary_max: number | null
+          salary_min: number | null
           soft_skills: string | null
           technical_knowledge: string | null
           tituloreduzido: string
@@ -117,6 +119,8 @@ export type Database = {
           hard_skills?: string | null
           id?: string
           owner_admin_id?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
           soft_skills?: string | null
           technical_knowledge?: string | null
           tituloreduzido: string
@@ -130,6 +134,8 @@ export type Database = {
           hard_skills?: string | null
           id?: string
           owner_admin_id?: string | null
+          salary_max?: number | null
+          salary_min?: number | null
           soft_skills?: string | null
           technical_knowledge?: string | null
           tituloreduzido?: string

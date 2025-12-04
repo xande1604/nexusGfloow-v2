@@ -20,14 +20,17 @@ export const useJobRoles = () => {
       const mappedRoles: JobRole[] = (data || []).map(row => ({
         id: row.id,
         title: row.tituloreduzido,
-        level: 'Pleno' as JobRole['level'], // Default level
+        level: 'Pleno' as JobRole['level'],
         department: row.cbo2002 ? `CBO: ${row.cbo2002}` : 'Geral',
         description: [
           row.technical_knowledge,
           row.hard_skills,
           row.soft_skills
         ].filter(Boolean).join(' | ') || 'Sem descrição',
-        salaryRange: { min: 0, max: 0 }, // Salary not in cargos table
+        salaryRange: { 
+          min: Number(row.salary_min) || 0, 
+          max: Number(row.salary_max) || 0 
+        },
         requiredSkillIds: [],
         technicalKnowledge: row.technical_knowledge || undefined,
         hardSkills: row.hard_skills || undefined,
@@ -51,10 +54,12 @@ export const useJobRoles = () => {
       const dbRole = {
         id: role.id,
         tituloreduzido: role.title,
-        codigocargo: role.id.substring(0, 8), // Generate code from id
+        codigocargo: role.id.substring(0, 8),
         technical_knowledge: role.technicalKnowledge || null,
         hard_skills: role.hardSkills || null,
         soft_skills: role.softSkills || null,
+        salary_min: role.salaryRange?.min || 0,
+        salary_max: role.salaryRange?.max || 0,
       };
 
       const { error } = await supabase
