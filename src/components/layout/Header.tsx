@@ -1,5 +1,9 @@
-import { Bell, Search, User } from 'lucide-react';
+import { Bell, Search, User, LogOut, ChevronDown } from 'lucide-react';
 import { AppView } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { useState, useRef, useEffect } from 'react';
+import { useToast } from '@/hooks/use-toast';
 
 interface HeaderProps {
   activeView: AppView;
@@ -16,6 +20,37 @@ const viewTitles: Record<AppView, { title: string; subtitle: string }> = {
 
 export const Header = ({ activeView }: HeaderProps) => {
   const { title, subtitle } = viewTitles[activeView];
+  const { user, signOut } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on outside click
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleSignOut = async () => {
+    const { error } = await signOut();
+    if (error) {
+      toast({
+        title: 'Erro ao sair',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } else {
+      navigate('/auth');
+    }
+  };
+
+  const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário';
 
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-40">
@@ -41,13 +76,35 @@ export const Header = ({ activeView }: HeaderProps) => {
           <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-brand-500 rounded-full" />
         </button>
 
-        {/* User */}
-        <button className="flex items-center gap-2 h-9 pl-2 pr-3 rounded-lg hover:bg-secondary transition-colors">
-          <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
-            <User className="w-4 h-4 text-primary-foreground" />
-          </div>
-          <span className="text-sm font-medium text-foreground">Admin</span>
-        </button>
+        {/* User Dropdown */}
+        <div className="relative" ref={dropdownRef}>
+          <button 
+            onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+            className="flex items-center gap-2 h-9 pl-2 pr-3 rounded-lg hover:bg-secondary transition-colors"
+          >
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
+              <User className="w-4 h-4 text-primary-foreground" />
+            </div>
+            <span className="text-sm font-medium text-foreground max-w-[120px] truncate">{userName}</span>
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          </button>
+
+          {isDropdownOpen && (
+            <div className="absolute right-0 top-full mt-1 w-48 bg-card border border-border rounded-lg shadow-lg py-1 z-50">
+              <div className="px-3 py-2 border-b border-border">
+                <p className="text-sm font-medium text-foreground truncate">{userName}</p>
+                <p className="text-xs text-muted-foreground truncate">{user?.email}</p>
+              </div>
+              <button
+                onClick={handleSignOut}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+              >
+                <LogOut className="w-4 h-4" />
+                Sair
+              </button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   );
