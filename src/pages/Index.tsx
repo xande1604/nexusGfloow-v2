@@ -13,6 +13,8 @@ import { useJobRoles } from '@/hooks/useJobRoles';
 import { useSkills } from '@/hooks/useSkills';
 import { useRoadmaps } from '@/hooks/useRoadmaps';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
 
 // Demo employees (will be connected to Supabase later)
@@ -32,9 +34,11 @@ const Index = () => {
   const [activeView, setActiveView] = useState<AppView>(AppView.DASHBOARD);
   const [employees] = useState<Employee[]>(initialEmployees);
   const [companyContext, setCompanyContext] = useState<CompanyContext>(initialContext);
+  const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
 
   const { isAuthenticated, loading: authLoading } = useAuth();
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   // Redirect to auth if not authenticated
   useEffect(() => {
@@ -49,16 +53,39 @@ const Index = () => {
   const { roadmaps, loading: roadmapsLoading, saveRoadmap } = useRoadmaps();
 
   const handleGenerateRoadmap = async (sourceRole: string, targetRole: string, employeeName?: string) => {
-    // For now, create a simple roadmap - later this can use AI
-    await saveRoadmap({
-      sourceRoleTitle: sourceRole,
-      targetRoleTitle: targetRole,
-      employeeName,
-      steps: [
-        { title: 'Fase 1', description: 'Desenvolvimento inicial', estimatedDuration: '6 meses', requiredSkills: ['Fundamentos', 'Prática'] },
-        { title: 'Fase 2', description: 'Aprofundamento técnico', estimatedDuration: '12 meses', requiredSkills: ['Especialização', 'Liderança'] },
-      ],
-    });
+    setIsGeneratingRoadmap(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-roadmap', {
+        body: { sourceRole, targetRole, employeeName }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      await saveRoadmap({
+        sourceRoleTitle: sourceRole,
+        targetRoleTitle: targetRole,
+        employeeName,
+        steps: data.steps,
+      });
+
+      toast({
+        title: 'Roadmap gerado com sucesso!',
+        description: `${data.steps?.length || 0} etapas criadas para a trajetória de carreira.`,
+      });
+    } catch (error: any) {
+      console.error('Error generating roadmap:', error);
+      toast({
+        title: 'Erro ao gerar roadmap',
+        description: error.message || 'Não foi possível gerar o roadmap com IA.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGeneratingRoadmap(false);
+    }
   };
 
   // Show loading while checking auth

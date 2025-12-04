@@ -21,14 +21,14 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
   const handleGenerate = async () => {
     if (sourceRole && targetRole) {
       setIsGenerating(true);
-      // Simulate AI generation
-      setTimeout(() => {
-        onGenerateRoadmap(sourceRole, targetRole, employeeName);
-        setIsGenerating(false);
+      try {
+        await onGenerateRoadmap(sourceRole, targetRole, employeeName);
         setSourceRole('');
         setTargetRole('');
         setEmployeeName('');
-      }, 2000);
+      } finally {
+        setIsGenerating(false);
+      }
     }
   };
 
