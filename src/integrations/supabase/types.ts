@@ -839,6 +839,39 @@ export type Database = {
         }
         Relationships: []
       }
+      review_question_templates: {
+        Row: {
+          category: string
+          created_at: string | null
+          id: string
+          is_default: boolean | null
+          owner_admin_id: string | null
+          question: string
+          type: string
+          updated_at: string | null
+        }
+        Insert: {
+          category: string
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          owner_admin_id?: string | null
+          question: string
+          type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          category?: string
+          created_at?: string | null
+          id?: string
+          is_default?: boolean | null
+          owner_admin_id?: string | null
+          question?: string
+          type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       sesmt_dimensionamento: {
         Row: {
           aux_enfermagem: number
