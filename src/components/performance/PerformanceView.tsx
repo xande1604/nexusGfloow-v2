@@ -4,6 +4,7 @@ import { Employee, JobRole } from '@/types';
 import { PerformanceReview, usePerformanceReviews } from '@/hooks/usePerformanceReviews';
 import { ReviewFormModal } from './ReviewFormModal';
 import { ReviewDetailView } from './ReviewDetailView';
+import { PerformanceEvolutionChart } from './PerformanceEvolutionChart';
 import { cn } from '@/lib/utils';
 
 interface PerformanceViewProps {
@@ -150,6 +151,9 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
           </div>
         </div>
       </div>
+
+      {/* Evolution Chart */}
+      <PerformanceEvolutionChart reviews={reviews} />
 
       {/* Reviews List */}
       <div className="bg-card rounded-xl shadow-medium overflow-hidden">
