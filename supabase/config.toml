@@ -1,1 +1,10 @@
 project_id = "qashsyjrazmkhgeesglb"
+
+[functions.generate-roadmap]
+verify_jwt = true
+
+[functions.refine-role]
+verify_jwt = true
+
+[functions.generate-review-questions]
+verify_jwt = true
