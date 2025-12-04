@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { ArrowLeft, Star, Calendar, User, CheckCircle, Clock, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, User, CheckCircle, Clock, Save, Loader2, Download } from 'lucide-react';
 import { PerformanceReview, ReviewResponse } from '@/hooks/usePerformanceReviews';
 import { cn } from '@/lib/utils';
+import jsPDF from 'jspdf';
 
 interface ReviewDetailViewProps {
   review: PerformanceReview;
@@ -74,6 +75,131 @@ export const ReviewDetailView = ({ review, onBack, onUpdate }: ReviewDetailViewP
 
   const handleComplete = () => {
     handleSave('Completed');
+  };
+
+  const exportToPDF = () => {
+    const doc = new jsPDF();
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const margin = 20;
+    let yPos = 20;
+
+    // Header
+    doc.setFillColor(79, 70, 229); // brand color
+    doc.rect(0, 0, pageWidth, 40, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(20);
+    doc.setFont('helvetica', 'bold');
+    doc.text('Avaliação de Desempenho', margin, 28);
+
+    // Employee info
+    yPos = 55;
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(16);
+    doc.setFont('helvetica', 'bold');
+    doc.text(review.employeeName || 'Colaborador', margin, yPos);
+    
+    yPos += 8;
+    doc.setFontSize(10);
+    doc.setFont('helvetica', 'normal');
+    doc.setTextColor(100, 100, 100);
+    doc.text(`Data: ${new Date(review.date).toLocaleDateString('pt-BR')}`, margin, yPos);
+    doc.text(`Status: ${statusBadge.label}`, margin + 60, yPos);
+    
+    if (averageScore) {
+      doc.text(`Média: ${averageScore}/5`, margin + 130, yPos);
+    }
+
+    // Divider
+    yPos += 10;
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, yPos, pageWidth - margin, yPos);
+
+    // Questions and Responses
+    yPos += 15;
+    doc.setFontSize(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setTextColor(0, 0, 0);
+    doc.text('Perguntas e Respostas', margin, yPos);
+
+    yPos += 10;
+    review.questions.forEach((q, index) => {
+      const response = getResponse(q.id);
+      
+      // Check if we need a new page
+      if (yPos > 260) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      // Question number and text
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(79, 70, 229);
+      doc.text(`${index + 1}.`, margin, yPos);
+      
+      doc.setTextColor(0, 0, 0);
+      const questionLines = doc.splitTextToSize(q.question, pageWidth - margin * 2 - 10);
+      doc.text(questionLines, margin + 8, yPos);
+      yPos += questionLines.length * 6 + 4;
+
+      // Response
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      if (q.type === 'rating') {
+        const rating = response?.rating || 0;
+        const stars = '★'.repeat(rating) + '☆'.repeat(5 - rating);
+        doc.text(`Resposta: ${stars} (${rating}/5)`, margin + 8, yPos);
+      } else {
+        const answerText = response?.text || 'Sem resposta';
+        const answerLines = doc.splitTextToSize(`Resposta: ${answerText}`, pageWidth - margin * 2 - 10);
+        doc.text(answerLines, margin + 8, yPos);
+        yPos += (answerLines.length - 1) * 6;
+      }
+      yPos += 12;
+    });
+
+    // Overall Feedback
+    if (overallFeedback) {
+      if (yPos > 240) {
+        doc.addPage();
+        yPos = 20;
+      }
+
+      yPos += 5;
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, yPos, pageWidth - margin, yPos);
+      yPos += 10;
+
+      doc.setFontSize(14);
+      doc.setFont('helvetica', 'bold');
+      doc.setTextColor(0, 0, 0);
+      doc.text('Feedback Geral', margin, yPos);
+
+      yPos += 8;
+      doc.setFontSize(11);
+      doc.setFont('helvetica', 'normal');
+      doc.setTextColor(60, 60, 60);
+      const feedbackLines = doc.splitTextToSize(overallFeedback, pageWidth - margin * 2);
+      doc.text(feedbackLines, margin, yPos);
+    }
+
+    // Footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setTextColor(150, 150, 150);
+      doc.text(
+        `Gerado em ${new Date().toLocaleDateString('pt-BR')} às ${new Date().toLocaleTimeString('pt-BR')}`,
+        margin,
+        doc.internal.pageSize.getHeight() - 10
+      );
+      doc.text(`Página ${i} de ${pageCount}`, pageWidth - margin - 20, doc.internal.pageSize.getHeight() - 10);
+    }
+
+    // Save PDF
+    const fileName = `avaliacao_${review.employeeName?.replace(/\s+/g, '_') || 'colaborador'}_${review.date}.pdf`;
+    doc.save(fileName);
   };
 
   const statusBadge = getStatusBadge(review.status);
@@ -227,6 +353,16 @@ export const ReviewDetailView = ({ review, onBack, onUpdate }: ReviewDetailViewP
 
       {/* Actions */}
       <div className="flex justify-end gap-3">
+        {review.status === 'Completed' && (
+          <button
+            onClick={exportToPDF}
+            className="flex items-center gap-2 h-11 px-5 bg-brand-600 text-white rounded-lg font-medium text-sm hover:bg-brand-700 transition-colors"
+          >
+            <Download className="w-4 h-4" />
+            Exportar PDF
+          </button>
+        )}
+        
         <button
           onClick={() => handleSave()}
           disabled={isSaving}
