@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History } from 'lucide-react';
+import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, X, ArrowLeft } from 'lucide-react';
 import { JobRole, Employee, CareerRoadmap } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -16,6 +16,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
   const [employeeName, setEmployeeName] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState<'create' | 'history'>('create');
+  const [selectedRoadmap, setSelectedRoadmap] = useState<CareerRoadmap | null>(null);
 
   const handleGenerate = async () => {
     if (sourceRole && targetRole) {
@@ -24,23 +25,120 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
       setTimeout(() => {
         onGenerateRoadmap(sourceRole, targetRole, employeeName);
         setIsGenerating(false);
+        setSourceRole('');
+        setTargetRole('');
+        setEmployeeName('');
       }, 2000);
     }
   };
 
-  // Sample roadmap for demo
-  const demoRoadmap: CareerRoadmap = {
-    id: 'demo',
-    sourceRoleTitle: 'Desenvolvedor Júnior',
-    targetRoleTitle: 'Tech Lead',
-    steps: [
-      { title: 'Fundamentos Sólidos', description: 'Domine padrões de projeto e arquitetura de software', estimatedDuration: '6 meses', requiredSkills: ['Design Patterns', 'Clean Code'] },
-      { title: 'Especialização Técnica', description: 'Aprofunde em uma stack específica e tecnologias modernas', estimatedDuration: '12 meses', requiredSkills: ['React', 'Node.js', 'TypeScript'] },
-      { title: 'Liderança Técnica', description: 'Desenvolva habilidades de mentoria e code review', estimatedDuration: '6 meses', requiredSkills: ['Mentoring', 'Code Review'] },
-      { title: 'Gestão de Projetos', description: 'Aprenda metodologias ágeis e gestão de equipes', estimatedDuration: '6 meses', requiredSkills: ['Scrum', 'Kanban', 'Team Management'] },
-    ],
-    createdAt: new Date().toISOString(),
+  const handleSelectRoadmap = (roadmap: CareerRoadmap) => {
+    setSelectedRoadmap(roadmap);
   };
+
+  const handleBackToHistory = () => {
+    setSelectedRoadmap(null);
+  };
+
+  // Calculate total duration from steps
+  const calculateTotalDuration = (roadmap: CareerRoadmap) => {
+    if (!roadmap.steps || roadmap.steps.length === 0) return 'N/A';
+    return `${roadmap.steps.length} etapas`;
+  };
+
+  // Render selected roadmap details
+  if (selectedRoadmap) {
+    return (
+      <div className="space-y-6 animate-fade-in">
+        {/* Back button */}
+        <button
+          onClick={handleBackToHistory}
+          className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+          Voltar ao histórico
+        </button>
+
+        {/* Roadmap Header */}
+        <div className="bg-card rounded-xl p-6 shadow-medium">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
+                <Route className="w-7 h-7 text-primary-foreground" />
+              </div>
+              <div>
+                <h2 className="text-xl font-bold text-foreground">
+                  {selectedRoadmap.sourceRoleTitle} → {selectedRoadmap.targetRoleTitle}
+                </h2>
+                <p className="text-sm text-muted-foreground">
+                  {selectedRoadmap.employeeName && `${selectedRoadmap.employeeName} • `}
+                  Criado em {new Date(selectedRoadmap.createdAt).toLocaleDateString('pt-BR')}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-lg">
+              <Clock className="w-4 h-4" />
+              {calculateTotalDuration(selectedRoadmap)}
+            </div>
+          </div>
+        </div>
+
+        {/* Roadmap Steps */}
+        <div className="bg-card rounded-xl p-6 shadow-medium">
+          <h3 className="text-lg font-semibold text-foreground mb-6">Plano de Desenvolvimento</h3>
+          
+          <div className="relative">
+            {/* Timeline line */}
+            <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-brand-200" />
+
+            <div className="space-y-6">
+              {selectedRoadmap.steps.map((step, index) => (
+                <div key={index} className="relative flex gap-4 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
+                  {/* Timeline dot */}
+                  <div className="relative z-10 w-12 h-12 rounded-full bg-brand-100 border-4 border-card flex items-center justify-center flex-shrink-0">
+                    <span className="text-sm font-bold text-brand-600">{index + 1}</span>
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 bg-secondary/50 rounded-xl p-4 hover:bg-secondary transition-colors">
+                    <div className="flex items-start justify-between mb-2">
+                      <h4 className="font-semibold text-foreground">{step.title}</h4>
+                      <span className="text-xs text-muted-foreground flex items-center gap-1 bg-background px-2 py-1 rounded">
+                        <Clock className="w-3 h-3" />
+                        {step.estimatedDuration}
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mb-3">{step.description}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {step.requiredSkills.map(skill => (
+                        <span
+                          key={skill}
+                          className="px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs font-medium"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* Target */}
+            <div className="relative flex gap-4 mt-6">
+              <div className="relative z-10 w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0">
+                <Target className="w-5 h-5 text-primary-foreground" />
+              </div>
+              <div className="flex-1 bg-brand-50 rounded-xl p-4 border border-brand-200">
+                <h4 className="font-semibold text-brand-700">{selectedRoadmap.targetRoleTitle}</h4>
+                <p className="text-sm text-brand-600">Meta alcançada! 🎯</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -96,7 +194,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
                 >
                   <option value="">Selecione...</option>
                   {roles.map(role => (
-                    <option key={role.id} value={role.title}>{role.title} ({role.level})</option>
+                    <option key={role.id} value={role.title}>{role.title}</option>
                   ))}
                 </select>
               </div>
@@ -116,7 +214,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
                 >
                   <option value="">Selecione...</option>
                   {roles.map(role => (
-                    <option key={role.id} value={role.title}>{role.title} ({role.level})</option>
+                    <option key={role.id} value={role.title}>{role.title}</option>
                   ))}
                 </select>
               </div>
@@ -157,70 +255,44 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
             </button>
           </div>
 
-          {/* Demo Roadmap */}
-          <div className="bg-card rounded-xl p-6 shadow-medium">
-            <div className="flex items-center justify-between mb-6">
-              <div>
-                <h3 className="text-lg font-semibold text-foreground">Exemplo de Roadmap</h3>
-                <p className="text-sm text-muted-foreground">
-                  {demoRoadmap.sourceRoleTitle} → {demoRoadmap.targetRoleTitle}
-                </p>
+          {/* Recent Roadmaps Preview */}
+          {roadmaps.length > 0 && (
+            <div className="bg-card rounded-xl p-6 shadow-soft">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold text-foreground">Roadmaps Recentes</h3>
+                <button
+                  onClick={() => setActiveTab('history')}
+                  className="text-sm text-brand-600 hover:text-brand-700 font-medium"
+                >
+                  Ver todos →
+                </button>
               </div>
-              <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Clock className="w-4 h-4" />
-                ~30 meses
-              </div>
-            </div>
-
-            <div className="relative">
-              {/* Timeline line */}
-              <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-brand-200" />
-
-              <div className="space-y-6">
-                {demoRoadmap.steps.map((step, index) => (
-                  <div key={index} className="relative flex gap-4 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                    {/* Timeline dot */}
-                    <div className="relative z-10 w-12 h-12 rounded-full bg-brand-100 border-4 border-card flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-bold text-brand-600">{index + 1}</span>
-                    </div>
-
-                    {/* Content */}
-                    <div className="flex-1 bg-secondary/50 rounded-xl p-4 hover:bg-secondary transition-colors">
-                      <div className="flex items-start justify-between mb-2">
-                        <h4 className="font-semibold text-foreground">{step.title}</h4>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          <Clock className="w-3 h-3" />
-                          {step.estimatedDuration}
-                        </span>
+              <div className="space-y-2">
+                {roadmaps.slice(0, 3).map(roadmap => (
+                  <div
+                    key={roadmap.id}
+                    onClick={() => handleSelectRoadmap(roadmap)}
+                    className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors cursor-pointer"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-8 h-8 rounded-lg bg-brand-100 flex items-center justify-center">
+                        <Route className="w-4 h-4 text-brand-600" />
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">{step.description}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {step.requiredSkills.map(skill => (
-                          <span
-                            key={skill}
-                            className="px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs font-medium"
-                          >
-                            {skill}
-                          </span>
-                        ))}
+                      <div>
+                        <p className="text-sm font-medium text-foreground">
+                          {roadmap.sourceRoleTitle} → {roadmap.targetRoleTitle}
+                        </p>
+                        <p className="text-xs text-muted-foreground">
+                          {roadmap.steps?.length || 0} etapas
+                        </p>
                       </div>
                     </div>
+                    <ChevronRight className="w-4 h-4 text-muted-foreground" />
                   </div>
                 ))}
               </div>
-
-              {/* Target */}
-              <div className="relative flex gap-4 mt-6">
-                <div className="relative z-10 w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0">
-                  <Target className="w-5 h-5 text-primary-foreground" />
-                </div>
-                <div className="flex-1 bg-brand-50 rounded-xl p-4 border border-brand-200">
-                  <h4 className="font-semibold text-brand-700">{demoRoadmap.targetRoleTitle}</h4>
-                  <p className="text-sm text-brand-600">Meta alcançada! 🎯</p>
-                </div>
-              </div>
             </div>
-          </div>
+          )}
         </>
       )}
 
@@ -239,10 +311,12 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
             </div>
           ) : (
             <div className="space-y-3">
-              {roadmaps.map(roadmap => (
+              {roadmaps.map((roadmap, index) => (
                 <div
                   key={roadmap.id}
-                  className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors cursor-pointer"
+                  onClick={() => handleSelectRoadmap(roadmap)}
+                  className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors cursor-pointer animate-slide-up"
+                  style={{ animationDelay: `${index * 50}ms` }}
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-lg bg-brand-100 flex items-center justify-center">
@@ -254,7 +328,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {roadmap.employeeName && `${roadmap.employeeName} • `}
-                        {new Date(roadmap.createdAt).toLocaleDateString('pt-BR')}
+                        {roadmap.steps?.length || 0} etapas • {new Date(roadmap.createdAt).toLocaleDateString('pt-BR')}
                       </p>
                     </div>
                   </div>
