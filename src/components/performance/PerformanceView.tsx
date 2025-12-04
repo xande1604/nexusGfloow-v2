@@ -1,6 +1,8 @@
 import { useState } from 'react';
-import { ClipboardCheck, Plus, Calendar, User, Star, ChevronRight, Search } from 'lucide-react';
+import { ClipboardCheck, Plus, Calendar, User, Star, ChevronRight, Search, Trash2, Loader2 } from 'lucide-react';
 import { Employee, JobRole } from '@/types';
+import { PerformanceReview, usePerformanceReviews } from '@/hooks/usePerformanceReviews';
+import { ReviewFormModal } from './ReviewFormModal';
 import { cn } from '@/lib/utils';
 
 interface PerformanceViewProps {
@@ -8,16 +10,13 @@ interface PerformanceViewProps {
   roles: JobRole[];
 }
 
-// Demo data for reviews
-const demoReviews = [
-  { id: '1', employeeName: 'Maria Silva', role: 'Designer Sênior', date: '2024-01-15', status: 'Completed', score: 4.5 },
-  { id: '2', employeeName: 'João Santos', role: 'Desenvolvedor Pleno', date: '2024-01-10', status: 'PendingManager', score: null },
-  { id: '3', employeeName: 'Ana Costa', role: 'Product Manager', date: '2024-01-08', status: 'PendingSelf', score: null },
-];
-
 export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedReview, setSelectedReview] = useState<PerformanceReview | null>(null);
+
+  const { reviews, loading, saveReview, deleteReview, defaultQuestions } = usePerformanceReviews();
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -31,6 +30,46 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
         return { label: status, className: 'bg-secondary text-muted-foreground' };
     }
   };
+
+  const calculateAverageScore = (review: PerformanceReview) => {
+    const ratings = review.responses.filter(r => r.rating).map(r => r.rating!);
+    if (ratings.length === 0) return null;
+    return (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
+  };
+
+  const filteredReviews = reviews.filter(review => {
+    const matchesSearch = review.employeeName?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || review.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
+
+  const completedReviews = reviews.filter(r => r.status === 'Completed');
+  const overallAverage = completedReviews.length > 0
+    ? (completedReviews
+        .map(r => parseFloat(calculateAverageScore(r) || '0'))
+        .filter(s => s > 0)
+        .reduce((a, b) => a + b, 0) / completedReviews.filter(r => calculateAverageScore(r)).length).toFixed(1)
+    : '0.0';
+
+  const handleSaveReview = async (data: Parameters<typeof saveReview>[0]) => {
+    await saveReview(data);
+    setIsModalOpen(false);
+  };
+
+  const handleDeleteReview = async (id: string, e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (confirm('Tem certeza que deseja excluir esta avaliação?')) {
+      await deleteReview(id);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -60,7 +99,10 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
           </select>
         </div>
 
-        <button className="flex items-center gap-2 h-10 px-4 bg-brand-600 text-primary-foreground rounded-lg font-medium text-sm hover:bg-brand-700 transition-colors shadow-soft">
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="flex items-center gap-2 h-10 px-4 bg-brand-600 text-primary-foreground rounded-lg font-medium text-sm hover:bg-brand-700 transition-colors shadow-soft"
+        >
           <Plus className="w-4 h-4" />
           Nova Avaliação
         </button>
@@ -70,25 +112,25 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         <div className="bg-card p-4 rounded-xl shadow-soft">
           <p className="text-xs text-muted-foreground mb-1">Total de Avaliações</p>
-          <p className="text-2xl font-bold text-foreground">{demoReviews.length}</p>
+          <p className="text-2xl font-bold text-foreground">{reviews.length}</p>
         </div>
         <div className="bg-card p-4 rounded-xl shadow-soft">
           <p className="text-xs text-muted-foreground mb-1">Concluídas</p>
           <p className="text-2xl font-bold text-emerald-600">
-            {demoReviews.filter(r => r.status === 'Completed').length}
+            {reviews.filter(r => r.status === 'Completed').length}
           </p>
         </div>
         <div className="bg-card p-4 rounded-xl shadow-soft">
           <p className="text-xs text-muted-foreground mb-1">Pendentes</p>
           <p className="text-2xl font-bold text-amber-600">
-            {demoReviews.filter(r => r.status !== 'Completed').length}
+            {reviews.filter(r => r.status !== 'Completed').length}
           </p>
         </div>
         <div className="bg-card p-4 rounded-xl shadow-soft">
           <p className="text-xs text-muted-foreground mb-1">Média Geral</p>
           <div className="flex items-center gap-1">
             <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-            <p className="text-2xl font-bold text-foreground">4.5</p>
+            <p className="text-2xl font-bold text-foreground">{overallAverage}</p>
           </div>
         </div>
       </div>
@@ -100,13 +142,15 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
         </div>
 
         <div className="divide-y divide-border">
-          {demoReviews.map((review, index) => {
+          {filteredReviews.map((review, index) => {
             const statusBadge = getStatusBadge(review.status);
+            const score = calculateAverageScore(review);
             return (
               <div
                 key={review.id}
                 className="flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors cursor-pointer animate-slide-up"
                 style={{ animationDelay: `${index * 50}ms` }}
+                onClick={() => setSelectedReview(review)}
               >
                 <div className="flex items-center gap-4">
                   <div className="w-10 h-10 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
@@ -114,7 +158,9 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
                   </div>
                   <div>
                     <p className="font-medium text-foreground">{review.employeeName}</p>
-                    <p className="text-sm text-muted-foreground">{review.role}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {review.questions.length} perguntas • {review.responses.length} respostas
+                    </p>
                   </div>
                 </div>
 
@@ -126,10 +172,10 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
                     </div>
                   </div>
                   
-                  {review.score && (
+                  {score && (
                     <div className="flex items-center gap-1">
                       <Star className="w-4 h-4 text-amber-500 fill-amber-500" />
-                      <span className="text-sm font-semibold text-foreground">{review.score}</span>
+                      <span className="text-sm font-semibold text-foreground">{score}</span>
                     </div>
                   )}
                   
@@ -139,6 +185,13 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
                   )}>
                     {statusBadge.label}
                   </span>
+
+                  <button
+                    onClick={(e) => handleDeleteReview(review.id, e)}
+                    className="p-2 hover:bg-destructive/10 rounded-lg text-muted-foreground hover:text-destructive transition-colors"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
                   
                   <ChevronRight className="w-5 h-5 text-muted-foreground" />
                 </div>
@@ -147,13 +200,28 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
           })}
         </div>
 
-        {demoReviews.length === 0 && (
+        {filteredReviews.length === 0 && (
           <div className="text-center py-16">
             <ClipboardCheck className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
             <p className="text-muted-foreground">Nenhuma avaliação encontrada</p>
+            <button
+              onClick={() => setIsModalOpen(true)}
+              className="mt-4 text-sm text-brand-600 hover:text-brand-700 font-medium"
+            >
+              Criar primeira avaliação
+            </button>
           </div>
         )}
       </div>
+
+      {/* Modal */}
+      <ReviewFormModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSave={handleSaveReview}
+        employees={employees}
+        defaultQuestions={defaultQuestions}
+      />
     </div>
   );
 };
