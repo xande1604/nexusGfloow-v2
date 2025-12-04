@@ -11,23 +11,27 @@ export const useJobRoles = () => {
   const fetchRoles = async () => {
     try {
       const { data, error } = await supabase
-        .from('job_roles')
+        .from('cargos')
         .select('*')
-        .order('title');
+        .order('tituloreduzido');
 
       if (error) throw error;
 
       const mappedRoles: JobRole[] = (data || []).map(row => ({
         id: row.id,
-        title: row.title,
-        level: row.level as JobRole['level'],
-        department: row.department,
-        description: row.description || '',
-        salaryRange: {
-          min: Number(row.salary_min) || 0,
-          max: Number(row.salary_max) || 0,
-        },
-        requiredSkillIds: [], // Will be fetched separately if needed
+        title: row.tituloreduzido,
+        level: 'Pleno' as JobRole['level'], // Default level
+        department: row.cbo2002 ? `CBO: ${row.cbo2002}` : 'Geral',
+        description: [
+          row.technical_knowledge,
+          row.hard_skills,
+          row.soft_skills
+        ].filter(Boolean).join(' | ') || 'Sem descrição',
+        salaryRange: { min: 0, max: 0 }, // Salary not in cargos table
+        requiredSkillIds: [],
+        technicalKnowledge: row.technical_knowledge || undefined,
+        hardSkills: row.hard_skills || undefined,
+        softSkills: row.soft_skills || undefined,
       }));
 
       setRoles(mappedRoles);
@@ -46,16 +50,15 @@ export const useJobRoles = () => {
     try {
       const dbRole = {
         id: role.id,
-        title: role.title,
-        level: role.level,
-        department: role.department,
-        description: role.description,
-        salary_min: role.salaryRange.min,
-        salary_max: role.salaryRange.max,
+        tituloreduzido: role.title,
+        codigocargo: role.id.substring(0, 8), // Generate code from id
+        technical_knowledge: role.technicalKnowledge || null,
+        hard_skills: role.hardSkills || null,
+        soft_skills: role.softSkills || null,
       };
 
       const { error } = await supabase
-        .from('job_roles')
+        .from('cargos')
         .upsert(dbRole, { onConflict: 'id' });
 
       if (error) throw error;
@@ -78,7 +81,7 @@ export const useJobRoles = () => {
   const deleteRole = async (id: string) => {
     try {
       const { error } = await supabase
-        .from('job_roles')
+        .from('cargos')
         .delete()
         .eq('id', id);
 
