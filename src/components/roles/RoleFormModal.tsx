@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Check } from 'lucide-react';
+import { X, Check, Sparkles, Target, BookOpen, Wrench, Heart, DollarSign } from 'lucide-react';
 import { JobRole, Skill } from '@/types';
 import { cn } from '@/lib/utils';
 
@@ -12,7 +12,7 @@ interface RoleFormModalProps {
 }
 
 const levels: JobRole['level'][] = ['Estagiário', 'Trainee', 'Júnior', 'Pleno', 'Sênior', 'Master', 'Especialista', 'Tech Lead', 'Coordenador', 'Gerente', 'Diretor', 'C-Level'];
-const departments = ['Tecnologia', 'Produto', 'Design', 'Marketing', 'Vendas', 'RH', 'Financeiro', 'Operações', 'Jurídico', 'Administrativo'];
+const departments = ['Tecnologia', 'Produto', 'Design', 'Marketing', 'Vendas', 'RH', 'Financeiro', 'Operações', 'Jurídico', 'Administrativo', 'Operacional'];
 
 export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFormModalProps) => {
   const [form, setForm] = useState<Partial<JobRole>>({
@@ -22,11 +22,18 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
     salaryRange: { min: 0, max: 0 },
     description: '',
     requiredSkillIds: [],
+    technicalKnowledge: '',
+    hardSkills: '',
+    softSkills: '',
+    keyDeliverables: '',
   });
+
+  const [baseSalary, setBaseSalary] = useState<number>(0);
 
   useEffect(() => {
     if (role) {
       setForm(role);
+      setBaseSalary(role.salaryRange?.min || 0);
     } else {
       setForm({
         title: '',
@@ -35,7 +42,12 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
         salaryRange: { min: 0, max: 0 },
         description: '',
         requiredSkillIds: [],
+        technicalKnowledge: '',
+        hardSkills: '',
+        softSkills: '',
+        keyDeliverables: '',
       });
+      setBaseSalary(0);
     }
   }, [role, isOpen]);
 
@@ -58,6 +70,10 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
       salaryRange: form.salaryRange || { min: 0, max: 0 },
       description: form.description || '',
       requiredSkillIds: form.requiredSkillIds || [],
+      technicalKnowledge: form.technicalKnowledge,
+      hardSkills: form.hardSkills,
+      softSkills: form.softSkills,
+      keyDeliverables: form.keyDeliverables,
     });
   };
 
@@ -67,7 +83,8 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-foreground/20 backdrop-blur-sm" onClick={onClose} />
       
-      <div className="relative bg-card rounded-2xl shadow-float w-full max-w-2xl max-h-[90vh] overflow-hidden animate-scale-in">
+      <div className="relative bg-card rounded-2xl shadow-float w-full max-w-3xl max-h-[90vh] overflow-hidden animate-scale-in">
+        {/* Header */}
         <div className="flex items-center justify-between p-5 border-b border-border">
           <h3 className="text-xl font-semibold text-foreground">
             {role ? 'Editar Cargo' : 'Novo Cargo'}
@@ -81,23 +98,21 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-5 overflow-y-auto max-h-[calc(90vh-140px)]">
-          {/* Title */}
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Título do Cargo</label>
-            <input
-              type="text"
-              value={form.title}
-              onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
-              className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-              placeholder="Ex: Desenvolvedor Full Stack"
-              required
-            />
-          </div>
-
-          {/* Level & Department */}
+          {/* Title & Level */}
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Nível</label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Título do Cargo</label>
+              <input
+                type="text"
+                value={form.title}
+                onChange={(e) => setForm(prev => ({ ...prev, title: e.target.value }))}
+                className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                placeholder="Ex: Desenvolvedor Full Stack"
+                required
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Nível Senioridade</label>
               <select
                 value={form.level}
                 onChange={(e) => setForm(prev => ({ ...prev, level: e.target.value as JobRole['level'] }))}
@@ -108,67 +123,72 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
                 ))}
               </select>
             </div>
+          </div>
+
+          {/* Department & Salary Range */}
+          <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">Departamento</label>
-              <select
+              <input
+                type="text"
                 value={form.department}
                 onChange={(e) => setForm(prev => ({ ...prev, department: e.target.value }))}
                 className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-              >
-                {departments.map(dept => (
-                  <option key={dept} value={dept}>{dept}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-
-          {/* Salary Range */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Salário Mínimo (R$)</label>
-              <input
-                type="number"
-                value={form.salaryRange?.min || ''}
-                onChange={(e) => setForm(prev => ({ 
-                  ...prev, 
-                  salaryRange: { ...prev.salaryRange!, min: Number(e.target.value) } 
-                }))}
-                className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                placeholder="Ex: 5000"
+                placeholder="Ex: Operacional"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Salário Máximo (R$)</label>
-              <input
-                type="number"
-                value={form.salaryRange?.max || ''}
-                onChange={(e) => setForm(prev => ({ 
-                  ...prev, 
-                  salaryRange: { ...prev.salaryRange!, max: Number(e.target.value) } 
-                }))}
-                className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                placeholder="Ex: 8000"
-              />
+              <label className="block text-sm font-medium text-foreground mb-1.5">Faixa Salarial Estimada (R$)</label>
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  value={form.salaryRange?.min || ''}
+                  onChange={(e) => setForm(prev => ({ 
+                    ...prev, 
+                    salaryRange: { ...prev.salaryRange!, min: Number(e.target.value) } 
+                  }))}
+                  className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  placeholder="0"
+                />
+                <span className="text-muted-foreground">-</span>
+                <input
+                  type="number"
+                  value={form.salaryRange?.max || ''}
+                  onChange={(e) => setForm(prev => ({ 
+                    ...prev, 
+                    salaryRange: { ...prev.salaryRange!, max: Number(e.target.value) } 
+                  }))}
+                  className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  placeholder="0"
+                />
+              </div>
             </div>
           </div>
 
-          {/* Description */}
+          {/* Base Salary - Highlighted */}
           <div>
-            <label className="block text-sm font-medium text-foreground mb-1.5">Descrição</label>
-            <textarea
-              value={form.description}
-              onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
-              className="w-full h-24 px-3 py-2 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none"
-              placeholder="Descreva as responsabilidades e requisitos do cargo..."
+            <label className="flex items-center gap-2 text-sm font-medium text-brand-600 mb-1.5">
+              <DollarSign className="w-4 h-4" />
+              Salário Base / Alvo (Real)
+            </label>
+            <input
+              type="number"
+              value={baseSalary || ''}
+              onChange={(e) => setBaseSalary(Number(e.target.value))}
+              className="w-full h-10 px-3 bg-brand-50 border border-brand-200 rounded-lg text-sm text-brand-700 placeholder:text-brand-400 focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+              placeholder="Ex: 4500.00"
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              Este valor será usado nos cálculos de média salarial do dashboard se preenchido.
+            </p>
           </div>
 
-          {/* Skills */}
+          {/* Skills Tags */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-1.5">
-              Habilidades Requeridas ({form.requiredSkillIds?.length || 0} selecionadas)
+              Tags de Habilidades (para Roadmap)
             </label>
-            <div className="flex flex-wrap gap-2 p-3 bg-secondary/50 rounded-lg max-h-40 overflow-y-auto">
+            <div className="flex flex-wrap gap-2 p-3 bg-secondary/30 rounded-lg border border-border min-h-[60px] max-h-40 overflow-y-auto">
               {skills.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Nenhuma habilidade cadastrada</p>
               ) : (
@@ -195,20 +215,99 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
             </div>
           </div>
 
+          {/* Description with AI Button */}
+          <div>
+            <div className="flex items-center justify-between mb-1.5">
+              <label className="text-sm font-medium text-foreground">Descrição Detalhada do Cargo</label>
+              <button
+                type="button"
+                className="flex items-center gap-1.5 text-xs text-brand-600 hover:text-brand-700 font-medium transition-colors"
+              >
+                <Sparkles className="w-3.5 h-3.5" />
+                Refinar com IA
+              </button>
+            </div>
+            <textarea
+              value={form.description}
+              onChange={(e) => setForm(prev => ({ ...prev, description: e.target.value }))}
+              className="w-full h-28 px-3 py-2 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none"
+              placeholder="Descreva as responsabilidades e desafios do cargo..."
+            />
+          </div>
+
+          {/* 2x2 Grid: Key Deliverables, Technical Knowledge, Hard Skills, Soft Skills */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* Key Deliverables */}
+            <div className="bg-secondary/30 rounded-xl p-4 border border-border">
+              <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
+                <Target className="w-4 h-4 text-emerald-500" />
+                Principais Entregas Esperadas
+              </label>
+              <textarea
+                value={form.keyDeliverables || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, keyDeliverables: e.target.value }))}
+                className="w-full h-20 px-3 py-2 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none"
+                placeholder="- Relatórios mensais de performance&#10;- Implementação de 2 novos projetos..."
+              />
+            </div>
+
+            {/* Technical Knowledge */}
+            <div className="bg-secondary/30 rounded-xl p-4 border border-border">
+              <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
+                <BookOpen className="w-4 h-4 text-blue-500" />
+                Conhecimentos Técnicos
+              </label>
+              <textarea
+                value={form.technicalKnowledge || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, technicalKnowledge: e.target.value }))}
+                className="w-full h-20 px-3 py-2 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none"
+                placeholder="- Graduação em Ciência da Computação&#10;- Conhecimento em arquitetura de microsserviços..."
+              />
+            </div>
+
+            {/* Hard Skills */}
+            <div className="bg-secondary/30 rounded-xl p-4 border border-border">
+              <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
+                <Wrench className="w-4 h-4 text-amber-500" />
+                Hard Skills (Ferramentas)
+              </label>
+              <textarea
+                value={form.hardSkills || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, hardSkills: e.target.value }))}
+                className="w-full h-20 px-3 py-2 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none"
+                placeholder="- Excel Avançado&#10;- ReactJS, Node.js&#10;- Certificação AWS..."
+              />
+            </div>
+
+            {/* Soft Skills */}
+            <div className="bg-secondary/30 rounded-xl p-4 border border-border">
+              <label className="flex items-center gap-2 text-sm font-medium text-foreground mb-2">
+                <Heart className="w-4 h-4 text-rose-500" />
+                Soft Skills (Comportamental)
+              </label>
+              <textarea
+                value={form.softSkills || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, softSkills: e.target.value }))}
+                className="w-full h-20 px-3 py-2 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 resize-none"
+                placeholder="- Liderança de equipes&#10;- Comunicação assertiva&#10;- Resolução de conflitos..."
+              />
+            </div>
+          </div>
+
           {/* Actions */}
-          <div className="flex justify-end gap-3 pt-3">
+          <div className="flex justify-end gap-3 pt-3 border-t border-border">
             <button
               type="button"
               onClick={onClose}
-              className="h-10 px-4 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+              className="h-10 px-5 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Cancelar
             </button>
             <button
               type="submit"
-              className="h-10 px-5 bg-brand-600 text-primary-foreground rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors shadow-soft"
+              className="h-10 px-6 bg-brand-600 text-primary-foreground rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors shadow-soft"
             >
-              {role ? 'Salvar Alterações' : 'Criar Cargo'}
+              Salvar Alterações
             </button>
           </div>
         </form>
