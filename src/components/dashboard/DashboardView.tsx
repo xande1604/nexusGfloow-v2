@@ -1,0 +1,145 @@
+import { Briefcase, Users, Sparkles, Route, TrendingUp, Award } from 'lucide-react';
+import { StatsCard } from './StatsCard';
+import { JobRole, Skill, Employee } from '@/types';
+
+interface DashboardViewProps {
+  roles: JobRole[];
+  skills: Skill[];
+  employees: Employee[];
+}
+
+export const DashboardView = ({ roles, skills, employees }: DashboardViewProps) => {
+  const avgSalary = roles.length > 0 
+    ? Math.round(roles.reduce((acc, r) => acc + (r.salaryRange.min + r.salaryRange.max) / 2, 0) / roles.length)
+    : 0;
+
+  const departments = [...new Set(roles.map(r => r.department))];
+  const skillsByCategory = {
+    technical: skills.filter(s => s.category === 'Technical').length,
+    soft: skills.filter(s => s.category === 'Soft Skill').length,
+    language: skills.filter(s => s.category === 'Language').length,
+    leadership: skills.filter(s => s.category === 'Leadership').length,
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <StatsCard
+          title="Total de Cargos"
+          value={roles.length}
+          subtitle={`${departments.length} departamentos`}
+          icon={Briefcase}
+          variant="primary"
+        />
+        <StatsCard
+          title="Habilidades Mapeadas"
+          value={skills.length}
+          subtitle={`${skillsByCategory.technical} técnicas`}
+          icon={Sparkles}
+          trend={{ value: 12, isPositive: true }}
+        />
+        <StatsCard
+          title="Colaboradores"
+          value={employees.length}
+          subtitle="Ativos no sistema"
+          icon={Users}
+        />
+        <StatsCard
+          title="Salário Médio"
+          value={`R$ ${avgSalary.toLocaleString('pt-BR')}`}
+          subtitle="Base dos cargos"
+          icon={TrendingUp}
+          variant="success"
+        />
+      </div>
+
+      {/* Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Recent Roles */}
+        <div className="bg-card rounded-xl p-5 shadow-medium">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Cargos Recentes</h3>
+            <span className="text-xs text-muted-foreground">Últimos adicionados</span>
+          </div>
+          <div className="space-y-3">
+            {roles.slice(0, 5).map((role, index) => (
+              <div 
+                key={role.id} 
+                className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors"
+                style={{ animationDelay: `${index * 50}ms` }}
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-lg bg-brand-100 flex items-center justify-center">
+                    <Briefcase className="w-5 h-5 text-brand-600" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-foreground">{role.title}</p>
+                    <p className="text-xs text-muted-foreground">{role.department} • {role.level}</p>
+                  </div>
+                </div>
+                <div className="text-right">
+                  <p className="text-sm font-semibold text-foreground">
+                    R$ {role.salaryRange.min.toLocaleString('pt-BR')}
+                  </p>
+                  <p className="text-xs text-muted-foreground">a R$ {role.salaryRange.max.toLocaleString('pt-BR')}</p>
+                </div>
+              </div>
+            ))}
+            {roles.length === 0 && (
+              <p className="text-center text-muted-foreground py-8">
+                Nenhum cargo cadastrado ainda
+              </p>
+            )}
+          </div>
+        </div>
+
+        {/* Skills Overview */}
+        <div className="bg-card rounded-xl p-5 shadow-medium">
+          <div className="flex items-center justify-between mb-4">
+            <h3 className="text-lg font-semibold text-foreground">Habilidades por Categoria</h3>
+            <span className="text-xs text-muted-foreground">{skills.length} total</span>
+          </div>
+          <div className="space-y-4">
+            {[
+              { label: 'Técnicas', value: skillsByCategory.technical, color: 'bg-brand-500' },
+              { label: 'Comportamentais', value: skillsByCategory.soft, color: 'bg-emerald-500' },
+              { label: 'Idiomas', value: skillsByCategory.language, color: 'bg-amber-500' },
+              { label: 'Liderança', value: skillsByCategory.leadership, color: 'bg-violet-500' },
+            ].map((item) => {
+              const percentage = skills.length > 0 ? (item.value / skills.length) * 100 : 0;
+              return (
+                <div key={item.label} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium text-foreground">{item.label}</span>
+                    <span className="text-sm text-muted-foreground">{item.value}</span>
+                  </div>
+                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                    <div 
+                      className={`h-full ${item.color} rounded-full transition-all duration-500`}
+                      style={{ width: `${percentage}%` }}
+                    />
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Quick Stats */}
+          <div className="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-border">
+            <div className="text-center p-3 bg-brand-50 rounded-lg">
+              <Award className="w-5 h-5 text-brand-600 mx-auto mb-1" />
+              <p className="text-lg font-bold text-brand-700">{roles.filter(r => r.requiredSkillIds.length > 0).length}</p>
+              <p className="text-xs text-muted-foreground">Cargos com skills</p>
+            </div>
+            <div className="text-center p-3 bg-emerald-50 rounded-lg">
+              <Route className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
+              <p className="text-lg font-bold text-emerald-700">0</p>
+              <p className="text-xs text-muted-foreground">Roadmaps criados</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
