@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { DashboardView } from '@/components/dashboard/DashboardView';
@@ -10,6 +11,8 @@ import { PerformanceView } from '@/components/performance/PerformanceView';
 import { AppView, Employee, CompanyContext, CareerRoadmap } from '@/types';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useSkills } from '@/hooks/useSkills';
+import { useAuth } from '@/hooks/useAuth';
+import { Loader2 } from 'lucide-react';
 
 // Demo employees (will be connected to Supabase later)
 const initialEmployees: Employee[] = [
@@ -30,6 +33,16 @@ const Index = () => {
   const [companyContext, setCompanyContext] = useState<CompanyContext>(initialContext);
   const [roadmaps, setRoadmaps] = useState<CareerRoadmap[]>([]);
 
+  const { isAuthenticated, loading: authLoading } = useAuth();
+  const navigate = useNavigate();
+
+  // Redirect to auth if not authenticated
+  useEffect(() => {
+    if (!authLoading && !isAuthenticated) {
+      navigate('/auth');
+    }
+  }, [isAuthenticated, authLoading, navigate]);
+
   // Supabase hooks
   const { roles, loading: rolesLoading, saveRole, deleteRole } = useJobRoles();
   const { skills, loading: skillsLoading, saveSkill, deleteSkill } = useSkills();
@@ -49,13 +62,27 @@ const Index = () => {
     setRoadmaps(prev => [...prev, newRoadmap]);
   };
 
+  // Show loading while checking auth
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+      </div>
+    );
+  }
+
+  // Don't render if not authenticated (will redirect)
+  if (!isAuthenticated) {
+    return null;
+  }
+
   const isLoading = rolesLoading || skillsLoading;
 
   const renderView = () => {
     if (isLoading) {
       return (
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-600"></div>
+          <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
         </div>
       );
     }
