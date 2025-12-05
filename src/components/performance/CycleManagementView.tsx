@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText } from 'lucide-react';
+import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { generateCycleReport } from '@/lib/generateCycleReport';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
@@ -126,6 +127,10 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
             {selectedCycle.description && <p className="text-muted-foreground mt-1">{selectedCycle.description}</p>}
           </div>
           <div className="flex gap-2">
+            <Button variant="outline" onClick={() => generateCycleReport(selectedCycle, cycleEvaluations)}>
+              <Download className="w-4 h-4 mr-2" />
+              Exportar PDF
+            </Button>
             {selectedCycle.status === 'active' && (
               <>
                 <Button variant="outline" onClick={() => setIsAddEmployeesModalOpen(true)}>
