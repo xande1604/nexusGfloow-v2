@@ -328,6 +328,7 @@ export type Database = {
           dataafastamento: string | null
           datainclusao: string | null
           datanascimento: string | null
+          email: string | null
           escolaridade: string | null
           estadocivil: string | null
           id: string
@@ -360,6 +361,7 @@ export type Database = {
           dataafastamento?: string | null
           datainclusao?: string | null
           datanascimento?: string | null
+          email?: string | null
           escolaridade?: string | null
           estadocivil?: string | null
           id?: string
@@ -392,6 +394,7 @@ export type Database = {
           dataafastamento?: string | null
           datainclusao?: string | null
           datanascimento?: string | null
+          email?: string | null
           escolaridade?: string | null
           estadocivil?: string | null
           id?: string

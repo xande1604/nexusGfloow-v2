@@ -13,9 +13,10 @@ const viewTitles: Record<AppView, { title: string; subtitle: string }> = {
   [AppView.DASHBOARD]: { title: 'Dashboard', subtitle: 'Visão geral do módulo de talentos' },
   [AppView.ROLES]: { title: 'Cargos e Salários', subtitle: 'Gerencie posições e faixas salariais' },
   [AppView.SKILLS]: { title: 'Repositório de Habilidades', subtitle: 'Catálogo de competências técnicas e comportamentais' },
+  [AppView.EMPLOYEES]: { title: 'Colaboradores', subtitle: 'Gerencie emails para autoavaliação' },
+  [AppView.COST_CENTERS]: { title: 'Centros de Custos', subtitle: 'Gerencie centros de custos por empresa' },
   [AppView.ROADMAP]: { title: 'Roadmap de Carreira', subtitle: 'Planos de desenvolvimento profissional com IA' },
   [AppView.PERFORMANCE]: { title: 'Avaliações de Desempenho', subtitle: 'Ciclos de feedback e reviews' },
-  [AppView.COST_CENTERS]: { title: 'Centros de Custos', subtitle: 'Gerencie centros de custos por empresa' },
   [AppView.SETTINGS]: { title: 'Configurações', subtitle: 'Contexto da empresa e preferências' },
 };
 

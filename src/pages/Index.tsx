@@ -9,6 +9,7 @@ import { RoadmapView } from '@/components/roadmap/RoadmapView';
 import { SettingsView } from '@/components/settings/SettingsView';
 import { PerformanceView } from '@/components/performance/PerformanceView';
 import { CostCentersView } from '@/components/cost-centers/CostCentersView';
+import { EmployeesView } from '@/components/employees/EmployeesView';
 import { AppView, CompanyContext } from '@/types';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useSkills } from '@/hooks/useSkills';
@@ -45,7 +46,7 @@ const Index = () => {
   const { roles, loading: rolesLoading, saveRole, deleteRole } = useJobRoles();
   const { skills, loading: skillsLoading, saveSkill, deleteSkill } = useSkills();
   const { roadmaps, loading: roadmapsLoading, saveRoadmap } = useRoadmaps();
-  const { employees, loading: employeesLoading } = useEmployees();
+  const { employees, loading: employeesLoading, updateEmployeeEmail } = useEmployees();
 
   const handleGenerateRoadmap = async (sourceRole: string, targetRole: string, employeeName?: string) => {
     setIsGeneratingRoadmap(true);
@@ -115,6 +116,8 @@ const Index = () => {
         return <RolesView roles={roles} skills={skills} onSaveRole={saveRole} onDeleteRole={deleteRole} />;
       case AppView.SKILLS:
         return <SkillsView skills={skills} roles={roles} onSaveSkill={saveSkill} onDeleteSkill={deleteSkill} />;
+      case AppView.EMPLOYEES:
+        return <EmployeesView employees={employees} roles={roles} onUpdateEmail={updateEmployeeEmail} />;
       case AppView.ROADMAP:
         return <RoadmapView roles={roles} employees={employees} roadmaps={roadmaps} onGenerateRoadmap={handleGenerateRoadmap} />;
       case AppView.PERFORMANCE:
