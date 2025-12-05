@@ -114,7 +114,7 @@ const Index = () => {
       case AppView.ROLES:
         return <RolesView roles={roles} skills={skills} onSaveRole={saveRole} onDeleteRole={deleteRole} />;
       case AppView.SKILLS:
-        return <SkillsView skills={skills} onSaveSkill={saveSkill} onDeleteSkill={deleteSkill} />;
+        return <SkillsView skills={skills} roles={roles} onSaveSkill={saveSkill} onDeleteSkill={deleteSkill} />;
       case AppView.ROADMAP:
         return <RoadmapView roles={roles} employees={employees} roadmaps={roadmaps} onGenerateRoadmap={handleGenerateRoadmap} />;
       case AppView.PERFORMANCE:
