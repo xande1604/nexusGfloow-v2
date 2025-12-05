@@ -2,8 +2,13 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, LogIn, UserPlus, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, LogIn, UserPlus, Loader2, Key, HelpCircle } from 'lucide-react';
 import { z } from 'zod';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'Senha deve ter pelo menos 6 caracteres');
@@ -13,6 +18,7 @@ const Auth = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [name, setName] = useState('');
+  const [accessKey, setAccessKey] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string }>({});
@@ -79,7 +85,7 @@ const Auth = () => {
           });
         }
       } else {
-        const { error } = await signUp(email, password, name);
+        const { error, keyValidation } = await signUp(email, password, name, accessKey || undefined);
         if (error) {
           if (error.message.includes('already registered')) {
             toast({
@@ -95,10 +101,31 @@ const Auth = () => {
             });
           }
         } else {
-          toast({
-            title: 'Conta criada!',
-            description: 'Verifique seu email para confirmar o cadastro.',
-          });
+          // Handle access key validation result
+          if (keyValidation) {
+            if (keyValidation.success) {
+              toast({
+                title: 'Conta criada com sucesso!',
+                description: keyValidation.message || 'Você agora é administrador.',
+              });
+            } else {
+              toast({
+                title: 'Conta criada, mas...',
+                description: `A chave de acesso é inválida: ${keyValidation.error}. Você pode tentar novamente depois.`,
+                variant: 'destructive',
+              });
+            }
+          } else if (accessKey) {
+            toast({
+              title: 'Conta criada!',
+              description: 'Verifique seu email. A chave de acesso será validada após confirmação.',
+            });
+          } else {
+            toast({
+              title: 'Conta criada!',
+              description: 'Verifique seu email para confirmar o cadastro.',
+            });
+          }
         }
       }
     } finally {
@@ -158,21 +185,51 @@ const Auth = () => {
 
           <form onSubmit={handleSubmit} className="space-y-4">
             {!isLogin && (
-              <div>
-                <label className="block text-sm font-medium text-foreground mb-1.5">
-                  Nome
-                </label>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Seu nome completo"
-                  className="w-full h-11 px-4 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-                />
-                {errors.name && (
-                  <p className="text-sm text-destructive mt-1">{errors.name}</p>
-                )}
-              </div>
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-foreground mb-1.5">
+                    Nome
+                  </label>
+                  <input
+                    type="text"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Seu nome completo"
+                    className="w-full h-11 px-4 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                  />
+                  {errors.name && (
+                    <p className="text-sm text-destructive mt-1">{errors.name}</p>
+                  )}
+                </div>
+
+                {/* Access Key Field */}
+                <div>
+                  <div className="flex items-center gap-2 mb-1.5">
+                    <label className="block text-sm font-medium text-foreground">
+                      Chave de Acesso
+                    </label>
+                    <span className="text-xs text-muted-foreground">(opcional)</span>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <HelpCircle className="w-4 h-4 text-muted-foreground cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent className="max-w-[250px]">
+                        <p>Se você possui uma chave de acesso, informe-a para criar seu ambiente administrativo isolado.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </div>
+                  <div className="relative">
+                    <Key className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                    <input
+                      type="text"
+                      value={accessKey}
+                      onChange={(e) => setAccessKey(e.target.value.toUpperCase())}
+                      placeholder="RH-XXXXXXXX-XXXXXXXX"
+                      className="w-full h-11 pl-10 pr-4 bg-secondary border border-border rounded-lg text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all font-mono text-sm"
+                    />
+                  </div>
+                </div>
+              </>
             )}
 
             <div>

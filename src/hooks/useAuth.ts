@@ -35,10 +35,10 @@ export const useAuth = () => {
     return { error };
   };
 
-  const signUp = async (email: string, password: string, name: string) => {
+  const signUp = async (email: string, password: string, name: string, accessKey?: string) => {
     const redirectUrl = `${window.location.origin}/`;
     
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -46,7 +46,40 @@ export const useAuth = () => {
         data: { name },
       },
     });
-    return { error };
+
+    if (error) {
+      return { error, keyValidation: null };
+    }
+
+    // If access key provided and user created, validate it
+    if (accessKey && data.user) {
+      const keyResult = await validateAccessKey(accessKey, data.user.id);
+      return { error: null, keyValidation: keyResult };
+    }
+
+    return { error: null, keyValidation: null };
+  };
+
+  const validateAccessKey = async (keyCode: string, userId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke('validate-access-key', {
+        body: { keyCode, userId },
+      });
+
+      if (error) {
+        console.error('Error validating key:', error);
+        return { success: false, error: error.message };
+      }
+
+      if (data.error) {
+        return { success: false, error: data.error };
+      }
+
+      return { success: true, role: data.role, message: data.message };
+    } catch (err: any) {
+      console.error('Exception validating key:', err);
+      return { success: false, error: 'Erro ao validar chave de acesso' };
+    }
   };
 
   const signOut = async () => {
@@ -61,6 +94,7 @@ export const useAuth = () => {
     signIn,
     signUp,
     signOut,
+    validateAccessKey,
     isAuthenticated: !!session,
   };
 };
