@@ -8,7 +8,8 @@ import {
   ChevronLeft,
   ChevronRight,
   Layers,
-  Building2
+  Building2,
+  Users
 } from 'lucide-react';
 import { AppView } from '@/types';
 import { cn } from '@/lib/utils';
@@ -23,6 +24,7 @@ const menuItems = [
   { view: AppView.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
   { view: AppView.ROLES, label: 'Cargos e Salários', icon: Briefcase },
   { view: AppView.SKILLS, label: 'Habilidades', icon: Sparkles },
+  { view: AppView.EMPLOYEES, label: 'Colaboradores', icon: Users },
   { view: AppView.COST_CENTERS, label: 'Centros de Custos', icon: Building2 },
   { view: AppView.ROADMAP, label: 'Roadmap de Carreira', icon: Route },
   { view: AppView.PERFORMANCE, label: 'Avaliações', icon: ClipboardCheck },

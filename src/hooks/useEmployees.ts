@@ -10,7 +10,7 @@ export const useEmployees = () => {
     try {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, nome, codigocargo, matricula, dataadmissao')
+        .select('id, nome, codigocargo, matricula, dataadmissao, email')
         .not('nome', 'is', null)
         .order('nome');
 
@@ -20,7 +20,7 @@ export const useEmployees = () => {
         id: emp.id,
         name: emp.nome || '',
         roleId: emp.codigocargo || '',
-        email: '',
+        email: emp.email || '',
         admissionDate: emp.dataadmissao || '',
       }));
 
@@ -32,9 +32,31 @@ export const useEmployees = () => {
     }
   };
 
+  const updateEmployeeEmail = async (employeeId: string, email: string) => {
+    try {
+      const { error } = await supabase
+        .from('employees')
+        .update({ email })
+        .eq('id', employeeId);
+
+      if (error) throw error;
+
+      setEmployees(prev => 
+        prev.map(emp => 
+          emp.id === employeeId ? { ...emp, email } : emp
+        )
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating employee email:', error);
+      return { success: false, error };
+    }
+  };
+
   useEffect(() => {
     fetchEmployees();
   }, []);
 
-  return { employees, loading, refetch: fetchEmployees };
+  return { employees, loading, refetch: fetchEmployees, updateEmployeeEmail };
 };
