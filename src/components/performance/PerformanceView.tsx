@@ -1,10 +1,12 @@
 import { useState } from 'react';
-import { ClipboardCheck, Plus, Calendar, User, Star, ChevronRight, Search, Trash2, Loader2 } from 'lucide-react';
+import { ClipboardCheck, Plus, Calendar, User, Star, ChevronRight, Search, Trash2, Loader2, RefreshCcw } from 'lucide-react';
 import { Employee, JobRole } from '@/types';
 import { PerformanceReview, usePerformanceReviews } from '@/hooks/usePerformanceReviews';
 import { ReviewFormModal } from './ReviewFormModal';
 import { ReviewDetailView } from './ReviewDetailView';
 import { PerformanceEvolutionChart } from './PerformanceEvolutionChart';
+import { CycleManagementView } from './CycleManagementView';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 
 interface PerformanceViewProps {
@@ -90,6 +92,23 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <Tabs defaultValue="cycles" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="cycles" className="flex items-center gap-2">
+            <RefreshCcw className="w-4 h-4" />
+            Ciclos de Avaliação
+          </TabsTrigger>
+          <TabsTrigger value="reviews" className="flex items-center gap-2">
+            <ClipboardCheck className="w-4 h-4" />
+            Avaliações Avulsas
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="cycles">
+          <CycleManagementView employees={employees} roles={roles} />
+        </TabsContent>
+
+        <TabsContent value="reviews">
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-1 gap-3 w-full sm:w-auto">
@@ -243,6 +262,8 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
         roles={roles}
         defaultQuestions={defaultQuestions}
       />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 };
