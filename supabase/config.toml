@@ -14,3 +14,9 @@ verify_jwt = false
 
 [functions.generate-skills]
 verify_jwt = true
+
+[functions.employee-auth]
+verify_jwt = false
+
+[functions.submit-self-assessment]
+verify_jwt = false

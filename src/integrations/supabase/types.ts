@@ -311,6 +311,115 @@ export type Database = {
         }
         Relationships: []
       }
+      employee_credentials: {
+        Row: {
+          created_at: string | null
+          employee_id: string
+          id: string
+          password_hash: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          employee_id: string
+          id?: string
+          password_hash: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          employee_id?: string
+          id?: string
+          password_hash?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_credentials_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_credentials_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: true
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      employee_evaluations: {
+        Row: {
+          created_at: string | null
+          cycle_id: string
+          employee_id: string
+          id: string
+          manager_evaluation_completed_at: string | null
+          manager_evaluation_responses: Json | null
+          manager_feedback: string | null
+          owner_admin_id: string | null
+          questions: Json
+          self_assessment_completed_at: string | null
+          self_assessment_responses: Json | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          cycle_id: string
+          employee_id: string
+          id?: string
+          manager_evaluation_completed_at?: string | null
+          manager_evaluation_responses?: Json | null
+          manager_feedback?: string | null
+          owner_admin_id?: string | null
+          questions?: Json
+          self_assessment_completed_at?: string | null
+          self_assessment_responses?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          cycle_id?: string
+          employee_id?: string
+          id?: string
+          manager_evaluation_completed_at?: string | null
+          manager_evaluation_responses?: Json | null
+          manager_feedback?: string | null
+          owner_admin_id?: string | null
+          questions?: Json
+          self_assessment_completed_at?: string | null
+          self_assessment_responses?: Json | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_evaluations_cycle_id_fkey"
+            columns: ["cycle_id"]
+            isOneToOne: false
+            referencedRelation: "evaluation_cycles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_evaluations_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           causademissao: string | null
@@ -499,6 +608,42 @@ export type Database = {
           descricaoestcivil?: string
           id?: string
           owner_admin_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      evaluation_cycles: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          end_date: string | null
+          id: string
+          owner_admin_id: string | null
+          start_date: string
+          status: string
+          title: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          owner_admin_id?: string | null
+          start_date?: string
+          status?: string
+          title: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          end_date?: string | null
+          id?: string
+          owner_admin_id?: string | null
+          start_date?: string
+          status?: string
+          title?: string
           updated_at?: string | null
         }
         Relationships: []
