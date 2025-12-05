@@ -57,5 +57,13 @@ export enum AppView {
   SKILLS = 'SKILLS',
   ROADMAP = 'ROADMAP',
   PERFORMANCE = 'PERFORMANCE',
+  COST_CENTERS = 'COST_CENTERS',
   SETTINGS = 'SETTINGS'
+}
+
+export interface CostCenter {
+  id: string;
+  codcentrodecustos: string;
+  nomecentrodecustos: string;
+  codempresa: string;
 }

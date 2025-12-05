@@ -8,6 +8,7 @@ import { SkillsView } from '@/components/skills/SkillsView';
 import { RoadmapView } from '@/components/roadmap/RoadmapView';
 import { SettingsView } from '@/components/settings/SettingsView';
 import { PerformanceView } from '@/components/performance/PerformanceView';
+import { CostCentersView } from '@/components/cost-centers/CostCentersView';
 import { AppView, CompanyContext } from '@/types';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useSkills } from '@/hooks/useSkills';
@@ -118,6 +119,8 @@ const Index = () => {
         return <RoadmapView roles={roles} employees={employees} roadmaps={roadmaps} onGenerateRoadmap={handleGenerateRoadmap} />;
       case AppView.PERFORMANCE:
         return <PerformanceView employees={employees} roles={roles} />;
+      case AppView.COST_CENTERS:
+        return <CostCentersView />;
       case AppView.SETTINGS:
         return <SettingsView companyContext={companyContext} onSaveContext={setCompanyContext} />;
       default:
