@@ -1,10 +1,13 @@
 import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Sparkles, Code, Heart, Globe, Crown } from 'lucide-react';
-import { Skill } from '@/types';
+import { Plus, Search, Trash2, Sparkles, Code, Heart, Globe, Crown, Wand2, Loader2, Briefcase } from 'lucide-react';
+import { Skill, JobRole } from '@/types';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 interface SkillsViewProps {
   skills: Skill[];
+  roles?: JobRole[];
   onSaveSkill: (skill: Skill) => void;
   onDeleteSkill: (id: string) => void;
 }
@@ -16,12 +19,28 @@ const categories: { value: Skill['category']; label: string; icon: typeof Code; 
   { value: 'Leadership', label: 'Liderança', icon: Crown, color: 'bg-violet-100 text-violet-600' },
 ];
 
-export const SkillsView = ({ skills, onSaveSkill, onDeleteSkill }: SkillsViewProps) => {
+interface GeneratedSkill {
+  name: string;
+  category: Skill['category'];
+  description: string;
+}
+
+export const SkillsView = ({ skills, roles = [], onSaveSkill, onDeleteSkill }: SkillsViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<Skill['category'] | ''>('');
   const [isAdding, setIsAdding] = useState(false);
   const [newSkill, setNewSkill] = useState({ name: '', category: 'Technical' as Skill['category'], description: '' });
   const [editingId, setEditingId] = useState<string | null>(null);
+  
+  // AI Generation states
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [selectedRoleId, setSelectedRoleId] = useState('');
+  const [customRoleTitle, setCustomRoleTitle] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generatedSkills, setGeneratedSkills] = useState<GeneratedSkill[]>([]);
+  const [selectedGeneratedSkills, setSelectedGeneratedSkills] = useState<Set<number>>(new Set());
+  
+  const { toast } = useToast();
 
   const filteredSkills = skills.filter(skill => {
     const matchesSearch = skill.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -57,6 +76,91 @@ export const SkillsView = ({ skills, onSaveSkill, onDeleteSkill }: SkillsViewPro
     return cat?.color || 'bg-secondary text-muted-foreground';
   };
 
+  const handleGenerateSkills = async () => {
+    const roleTitle = selectedRoleId 
+      ? roles.find(r => r.id === selectedRoleId)?.title 
+      : customRoleTitle;
+
+    if (!roleTitle?.trim()) {
+      toast({
+        title: 'Erro',
+        description: 'Selecione um cargo ou digite uma função.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsGenerating(true);
+    setGeneratedSkills([]);
+    setSelectedGeneratedSkills(new Set());
+
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-skills', {
+        body: { roleTitle },
+      });
+
+      if (error) throw error;
+
+      if (data?.skills && Array.isArray(data.skills)) {
+        setGeneratedSkills(data.skills);
+        // Select all by default
+        setSelectedGeneratedSkills(new Set(data.skills.map((_: GeneratedSkill, i: number) => i)));
+        toast({
+          title: 'Habilidades geradas',
+          description: `${data.skills.length} habilidades sugeridas para ${roleTitle}.`,
+        });
+      }
+    } catch (error: any) {
+      console.error('Error generating skills:', error);
+      toast({
+        title: 'Erro ao gerar habilidades',
+        description: error.message || 'Tente novamente.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
+  const toggleGeneratedSkill = (index: number) => {
+    const newSelected = new Set(selectedGeneratedSkills);
+    if (newSelected.has(index)) {
+      newSelected.delete(index);
+    } else {
+      newSelected.add(index);
+    }
+    setSelectedGeneratedSkills(newSelected);
+  };
+
+  const handleAddGeneratedSkills = () => {
+    const skillsToAdd = generatedSkills.filter((_, i) => selectedGeneratedSkills.has(i));
+    const existingNames = new Set(skills.map(s => s.name.toLowerCase()));
+    
+    let addedCount = 0;
+    skillsToAdd.forEach(skill => {
+      if (!existingNames.has(skill.name.toLowerCase())) {
+        onSaveSkill({
+          id: crypto.randomUUID(),
+          name: skill.name,
+          category: skill.category,
+          description: skill.description,
+        });
+        addedCount++;
+      }
+    });
+
+    toast({
+      title: 'Habilidades adicionadas',
+      description: `${addedCount} habilidades foram adicionadas.`,
+    });
+
+    setShowAIGenerator(false);
+    setGeneratedSkills([]);
+    setSelectedGeneratedSkills(new Set());
+    setSelectedRoleId('');
+    setCustomRoleTitle('');
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Header */}
@@ -85,14 +189,175 @@ export const SkillsView = ({ skills, onSaveSkill, onDeleteSkill }: SkillsViewPro
           </select>
         </div>
 
-        <button
-          onClick={() => setIsAdding(true)}
-          className="flex items-center gap-2 h-10 px-4 bg-brand-600 text-primary-foreground rounded-lg font-medium text-sm hover:bg-brand-700 transition-colors shadow-soft"
-        >
-          <Plus className="w-4 h-4" />
-          Nova Habilidade
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => setShowAIGenerator(true)}
+            className="flex items-center gap-2 h-10 px-4 bg-gradient-to-r from-violet-600 to-brand-600 text-primary-foreground rounded-lg font-medium text-sm hover:opacity-90 transition-opacity shadow-soft"
+          >
+            <Wand2 className="w-4 h-4" />
+            Gerar com IA
+          </button>
+          <button
+            onClick={() => setIsAdding(true)}
+            className="flex items-center gap-2 h-10 px-4 bg-brand-600 text-primary-foreground rounded-lg font-medium text-sm hover:bg-brand-700 transition-colors shadow-soft"
+          >
+            <Plus className="w-4 h-4" />
+            Nova Habilidade
+          </button>
+        </div>
       </div>
+
+      {/* AI Generator Panel */}
+      {showAIGenerator && (
+        <div className="bg-gradient-to-br from-violet-50 to-brand-50 dark:from-violet-950/20 dark:to-brand-950/20 rounded-xl p-5 shadow-medium animate-slide-up border border-violet-200 dark:border-violet-800">
+          <div className="flex items-center gap-2 mb-4">
+            <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-violet-600 to-brand-600 flex items-center justify-center">
+              <Wand2 className="w-4 h-4 text-white" />
+            </div>
+            <h3 className="text-lg font-semibold text-foreground">Gerar Habilidades com IA</h3>
+          </div>
+          
+          <p className="text-sm text-muted-foreground mb-4">
+            Selecione um cargo existente ou digite uma função para mapear as habilidades necessárias.
+          </p>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                <Briefcase className="w-4 h-4 inline mr-1" />
+                Selecionar Cargo
+              </label>
+              <select
+                value={selectedRoleId}
+                onChange={(e) => {
+                  setSelectedRoleId(e.target.value);
+                  if (e.target.value) setCustomRoleTitle('');
+                }}
+                className="w-full h-10 px-3 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+              >
+                <option value="">Escolha um cargo...</option>
+                {roles.map(role => (
+                  <option key={role.id} value={role.id}>{role.title}</option>
+                ))}
+              </select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-2">
+                Ou digite uma função
+              </label>
+              <input
+                type="text"
+                value={customRoleTitle}
+                onChange={(e) => {
+                  setCustomRoleTitle(e.target.value);
+                  if (e.target.value) setSelectedRoleId('');
+                }}
+                placeholder="Ex: Desenvolvedor Full Stack, Analista de RH..."
+                className="w-full h-10 px-3 bg-card border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-violet-500/20 focus:border-violet-500"
+              />
+            </div>
+          </div>
+
+          <div className="flex gap-2 mb-4">
+            <button
+              onClick={handleGenerateSkills}
+              disabled={isGenerating || (!selectedRoleId && !customRoleTitle.trim())}
+              className="flex items-center gap-2 h-10 px-4 bg-gradient-to-r from-violet-600 to-brand-600 text-primary-foreground rounded-lg font-medium text-sm hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {isGenerating ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Gerando...
+                </>
+              ) : (
+                <>
+                  <Sparkles className="w-4 h-4" />
+                  Gerar Habilidades
+                </>
+              )}
+            </button>
+            <button
+              onClick={() => {
+                setShowAIGenerator(false);
+                setGeneratedSkills([]);
+                setSelectedGeneratedSkills(new Set());
+                setSelectedRoleId('');
+                setCustomRoleTitle('');
+              }}
+              className="h-10 px-4 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Cancelar
+            </button>
+          </div>
+
+          {/* Generated Skills */}
+          {generatedSkills.length > 0 && (
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-foreground">
+                  Habilidades Sugeridas ({selectedGeneratedSkills.size}/{generatedSkills.length} selecionadas)
+                </h4>
+                <button
+                  onClick={() => {
+                    if (selectedGeneratedSkills.size === generatedSkills.length) {
+                      setSelectedGeneratedSkills(new Set());
+                    } else {
+                      setSelectedGeneratedSkills(new Set(generatedSkills.map((_, i) => i)));
+                    }
+                  }}
+                  className="text-xs text-brand-600 hover:text-brand-700"
+                >
+                  {selectedGeneratedSkills.size === generatedSkills.length ? 'Desmarcar todas' : 'Selecionar todas'}
+                </button>
+              </div>
+              
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 max-h-64 overflow-y-auto">
+                {generatedSkills.map((skill, index) => {
+                  const isSelected = selectedGeneratedSkills.has(index);
+                  const CategoryIcon = getCategoryIcon(skill.category);
+                  return (
+                    <button
+                      key={index}
+                      onClick={() => toggleGeneratedSkill(index)}
+                      className={cn(
+                        "flex items-start gap-2 p-3 rounded-lg border text-left transition-all",
+                        isSelected 
+                          ? "bg-brand-50 dark:bg-brand-950/30 border-brand-300 dark:border-brand-700" 
+                          : "bg-card border-border hover:border-brand-300"
+                      )}
+                    >
+                      <div className={cn(
+                        "w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 mt-0.5",
+                        isSelected ? "bg-brand-600 border-brand-600" : "border-border"
+                      )}>
+                        {isSelected && <span className="text-white text-xs">✓</span>}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-1.5">
+                          <CategoryIcon className={cn("w-3.5 h-3.5", getCategoryColor(skill.category).split(' ')[1])} />
+                          <span className="text-sm font-medium text-foreground truncate">{skill.name}</span>
+                        </div>
+                        {skill.description && (
+                          <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">{skill.description}</p>
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                onClick={handleAddGeneratedSkills}
+                disabled={selectedGeneratedSkills.size === 0}
+                className="w-full h-10 bg-brand-600 text-primary-foreground rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Adicionar {selectedGeneratedSkills.size} Habilidade{selectedGeneratedSkills.size !== 1 ? 's' : ''}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Add Form */}
       {isAdding && (
