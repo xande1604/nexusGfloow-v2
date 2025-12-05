@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Building2, Search, Plus, Pencil, Trash2 } from 'lucide-react';
+import { Building2, Search, Plus, Pencil, Trash2, Users } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -29,7 +29,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { useCostCenters } from '@/hooks/useCostCenters';
+import { useCostCenters, CostCenterWithCount } from '@/hooks/useCostCenters';
 import { useEmpresas } from '@/hooks/useEmpresas';
 import { CostCenterFormModal } from './CostCenterFormModal';
 import { CostCenter } from '@/types';
@@ -41,9 +41,9 @@ export const CostCentersView = () => {
   const [search, setSearch] = useState('');
   const [empresaFilter, setEmpresaFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingCostCenter, setEditingCostCenter] = useState<CostCenter | null>(null);
+  const [editingCostCenter, setEditingCostCenter] = useState<CostCenterWithCount | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [costCenterToDelete, setCostCenterToDelete] = useState<CostCenter | null>(null);
+  const [costCenterToDelete, setCostCenterToDelete] = useState<CostCenterWithCount | null>(null);
 
   const filteredCostCenters = useMemo(() => {
     return costCenters.filter(cc => {
@@ -55,17 +55,21 @@ export const CostCentersView = () => {
     });
   }, [costCenters, search, empresaFilter]);
 
+  const totalEmployees = useMemo(() => {
+    return costCenters.reduce((sum, cc) => sum + cc.employeeCount, 0);
+  }, [costCenters]);
+
   const getEmpresaName = (codempresa: string) => {
     const empresa = empresas.find(e => e.codempresa === codempresa);
     return empresa?.nomeempresa || codempresa;
   };
 
-  const handleEdit = (costCenter: CostCenter) => {
+  const handleEdit = (costCenter: CostCenterWithCount) => {
     setEditingCostCenter(costCenter);
     setIsModalOpen(true);
   };
 
-  const handleDelete = (costCenter: CostCenter) => {
+  const handleDelete = (costCenter: CostCenterWithCount) => {
     setCostCenterToDelete(costCenter);
     setDeleteDialogOpen(true);
   };
@@ -100,7 +104,7 @@ export const CostCentersView = () => {
   return (
     <div className="space-y-6">
       {/* Stats */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
         <Card>
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
@@ -118,7 +122,20 @@ export const CostCentersView = () => {
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
               <div className="p-3 rounded-xl bg-emerald-100">
-                <Building2 className="w-6 h-6 text-emerald-600" />
+                <Users className="w-6 h-6 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-foreground">{totalEmployees}</p>
+                <p className="text-sm text-muted-foreground">Colaboradores</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center gap-4">
+              <div className="p-3 rounded-xl bg-violet-100">
+                <Building2 className="w-6 h-6 text-violet-600" />
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{empresas.length}</p>
@@ -135,7 +152,7 @@ export const CostCentersView = () => {
               </div>
               <div>
                 <p className="text-2xl font-bold text-foreground">{filteredCostCenters.length}</p>
-                <p className="text-sm text-muted-foreground">Resultados Filtrados</p>
+                <p className="text-sm text-muted-foreground">Filtrados</p>
               </div>
             </div>
           </CardContent>
@@ -190,13 +207,14 @@ export const CostCentersView = () => {
                   <TableHead>Código</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Empresa</TableHead>
+                  <TableHead className="text-center">Colaboradores</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {filteredCostCenters.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={4} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
                       Nenhum centro de custos encontrado.
                     </TableCell>
                   </TableRow>
@@ -212,6 +230,12 @@ export const CostCentersView = () => {
                       <TableCell>
                         <Badge variant="secondary">
                           {getEmpresaName(cc.codempresa)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge variant={cc.employeeCount > 0 ? "default" : "outline"} className="gap-1">
+                          <Users className="w-3 h-3" />
+                          {cc.employeeCount}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
