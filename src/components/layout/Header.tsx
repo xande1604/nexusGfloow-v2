@@ -17,6 +17,7 @@ const viewTitles: Record<AppView, { title: string; subtitle: string }> = {
   [AppView.COST_CENTERS]: { title: 'Centros de Custos', subtitle: 'Gerencie centros de custos por empresa' },
   [AppView.ROADMAP]: { title: 'Roadmap de Carreira', subtitle: 'Planos de desenvolvimento profissional com IA' },
   [AppView.PERFORMANCE]: { title: 'Avaliações de Desempenho', subtitle: 'Ciclos de feedback e reviews' },
+  [AppView.TUTORIALS]: { title: 'Tutoriais', subtitle: 'Aprenda a usar todas as funcionalidades' },
   [AppView.SETTINGS]: { title: 'Configurações', subtitle: 'Contexto da empresa e preferências' },
 };
 
