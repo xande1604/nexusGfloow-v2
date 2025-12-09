@@ -40,18 +40,26 @@ serve(async (req) => {
       cycleTitle: payload.cycleTitle
     });
 
-    const response = await fetch(webhookUrl, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        ...payload,
-        timestamp: new Date().toISOString(),
-        action: payload.type === 'self_assessment' 
-          ? 'resend_self_assessment_invite' 
-          : 'resend_manager_evaluation_invite'
-      }),
+    // Build query parameters for GET request
+    const params = new URLSearchParams({
+      type: payload.type,
+      action: payload.type === 'self_assessment' 
+        ? 'resend_self_assessment_invite' 
+        : 'resend_manager_evaluation_invite',
+      employeeName: payload.employeeName,
+      employeeEmail: payload.employeeEmail,
+      cycleTitle: payload.cycleTitle,
+      cycleId: payload.cycleId,
+      evaluationId: payload.evaluationId,
+      timestamp: new Date().toISOString(),
+      ...(payload.managerName && { managerName: payload.managerName }),
+      ...(payload.managerEmail && { managerEmail: payload.managerEmail }),
+    });
+
+    const urlWithParams = `${webhookUrl}?${params.toString()}`;
+    
+    const response = await fetch(urlWithParams, {
+      method: 'GET',
     });
 
     if (!response.ok) {
