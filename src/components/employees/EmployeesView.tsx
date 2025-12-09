@@ -49,7 +49,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
   const handleEditGestorSave = async (employeeId: string) => {
     if (!onUpdateGestor) return;
     
-    const result = await onUpdateGestor(employeeId, selectedGestor || null);
+    const result = await onUpdateGestor(employeeId, selectedGestor === '__none__' ? null : selectedGestor || null);
     
     if (result.success) {
       toast({
@@ -219,7 +219,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
                             <SelectValue placeholder="Selecione um gestor..." />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="">Nenhum</SelectItem>
+                            <SelectItem value="__none__">Nenhum</SelectItem>
                             {employees
                               .filter(e => e.id !== employee.id)
                               .map(e => (
