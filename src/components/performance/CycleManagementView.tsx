@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle, Sparkles, RefreshCw, Pencil, Trash2 } from 'lucide-react';
+import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle, Sparkles, RefreshCw, Pencil, Trash2, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateCycleReport } from '@/lib/generateCycleReport';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -148,8 +148,54 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
 
   const cycleEvaluations = selectedCycle ? evaluations.filter(e => e.cycle_id === selectedCycle.id) : [];
   
-  const handleSendInvite = (employee: Employee) => {
-    toast.info(`Funcionalidade de envio de convite para ${employee.name} será implementada em breve. Cadastre o email do colaborador na tela de Colaboradores.`);
+  const [sendingInvite, setSendingInvite] = useState<string | null>(null);
+
+  const handleSendInvite = async (evaluation: EmployeeEvaluation, type: 'self_assessment' | 'manager_evaluation') => {
+    const employee = evaluation.employee;
+    if (!employee?.email) {
+      toast.error('Colaborador não possui email cadastrado.');
+      return;
+    }
+
+    // Find manager info if sending manager evaluation invite
+    let managerName: string | undefined;
+    let managerEmail: string | undefined;
+    
+    if (type === 'manager_evaluation') {
+      const manager = employees.find(e => e.id === employee.gestor_id);
+      if (manager) {
+        managerName = manager.name;
+        managerEmail = manager.email || undefined;
+      }
+    }
+
+    setSendingInvite(`${evaluation.id}-${type}`);
+    
+    try {
+      const { data, error } = await supabase.functions.invoke('send-evaluation-invite', {
+        body: {
+          type,
+          employeeName: employee.nome || employee.name,
+          employeeEmail: employee.email,
+          managerName,
+          managerEmail,
+          cycleTitle: selectedCycle?.title || '',
+          cycleId: selectedCycle?.id || '',
+          evaluationId: evaluation.id
+        }
+      });
+      
+      if (error) throw error;
+      
+      toast.success(type === 'self_assessment' 
+        ? 'Convite de autoavaliação enviado!'
+        : 'Convite de avaliação do gestor enviado!');
+    } catch (error) {
+      console.error('Error sending invite:', error);
+      toast.error('Erro ao enviar convite. Verifique a configuração do webhook.');
+    } finally {
+      setSendingInvite(null);
+    }
   };
 
   // Question editing handlers
@@ -271,7 +317,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                       <p className="font-medium text-foreground">{evaluation.employee?.nome || evaluation.employee?.name || 'Colaborador'}</p>
                       <p className="text-sm text-muted-foreground">{evaluation.employee?.email}</p>
                     </div>
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-2">
                       <Badge className={cn(
                         evaluation.status === 'pending' && 'bg-amber-100 text-amber-700',
                         evaluation.status === 'self_assessment_done' && 'bg-brand-100 text-brand-700',
@@ -281,11 +327,51 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                         {evaluation.status === 'self_assessment_done' && 'Avaliar'}
                         {evaluation.status === 'completed' && 'Concluída'}
                       </Badge>
-                      {evaluation.status === 'self_assessment_done' && (
-                        <Button size="sm" onClick={() => handleOpenManagerEvaluation(evaluation)}>
-                          Avaliar
+                      
+                      {/* Resend buttons */}
+                      {evaluation.status === 'pending' && evaluation.employee?.email && (
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="text-xs"
+                          onClick={() => handleSendInvite(evaluation, 'self_assessment')}
+                          disabled={sendingInvite === `${evaluation.id}-self_assessment`}
+                        >
+                          {sendingInvite === `${evaluation.id}-self_assessment` ? (
+                            <Loader2 className="w-3 h-3 animate-spin" />
+                          ) : (
+                            <>
+                              <Send className="w-3 h-3 mr-1" />
+                              Reenviar convite
+                            </>
+                          )}
                         </Button>
                       )}
+                      
+                      {evaluation.status === 'self_assessment_done' && (
+                        <>
+                          <Button 
+                            size="sm" 
+                            variant="ghost" 
+                            className="text-xs"
+                            onClick={() => handleSendInvite(evaluation, 'manager_evaluation')}
+                            disabled={sendingInvite === `${evaluation.id}-manager_evaluation`}
+                          >
+                            {sendingInvite === `${evaluation.id}-manager_evaluation` ? (
+                              <Loader2 className="w-3 h-3 animate-spin" />
+                            ) : (
+                              <>
+                                <Send className="w-3 h-3 mr-1" />
+                                Notificar gestor
+                              </>
+                            )}
+                          </Button>
+                          <Button size="sm" onClick={() => handleOpenManagerEvaluation(evaluation)}>
+                            Avaliar
+                          </Button>
+                        </>
+                      )}
+                      
                       {evaluation.status === 'completed' && (
                         <Button size="sm" variant="outline" onClick={() => handleOpenManagerEvaluation(evaluation)}>
                           Ver detalhes
@@ -340,18 +426,6 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                   <div className="flex items-center gap-2 mt-2">
                     <AlertCircle className="w-4 h-4 text-amber-600" />
                     <p className="text-xs text-amber-700">Colaborador precisa cadastrar email para participar</p>
-                    <Button 
-                      size="sm" 
-                      variant="outline" 
-                      className="text-xs ml-auto"
-                      onClick={() => {
-                        const emp = employees.find(e => e.id === selectedEmployeeId);
-                        if (emp) handleSendInvite(emp);
-                      }}
-                    >
-                      <Mail className="w-3 h-3 mr-1" />
-                      Enviar convite
-                    </Button>
                   </div>
                 )}
               </div>
