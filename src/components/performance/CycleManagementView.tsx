@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle, Sparkles } from 'lucide-react';
+import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle, Sparkles, RefreshCw, Pencil, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateCycleReport } from '@/lib/generateCycleReport';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -45,6 +45,10 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
+  
+  // Question editing
+  const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
+  const [editingQuestionText, setEditingQuestionText] = useState('');
   
   // Manager evaluation form
   const [managerResponses, setManagerResponses] = useState<Record<string, { rating?: number; response?: string }>>({});
@@ -146,6 +150,30 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
   
   const handleSendInvite = (employee: Employee) => {
     toast.info(`Funcionalidade de envio de convite para ${employee.name} será implementada em breve. Cadastre o email do colaborador na tela de Colaboradores.`);
+  };
+
+  // Question editing handlers
+  const handleEditQuestion = (question: GeneratedQuestion) => {
+    setEditingQuestionId(question.id);
+    setEditingQuestionText(question.question);
+  };
+
+  const handleSaveQuestionEdit = () => {
+    if (!editingQuestionId || !editingQuestionText.trim()) return;
+    setGeneratedQuestions(prev => 
+      prev.map(q => q.id === editingQuestionId ? { ...q, question: editingQuestionText.trim() } : q)
+    );
+    setEditingQuestionId(null);
+    setEditingQuestionText('');
+  };
+
+  const handleCancelQuestionEdit = () => {
+    setEditingQuestionId(null);
+    setEditingQuestionText('');
+  };
+
+  const handleDeleteQuestion = (questionId: string) => {
+    setGeneratedQuestions(prev => prev.filter(q => q.id !== questionId));
   };
 
   if (loading) {
@@ -338,15 +366,69 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
 
               {generatedQuestions.length > 0 && (
                 <div>
-                  <div className="flex items-center gap-2 mb-3">
-                    <Sparkles className="w-4 h-4 text-brand-600" />
-                    <Label>Perguntas geradas com IA ({generatedQuestions.length})</Label>
+                  <div className="flex items-center justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      <Sparkles className="w-4 h-4 text-brand-600" />
+                      <Label>Perguntas geradas com IA ({generatedQuestions.length})</Label>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => handleEmployeeSelect(selectedEmployeeId)}
+                      disabled={isGeneratingQuestions}
+                    >
+                      <RefreshCw className={cn("w-4 h-4 mr-1", isGeneratingQuestions && "animate-spin")} />
+                      Regenerar
+                    </Button>
                   </div>
                   <div className="border rounded-lg max-h-64 overflow-y-auto p-2 space-y-2">
                     {generatedQuestions.map((q, idx) => (
-                      <div key={q.id} className="p-3 rounded bg-secondary/50">
-                        <p className="font-medium text-sm">{idx + 1}. {q.question}</p>
-                        <Badge variant="outline" className="text-xs mt-1">{q.category}</Badge>
+                      <div key={q.id} className="p-3 rounded bg-secondary/50 group">
+                        <div className="flex items-start justify-between gap-2">
+                          <div className="flex-1">
+                            {editingQuestionId === q.id ? (
+                              <div className="space-y-2">
+                                <Input
+                                  value={editingQuestionText}
+                                  onChange={(e) => setEditingQuestionText(e.target.value)}
+                                  className="text-sm"
+                                  autoFocus
+                                />
+                                <div className="flex gap-2">
+                                  <Button size="sm" variant="outline" onClick={handleSaveQuestionEdit}>
+                                    Salvar
+                                  </Button>
+                                  <Button size="sm" variant="ghost" onClick={handleCancelQuestionEdit}>
+                                    Cancelar
+                                  </Button>
+                                </div>
+                              </div>
+                            ) : (
+                              <p className="font-medium text-sm">{idx + 1}. {q.question}</p>
+                            )}
+                          </div>
+                          {editingQuestionId !== q.id && (
+                            <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                onClick={() => handleEditQuestion(q)}
+                                className="p-1 rounded hover:bg-secondary"
+                                title="Editar pergunta"
+                              >
+                                <Pencil className="w-3.5 h-3.5 text-muted-foreground" />
+                              </button>
+                              <button
+                                onClick={() => handleDeleteQuestion(q.id)}
+                                className="p-1 rounded hover:bg-destructive/10"
+                                title="Remover pergunta"
+                              >
+                                <Trash2 className="w-3.5 h-3.5 text-destructive" />
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                        {editingQuestionId !== q.id && (
+                          <Badge variant="outline" className="text-xs mt-1">{q.category}</Badge>
+                        )}
                       </div>
                     ))}
                   </div>

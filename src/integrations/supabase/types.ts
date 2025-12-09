@@ -536,6 +536,7 @@ export type Database = {
           email: string | null
           escolaridade: string | null
           estadocivil: string | null
+          gestor_id: string | null
           id: string
           matricula: string | null
           nome: string | null
@@ -569,6 +570,7 @@ export type Database = {
           email?: string | null
           escolaridade?: string | null
           estadocivil?: string | null
+          gestor_id?: string | null
           id?: string
           matricula?: string | null
           nome?: string | null
@@ -602,6 +604,7 @@ export type Database = {
           email?: string | null
           escolaridade?: string | null
           estadocivil?: string | null
+          gestor_id?: string | null
           id?: string
           matricula?: string | null
           nome?: string | null
@@ -616,7 +619,22 @@ export type Database = {
           updated_at?: string | null
           valorsalario?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "employees_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       empresas: {
         Row: {
