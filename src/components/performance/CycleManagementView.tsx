@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle } from 'lucide-react';
+import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateCycleReport } from '@/lib/generateCycleReport';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,20 +8,27 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEvaluationCycles, EvaluationCycle, EmployeeEvaluation } from '@/hooks/useEvaluationCycles';
-import { useQuestionTemplates } from '@/hooks/useQuestionTemplates';
 import { Employee, JobRole } from '@/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+
 interface CycleManagementViewProps {
   employees: Employee[];
   roles: JobRole[];
 }
 
+interface GeneratedQuestion {
+  id: string;
+  question: string;
+  category: string;
+  type: string;
+}
+
 export const CycleManagementView = ({ employees, roles }: CycleManagementViewProps) => {
   const { cycles, evaluations, loading, createCycle, closeCycle, addEmployeesToCycle, submitManagerEvaluation, fetchEvaluations } = useEvaluationCycles();
-  const { templates } = useQuestionTemplates();
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isAddEmployeesModalOpen, setIsAddEmployeesModalOpen] = useState(false);
@@ -34,9 +41,10 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
   const [cycleDescription, setCycleDescription] = useState('');
   const [cycleEndDate, setCycleEndDate] = useState('');
   
-  // Add employees form
-  const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
-  const [selectedQuestions, setSelectedQuestions] = useState<string[]>([]);
+  // Add employee form (single selection with AI questions)
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+  const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
+  const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
   
   // Manager evaluation form
   const [managerResponses, setManagerResponses] = useState<Record<string, { rating?: number; response?: string }>>({});
@@ -59,18 +67,53 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
     setCycleEndDate('');
   };
 
-  const handleAddEmployees = async () => {
-    if (!selectedCycle || selectedEmployees.length === 0 || selectedQuestions.length === 0) return;
+  const handleEmployeeSelect = async (employeeId: string) => {
+    setSelectedEmployeeId(employeeId);
+    setGeneratedQuestions([]);
     
-    const questions = templates
-      .filter(t => selectedQuestions.includes(t.id))
-      .map(t => ({ id: t.id, question: t.question, category: t.category, type: t.type }));
+    const employee = employees.find(e => e.id === employeeId);
+    if (!employee?.roleId) {
+      toast.info('Colaborador sem cargo definido. Selecione outro ou defina o cargo.');
+      return;
+    }
     
-    await addEmployeesToCycle(selectedCycle.id, selectedEmployees, questions);
+    // Find the role details
+    const role = roles.find(r => r.id === employee.roleId || r.title === employee.roleId);
+    
+    setIsGeneratingQuestions(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-review-questions', {
+        body: {
+          roleTitle: role?.title || employee.roleId,
+          roleDescription: role?.description || '',
+          hardSkills: role?.hardSkills || '',
+          softSkills: role?.softSkills || '',
+          technicalKnowledge: role?.technicalKnowledge || ''
+        }
+      });
+      
+      if (error) throw error;
+      
+      if (data?.questions) {
+        setGeneratedQuestions(data.questions);
+        toast.success('Perguntas geradas com sucesso!');
+      }
+    } catch (error) {
+      console.error('Error generating questions:', error);
+      toast.error('Erro ao gerar perguntas. Tente novamente.');
+    } finally {
+      setIsGeneratingQuestions(false);
+    }
+  };
+
+  const handleAddEmployeeWithQuestions = async () => {
+    if (!selectedCycle || !selectedEmployeeId || generatedQuestions.length === 0) return;
+    
+    await addEmployeesToCycle(selectedCycle.id, [selectedEmployeeId], generatedQuestions);
     
     setIsAddEmployeesModalOpen(false);
-    setSelectedEmployees([]);
-    setSelectedQuestions([]);
+    setSelectedEmployeeId('');
+    setGeneratedQuestions([]);
   };
 
   const handleOpenCycleDetail = async (cycle: EvaluationCycle) => {
@@ -100,8 +143,6 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
   };
 
   const cycleEvaluations = selectedCycle ? evaluations.filter(e => e.cycle_id === selectedCycle.id) : [];
-  const employeesWithEmail = employees.filter(e => e.email);
-  const employeesWithoutEmail = employees.filter(e => !e.email);
   
   const handleSendInvite = (employee: Employee) => {
     toast.info(`Funcionalidade de envio de convite para ${employee.name} será implementada em breve. Cadastre o email do colaborador na tela de Colaboradores.`);
@@ -230,111 +271,104 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
           </CardContent>
         </Card>
 
-        {/* Add Employees Modal */}
-        <Dialog open={isAddEmployeesModalOpen} onOpenChange={setIsAddEmployeesModalOpen}>
+        {/* Add Employee Modal */}
+        <Dialog open={isAddEmployeesModalOpen} onOpenChange={(open) => {
+          setIsAddEmployeesModalOpen(open);
+          if (!open) {
+            setSelectedEmployeeId('');
+            setGeneratedQuestions([]);
+          }
+        }}>
           <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
             <DialogHeader>
-              <DialogTitle>Adicionar Colaboradores ao Ciclo</DialogTitle>
+              <DialogTitle>Adicionar Colaborador ao Ciclo</DialogTitle>
             </DialogHeader>
             <div className="space-y-6">
               <div>
-                <Label className="mb-3 block">Selecione os colaboradores</Label>
-                <div className="border rounded-lg max-h-48 overflow-y-auto p-2 space-y-2">
-                  {/* Colaboradores com email */}
-                  {employeesWithEmail.map(emp => (
-                    <label key={emp.id} className="flex items-center gap-3 p-2 rounded hover:bg-secondary cursor-pointer">
-                      <Checkbox
-                        checked={selectedEmployees.includes(emp.id)}
-                        onCheckedChange={(checked) => {
-                          setSelectedEmployees(prev => 
-                            checked ? [...prev, emp.id] : prev.filter(id => id !== emp.id)
-                          );
-                        }}
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium text-sm">{emp.name}</p>
-                        <p className="text-xs text-muted-foreground">{emp.email}</p>
-                      </div>
-                    </label>
-                  ))}
-                  {/* Colaboradores sem email */}
-                  {employeesWithoutEmail.map(emp => (
-                    <div key={emp.id} className="flex items-center gap-3 p-2 rounded bg-amber-50 border border-amber-200">
-                      <Checkbox
-                        checked={selectedEmployees.includes(emp.id)}
-                        onCheckedChange={(checked) => {
-                          setSelectedEmployees(prev => 
-                            checked ? [...prev, emp.id] : prev.filter(id => id !== emp.id)
-                          );
-                        }}
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium text-sm">{emp.name}</p>
-                          <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300">
-                            <AlertCircle className="w-3 h-3 mr-1" />
-                            Sem email
-                          </Badge>
-                        </div>
-                        <p className="text-xs text-muted-foreground">Colaborador precisa cadastrar email para participar</p>
-                      </div>
-                      <Button 
-                        size="sm" 
-                        variant="outline" 
-                        className="text-xs"
-                        onClick={(e) => {
-                          e.preventDefault();
-                          handleSendInvite(emp);
-                        }}
-                      >
-                        <Mail className="w-3 h-3 mr-1" />
-                        Enviar convite
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-                {employees.length === 0 && (
-                  <p className="text-sm text-muted-foreground text-center py-4">
-                    Nenhum colaborador cadastrado.
-                  </p>
+                <Label className="mb-3 block">Selecione o colaborador</Label>
+                <Select value={selectedEmployeeId} onValueChange={handleEmployeeSelect}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um colaborador..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {employees.map(emp => {
+                      const hasEmail = !!emp.email;
+                      return (
+                        <SelectItem key={emp.id} value={emp.id}>
+                          <div className="flex items-center gap-2">
+                            <span>{emp.name}</span>
+                            {!hasEmail && (
+                              <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300">
+                                Sem email
+                              </Badge>
+                            )}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+                {selectedEmployeeId && !employees.find(e => e.id === selectedEmployeeId)?.email && (
+                  <div className="flex items-center gap-2 mt-2">
+                    <AlertCircle className="w-4 h-4 text-amber-600" />
+                    <p className="text-xs text-amber-700">Colaborador precisa cadastrar email para participar</p>
+                    <Button 
+                      size="sm" 
+                      variant="outline" 
+                      className="text-xs ml-auto"
+                      onClick={() => {
+                        const emp = employees.find(e => e.id === selectedEmployeeId);
+                        if (emp) handleSendInvite(emp);
+                      }}
+                    >
+                      <Mail className="w-3 h-3 mr-1" />
+                      Enviar convite
+                    </Button>
+                  </div>
                 )}
               </div>
 
-              <div>
-                <Label className="mb-3 block">Selecione as perguntas do questionário</Label>
-                <div className="border rounded-lg max-h-48 overflow-y-auto p-2 space-y-2">
-                  {templates.map(template => (
-                    <label key={template.id} className="flex items-center gap-3 p-2 rounded hover:bg-secondary cursor-pointer">
-                      <Checkbox
-                        checked={selectedQuestions.includes(template.id)}
-                        onCheckedChange={(checked) => {
-                          setSelectedQuestions(prev => 
-                            checked ? [...prev, template.id] : prev.filter(id => id !== template.id)
-                          );
-                        }}
-                      />
-                      <div>
-                        <p className="font-medium text-sm">{template.question}</p>
-                        <p className="text-xs text-muted-foreground">{template.category}</p>
-                      </div>
-                    </label>
-                  ))}
+              {isGeneratingQuestions && (
+                <div className="flex flex-col items-center justify-center py-8 border rounded-lg bg-secondary/30">
+                  <Loader2 className="w-8 h-8 animate-spin text-brand-600 mb-3" />
+                  <p className="text-sm text-muted-foreground">Gerando perguntas personalizadas com IA...</p>
+                  <p className="text-xs text-muted-foreground">Baseado no cargo e requisitos do colaborador</p>
                 </div>
-              </div>
+              )}
 
-              {selectedEmployees.some(id => employeesWithoutEmail.find(e => e.id === id)) && (
+              {generatedQuestions.length > 0 && (
+                <div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <Sparkles className="w-4 h-4 text-brand-600" />
+                    <Label>Perguntas geradas com IA ({generatedQuestions.length})</Label>
+                  </div>
+                  <div className="border rounded-lg max-h-64 overflow-y-auto p-2 space-y-2">
+                    {generatedQuestions.map((q, idx) => (
+                      <div key={q.id} className="p-3 rounded bg-secondary/50">
+                        <p className="font-medium text-sm">{idx + 1}. {q.question}</p>
+                        <Badge variant="outline" className="text-xs mt-1">{q.category}</Badge>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedEmployeeId && !isGeneratingQuestions && generatedQuestions.length === 0 && (
                 <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
                   <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
                   <p className="text-sm text-amber-800">
-                    Colaboradores sem email serão adicionados ao ciclo, mas precisarão ter um email cadastrado para acessar o portal de autoavaliação.
+                    Não foi possível gerar as perguntas. Verifique se o colaborador tem um cargo definido com requisitos.
                   </p>
                 </div>
               )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddEmployeesModalOpen(false)}>Cancelar</Button>
-              <Button onClick={handleAddEmployees} disabled={selectedEmployees.length === 0 || selectedQuestions.length === 0}>
-                Adicionar {selectedEmployees.length} colaborador(es)
+              <Button 
+                onClick={handleAddEmployeeWithQuestions} 
+                disabled={!selectedEmployeeId || generatedQuestions.length === 0 || isGeneratingQuestions}
+              >
+                Adicionar Colaborador
               </Button>
             </DialogFooter>
           </DialogContent>
