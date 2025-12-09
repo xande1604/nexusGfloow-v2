@@ -30,6 +30,7 @@ export interface EmployeeEvaluation {
     name?: string;
     email?: string;
     codigocargo?: string;
+    gestor_id?: string | null;
   };
 }
 
