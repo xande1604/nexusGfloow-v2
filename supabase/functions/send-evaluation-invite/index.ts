@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -80,41 +81,34 @@ Atenciosamente,
 Equipe de RH`;
     }
 
+    // Determine recipient
+    const recipientName = payload.type === 'self_assessment' 
+      ? payload.employeeName 
+      : (payload.managerName || 'Gestor');
+    const recipientEmail = payload.type === 'self_assessment' 
+      ? payload.employeeEmail 
+      : (payload.managerEmail || payload.employeeEmail);
+
     // Build complete payload for n8n
     const webhookPayload = {
-      // Action metadata
       action: payload.type === 'self_assessment' 
         ? 'resend_self_assessment_invite' 
         : 'resend_manager_evaluation_invite',
       type: payload.type,
       timestamp: new Date().toISOString(),
-      
-      // Cycle info
       cycleId: payload.cycleId,
       cycleTitle: payload.cycleTitle,
       evaluationId: payload.evaluationId,
       deadline: deadline,
       cycleEndDate: payload.cycleEndDate,
-      
-      // Employee (person being evaluated)
       employeeName: payload.employeeName,
       employeeEmail: payload.employeeEmail,
-      
-      // Manager/Evaluator info
       managerName: payload.managerName || null,
       managerEmail: payload.managerEmail || null,
-      
-      // Email content
       subject: subject,
       message: personalizedMessage,
-      
-      // Recipient (who should receive this notification)
-      recipientName: payload.type === 'self_assessment' 
-        ? payload.employeeName 
-        : (payload.managerName || 'Gestor'),
-      recipientEmail: payload.type === 'self_assessment' 
-        ? payload.employeeEmail 
-        : (payload.managerEmail || payload.employeeEmail),
+      recipientName: recipientName,
+      recipientEmail: recipientEmail,
     };
 
     // Send as POST with JSON body (more reliable for complex data)
@@ -125,6 +119,8 @@ Equipe de RH`;
       },
       body: JSON.stringify(webhookPayload),
     });
+
+    let webhookSuccess = response.ok;
 
     if (!response.ok) {
       const errorText = await response.text();
@@ -142,19 +138,41 @@ Equipe de RH`;
         evaluationId: payload.evaluationId,
         deadline: deadline,
         subject: subject,
-        recipientEmail: webhookPayload.recipientEmail,
+        recipientEmail: recipientEmail,
       });
       
       if (payload.managerName) params.set('managerName', payload.managerName);
       if (payload.managerEmail) params.set('managerEmail', payload.managerEmail);
       
       const getResponse = await fetch(`${webhookUrl}?${params.toString()}`, { method: 'GET' });
+      webhookSuccess = getResponse.ok;
       
       if (!getResponse.ok) {
         return new Response(
           JSON.stringify({ error: 'Failed to send to webhook', details: errorText }),
           { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         );
+      }
+    }
+
+    // Log the invite to the database
+    if (webhookSuccess) {
+      try {
+        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+        const supabase = createClient(supabaseUrl, supabaseKey);
+
+        await supabase.from('evaluation_invite_history').insert({
+          evaluation_id: payload.evaluationId,
+          type: payload.type,
+          recipient_email: recipientEmail,
+          recipient_name: recipientName,
+          status: 'sent'
+        });
+        console.log('Invite logged to database');
+      } catch (dbError) {
+        console.error('Failed to log invite to database:', dbError);
+        // Don't fail the request if logging fails
       }
     }
 
