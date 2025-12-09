@@ -14,6 +14,7 @@ interface InviteRequest {
   cycleTitle: string;
   cycleId: string;
   evaluationId: string;
+  cycleEndDate?: string;
 }
 
 serve(async (req) => {
@@ -40,39 +41,124 @@ serve(async (req) => {
       cycleTitle: payload.cycleTitle
     });
 
-    // Build query parameters for GET request
-    const params = new URLSearchParams({
-      type: payload.type,
+    // Format deadline
+    const deadline = payload.cycleEndDate 
+      ? new Date(payload.cycleEndDate).toLocaleDateString('pt-BR', { 
+          day: '2-digit', 
+          month: '2-digit', 
+          year: 'numeric' 
+        })
+      : 'Sem prazo definido';
+
+    // Build personalized message based on type
+    let personalizedMessage: string;
+    let subject: string;
+    
+    if (payload.type === 'self_assessment') {
+      subject = `Autoavaliação Pendente - Ciclo ${payload.cycleTitle}`;
+      personalizedMessage = `Olá ${payload.employeeName},
+
+Você tem uma autoavaliação pendente no ciclo de avaliação "${payload.cycleTitle}".
+
+Por favor, acesse o portal de autoavaliação e complete sua avaliação até ${deadline}.
+
+Sua participação é essencial para o processo de avaliação de desempenho.
+
+Atenciosamente,
+Equipe de RH`;
+    } else {
+      subject = `Avaliação de Colaborador Pendente - Ciclo ${payload.cycleTitle}`;
+      personalizedMessage = `Olá ${payload.managerName || 'Gestor'},
+
+O colaborador ${payload.employeeName} (${payload.employeeEmail}) já completou sua autoavaliação no ciclo "${payload.cycleTitle}" e aguarda sua avaliação como gestor.
+
+Prazo para conclusão: ${deadline}
+
+Por favor, acesse o sistema para realizar a avaliação do colaborador.
+
+Atenciosamente,
+Equipe de RH`;
+    }
+
+    // Build complete payload for n8n
+    const webhookPayload = {
+      // Action metadata
       action: payload.type === 'self_assessment' 
         ? 'resend_self_assessment_invite' 
         : 'resend_manager_evaluation_invite',
+      type: payload.type,
+      timestamp: new Date().toISOString(),
+      
+      // Cycle info
+      cycleId: payload.cycleId,
+      cycleTitle: payload.cycleTitle,
+      evaluationId: payload.evaluationId,
+      deadline: deadline,
+      cycleEndDate: payload.cycleEndDate,
+      
+      // Employee (person being evaluated)
       employeeName: payload.employeeName,
       employeeEmail: payload.employeeEmail,
-      cycleTitle: payload.cycleTitle,
-      cycleId: payload.cycleId,
-      evaluationId: payload.evaluationId,
-      timestamp: new Date().toISOString(),
-      ...(payload.managerName && { managerName: payload.managerName }),
-      ...(payload.managerEmail && { managerEmail: payload.managerEmail }),
-    });
+      
+      // Manager/Evaluator info
+      managerName: payload.managerName || null,
+      managerEmail: payload.managerEmail || null,
+      
+      // Email content
+      subject: subject,
+      message: personalizedMessage,
+      
+      // Recipient (who should receive this notification)
+      recipientName: payload.type === 'self_assessment' 
+        ? payload.employeeName 
+        : (payload.managerName || 'Gestor'),
+      recipientEmail: payload.type === 'self_assessment' 
+        ? payload.employeeEmail 
+        : (payload.managerEmail || payload.employeeEmail),
+    };
 
-    const urlWithParams = `${webhookUrl}?${params.toString()}`;
-    
-    const response = await fetch(urlWithParams, {
-      method: 'GET',
+    // Send as POST with JSON body (more reliable for complex data)
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(webhookPayload),
     });
 
     if (!response.ok) {
       const errorText = await response.text();
       console.error('n8n webhook error:', errorText);
-      return new Response(
-        JSON.stringify({ error: 'Failed to send to webhook', details: errorText }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
+      
+      // If POST fails, try GET as fallback
+      console.log('Trying GET fallback...');
+      const params = new URLSearchParams({
+        type: payload.type,
+        action: webhookPayload.action,
+        employeeName: payload.employeeName,
+        employeeEmail: payload.employeeEmail,
+        cycleTitle: payload.cycleTitle,
+        cycleId: payload.cycleId,
+        evaluationId: payload.evaluationId,
+        deadline: deadline,
+        subject: subject,
+        recipientEmail: webhookPayload.recipientEmail,
+      });
+      
+      if (payload.managerName) params.set('managerName', payload.managerName);
+      if (payload.managerEmail) params.set('managerEmail', payload.managerEmail);
+      
+      const getResponse = await fetch(`${webhookUrl}?${params.toString()}`, { method: 'GET' });
+      
+      if (!getResponse.ok) {
+        return new Response(
+          JSON.stringify({ error: 'Failed to send to webhook', details: errorText }),
+          { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
     }
 
-    const result = await response.text();
-    console.log('n8n webhook response:', result);
+    console.log('Webhook notification sent successfully');
 
     return new Response(
       JSON.stringify({ success: true, message: 'Invite sent successfully' }),

@@ -181,7 +181,8 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
           managerEmail,
           cycleTitle: selectedCycle?.title || '',
           cycleId: selectedCycle?.id || '',
-          evaluationId: evaluation.id
+          evaluationId: evaluation.id,
+          cycleEndDate: selectedCycle?.end_date || null
         }
       });
       
