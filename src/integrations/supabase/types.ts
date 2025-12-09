@@ -50,6 +50,102 @@ export type Database = {
         }
         Relationships: []
       }
+      blog_posts: {
+        Row: {
+          author: string
+          canonical_url: string | null
+          content: string
+          cover_image: string | null
+          created_at: string
+          excerpt: string | null
+          id: string
+          meta_description: string | null
+          meta_keywords: string | null
+          og_image: string | null
+          owner_admin_id: string | null
+          published_at: string | null
+          scheduled_at: string | null
+          seo_title: string | null
+          slug: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          author?: string
+          canonical_url?: string | null
+          content: string
+          cover_image?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          og_image?: string | null
+          owner_admin_id?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          seo_title?: string | null
+          slug: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          author?: string
+          canonical_url?: string | null
+          content?: string
+          cover_image?: string | null
+          created_at?: string
+          excerpt?: string | null
+          id?: string
+          meta_description?: string | null
+          meta_keywords?: string | null
+          og_image?: string | null
+          owner_admin_id?: string | null
+          published_at?: string | null
+          scheduled_at?: string | null
+          seo_title?: string | null
+          slug?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      blog_webhook_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          name: string
+          owner_admin_id: string | null
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          name: string
+          owner_admin_id?: string | null
+          token: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          name?: string
+          owner_admin_id?: string | null
+          token?: string
+        }
+        Relationships: []
+      }
       career_roadmaps: {
         Row: {
           created_at: string | null

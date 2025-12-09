@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download } from 'lucide-react';
+import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateCycleReport } from '@/lib/generateCycleReport';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,7 +13,7 @@ import { useEvaluationCycles, EvaluationCycle, EmployeeEvaluation } from '@/hook
 import { useQuestionTemplates } from '@/hooks/useQuestionTemplates';
 import { Employee, JobRole } from '@/types';
 import { cn } from '@/lib/utils';
-
+import { toast } from 'sonner';
 interface CycleManagementViewProps {
   employees: Employee[];
   roles: JobRole[];
@@ -101,6 +101,11 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
 
   const cycleEvaluations = selectedCycle ? evaluations.filter(e => e.cycle_id === selectedCycle.id) : [];
   const employeesWithEmail = employees.filter(e => e.email);
+  const employeesWithoutEmail = employees.filter(e => !e.email);
+  
+  const handleSendInvite = (employee: Employee) => {
+    toast.info(`Funcionalidade de envio de convite para ${employee.name} será implementada em breve. Cadastre o email do colaborador na tela de Colaboradores.`);
+  };
 
   if (loading) {
     return (
@@ -233,8 +238,9 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
             </DialogHeader>
             <div className="space-y-6">
               <div>
-                <Label className="mb-3 block">Selecione os colaboradores (apenas com email cadastrado)</Label>
+                <Label className="mb-3 block">Selecione os colaboradores</Label>
                 <div className="border rounded-lg max-h-48 overflow-y-auto p-2 space-y-2">
+                  {/* Colaboradores com email */}
                   {employeesWithEmail.map(emp => (
                     <label key={emp.id} className="flex items-center gap-3 p-2 rounded hover:bg-secondary cursor-pointer">
                       <Checkbox
@@ -245,16 +251,51 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                           );
                         }}
                       />
-                      <div>
+                      <div className="flex-1">
                         <p className="font-medium text-sm">{emp.name}</p>
                         <p className="text-xs text-muted-foreground">{emp.email}</p>
                       </div>
                     </label>
                   ))}
+                  {/* Colaboradores sem email */}
+                  {employeesWithoutEmail.map(emp => (
+                    <div key={emp.id} className="flex items-center gap-3 p-2 rounded bg-amber-50 border border-amber-200">
+                      <Checkbox
+                        checked={selectedEmployees.includes(emp.id)}
+                        onCheckedChange={(checked) => {
+                          setSelectedEmployees(prev => 
+                            checked ? [...prev, emp.id] : prev.filter(id => id !== emp.id)
+                          );
+                        }}
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium text-sm">{emp.name}</p>
+                          <Badge variant="outline" className="text-xs bg-amber-100 text-amber-700 border-amber-300">
+                            <AlertCircle className="w-3 h-3 mr-1" />
+                            Sem email
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-muted-foreground">Colaborador precisa cadastrar email para participar</p>
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="text-xs"
+                        onClick={(e) => {
+                          e.preventDefault();
+                          handleSendInvite(emp);
+                        }}
+                      >
+                        <Mail className="w-3 h-3 mr-1" />
+                        Enviar convite
+                      </Button>
+                    </div>
+                  ))}
                 </div>
-                {employeesWithEmail.length === 0 && (
+                {employees.length === 0 && (
                   <p className="text-sm text-muted-foreground text-center py-4">
-                    Nenhum colaborador com email cadastrado.
+                    Nenhum colaborador cadastrado.
                   </p>
                 )}
               </div>
@@ -280,6 +321,15 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                   ))}
                 </div>
               </div>
+
+              {selectedEmployees.some(id => employeesWithoutEmail.find(e => e.id === id)) && (
+                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-amber-600 flex-shrink-0 mt-0.5" />
+                  <p className="text-sm text-amber-800">
+                    Colaboradores sem email serão adicionados ao ciclo, mas precisarão ter um email cadastrado para acessar o portal de autoavaliação.
+                  </p>
+                </div>
+              )}
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsAddEmployeesModalOpen(false)}>Cancelar</Button>
