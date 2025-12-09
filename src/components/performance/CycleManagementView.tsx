@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle, Sparkles, RefreshCw, Pencil, Trash2, Send } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle, Sparkles, RefreshCw, Pencil, Trash2, Send, History } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateCycleReport } from '@/lib/generateCycleReport';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -9,11 +9,21 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useEvaluationCycles, EvaluationCycle, EmployeeEvaluation } from '@/hooks/useEvaluationCycles';
 import { Employee, JobRole } from '@/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+
+interface InviteHistoryItem {
+  id: string;
+  type: 'self_assessment' | 'manager_evaluation';
+  recipient_email: string;
+  recipient_name: string | null;
+  sent_at: string;
+  status: string;
+}
 
 interface CycleManagementViewProps {
   employees: Employee[];
@@ -149,6 +159,41 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
   const cycleEvaluations = selectedCycle ? evaluations.filter(e => e.cycle_id === selectedCycle.id) : [];
   
   const [sendingInvite, setSendingInvite] = useState<string | null>(null);
+  const [inviteHistory, setInviteHistory] = useState<Record<string, InviteHistoryItem[]>>({});
+  const [loadingHistory, setLoadingHistory] = useState<string | null>(null);
+
+  const fetchInviteHistory = async (evaluationId: string) => {
+    if (inviteHistory[evaluationId]) return; // Already fetched
+    
+    setLoadingHistory(evaluationId);
+    try {
+      const { data, error } = await supabase
+        .from('evaluation_invite_history')
+        .select('*')
+        .eq('evaluation_id', evaluationId)
+        .order('sent_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      const typedData: InviteHistoryItem[] = (data || []).map(item => ({
+        id: item.id,
+        type: item.type as 'self_assessment' | 'manager_evaluation',
+        recipient_email: item.recipient_email,
+        recipient_name: item.recipient_name,
+        sent_at: item.sent_at,
+        status: item.status
+      }));
+      
+      setInviteHistory(prev => ({
+        ...prev,
+        [evaluationId]: typedData
+      }));
+    } catch (error) {
+      console.error('Error fetching invite history:', error);
+    } finally {
+      setLoadingHistory(null);
+    }
+  };
 
   const handleSendInvite = async (evaluation: EmployeeEvaluation, type: 'self_assessment' | 'manager_evaluation') => {
     const employee = evaluation.employee;
@@ -187,6 +232,13 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
       });
       
       if (error) throw error;
+      
+      // Refresh the invite history for this evaluation
+      setInviteHistory(prev => {
+        const copy = { ...prev };
+        delete copy[evaluation.id];
+        return copy;
+      });
       
       toast.success(type === 'self_assessment' 
         ? 'Convite de autoavaliação enviado!'
@@ -328,6 +380,54 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                         {evaluation.status === 'self_assessment_done' && 'Avaliar'}
                         {evaluation.status === 'completed' && 'Concluída'}
                       </Badge>
+                      
+                      {/* Invite history popover */}
+                      <Popover onOpenChange={(open) => open && fetchInviteHistory(evaluation.id)}>
+                        <PopoverTrigger asChild>
+                          <Button size="sm" variant="ghost" className="text-xs">
+                            <History className="w-3 h-3 mr-1" />
+                            Histórico
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80" align="end">
+                          <div className="space-y-2">
+                            <h4 className="font-medium text-sm">Histórico de Convites</h4>
+                            {loadingHistory === evaluation.id ? (
+                              <div className="flex items-center justify-center py-4">
+                                <Loader2 className="w-4 h-4 animate-spin" />
+                              </div>
+                            ) : inviteHistory[evaluation.id]?.length ? (
+                              <div className="space-y-2 max-h-48 overflow-y-auto">
+                                {inviteHistory[evaluation.id].map(invite => (
+                                  <div key={invite.id} className="text-xs p-2 bg-muted rounded-md">
+                                    <div className="flex items-center justify-between mb-1">
+                                      <Badge variant="outline" className="text-xs">
+                                        {invite.type === 'self_assessment' ? 'Autoavaliação' : 'Gestor'}
+                                      </Badge>
+                                      <span className="text-muted-foreground">
+                                        {new Date(invite.sent_at).toLocaleDateString('pt-BR', {
+                                          day: '2-digit',
+                                          month: '2-digit',
+                                          year: 'numeric',
+                                          hour: '2-digit',
+                                          minute: '2-digit'
+                                        })}
+                                      </span>
+                                    </div>
+                                    <p className="text-muted-foreground truncate">
+                                      Para: {invite.recipient_name || invite.recipient_email}
+                                    </p>
+                                  </div>
+                                ))}
+                              </div>
+                            ) : (
+                              <p className="text-xs text-muted-foreground py-2">
+                                Nenhum convite enviado ainda.
+                              </p>
+                            )}
+                          </div>
+                        </PopoverContent>
+                      </Popover>
                       
                       {/* Resend buttons */}
                       {evaluation.status === 'pending' && evaluation.employee?.email && (

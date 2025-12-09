@@ -762,6 +762,50 @@ export type Database = {
         }
         Relationships: []
       }
+      evaluation_invite_history: {
+        Row: {
+          evaluation_id: string
+          id: string
+          owner_admin_id: string | null
+          recipient_email: string
+          recipient_name: string | null
+          sent_at: string
+          sent_by_admin_id: string | null
+          status: string
+          type: string
+        }
+        Insert: {
+          evaluation_id: string
+          id?: string
+          owner_admin_id?: string | null
+          recipient_email: string
+          recipient_name?: string | null
+          sent_at?: string
+          sent_by_admin_id?: string | null
+          status?: string
+          type: string
+        }
+        Update: {
+          evaluation_id?: string
+          id?: string
+          owner_admin_id?: string | null
+          recipient_email?: string
+          recipient_name?: string | null
+          sent_at?: string
+          sent_by_admin_id?: string | null
+          status?: string
+          type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "evaluation_invite_history_evaluation_id_fkey"
+            columns: ["evaluation_id"]
+            isOneToOne: false
+            referencedRelation: "employee_evaluations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       eventos_folha: {
         Row: {
           codigoevento: string
