@@ -10,18 +10,19 @@ export const useEmployees = () => {
     try {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, nome, codigocargo, matricula, dataadmissao, email')
+        .select('id, nome, codigocargo, matricula, dataadmissao, email, gestor_id')
         .not('nome', 'is', null)
         .order('nome');
 
       if (error) throw error;
 
-      const mappedEmployees: Employee[] = (data || []).map(emp => ({
+      const mappedEmployees: (Employee & { gestorId?: string })[] = (data || []).map(emp => ({
         id: emp.id,
         name: emp.nome || '',
         roleId: emp.codigocargo || '',
         email: emp.email || '',
         admissionDate: emp.dataadmissao || '',
+        gestorId: emp.gestor_id || undefined,
       }));
 
       setEmployees(mappedEmployees);
@@ -54,9 +55,31 @@ export const useEmployees = () => {
     }
   };
 
+  const updateEmployeeGestor = async (employeeId: string, gestorId: string | null) => {
+    try {
+      const { error } = await supabase
+        .from('employees')
+        .update({ gestor_id: gestorId || null })
+        .eq('id', employeeId);
+
+      if (error) throw error;
+
+      setEmployees(prev => 
+        prev.map(emp => 
+          emp.id === employeeId ? { ...emp, gestorId: gestorId || undefined } : emp
+        )
+      );
+
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating employee gestor:', error);
+      return { success: false, error };
+    }
+  };
+
   useEffect(() => {
     fetchEmployees();
   }, []);
 
-  return { employees, loading, refetch: fetchEmployees, updateEmployeeEmail };
+  return { employees, loading, refetch: fetchEmployees, updateEmployeeEmail, updateEmployeeGestor };
 };

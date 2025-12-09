@@ -1,19 +1,23 @@
 import { useState } from 'react';
-import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X } from 'lucide-react';
+import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck } from 'lucide-react';
 import { Employee, JobRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface EmployeesViewProps {
   employees: Employee[];
   roles: JobRole[];
   onUpdateEmail: (employeeId: string, email: string) => Promise<{ success: boolean; error?: any }>;
+  onUpdateGestor?: (employeeId: string, gestorId: string | null) => Promise<{ success: boolean; error?: any }>;
 }
 
-export const EmployeesView = ({ employees, roles, onUpdateEmail }: EmployeesViewProps) => {
+export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
+  const [editingGestorId, setEditingGestorId] = useState<string | null>(null);
+  const [selectedGestor, setSelectedGestor] = useState<string>('');
   const { toast } = useToast();
 
   const filteredEmployees = employees.filter(emp =>
@@ -24,6 +28,43 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail }: EmployeesView
   const getRoleName = (roleId: string) => {
     const role = roles.find(r => r.id === roleId);
     return role?.title || roleId || 'Não definido';
+  };
+
+  const getGestorName = (gestorId?: string) => {
+    if (!gestorId) return null;
+    const gestor = employees.find(e => e.id === gestorId);
+    return gestor?.name || null;
+  };
+
+  const handleEditGestorStart = (employee: Employee & { gestorId?: string }) => {
+    setEditingGestorId(employee.id);
+    setSelectedGestor(employee.gestorId || '');
+  };
+
+  const handleEditGestorCancel = () => {
+    setEditingGestorId(null);
+    setSelectedGestor('');
+  };
+
+  const handleEditGestorSave = async (employeeId: string) => {
+    if (!onUpdateGestor) return;
+    
+    const result = await onUpdateGestor(employeeId, selectedGestor || null);
+    
+    if (result.success) {
+      toast({
+        title: 'Gestor atualizado',
+        description: 'O gestor do colaborador foi atualizado com sucesso.',
+      });
+      setEditingGestorId(null);
+      setSelectedGestor('');
+    } else {
+      toast({
+        title: 'Erro ao atualizar',
+        description: 'Não foi possível atualizar o gestor.',
+        variant: 'destructive',
+      });
+    }
   };
 
   const handleEditStart = (employee: Employee) => {
@@ -143,7 +184,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail }: EmployeesView
                   Cargo
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Data de Admissão
+                  Gestor/Avaliador
                 </th>
                 <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Email para Autoavaliação
@@ -171,10 +212,49 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail }: EmployeesView
                     </div>
                   </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="w-4 h-4" />
-                      {formatDate(employee.admissionDate)}
-                    </div>
+                    {editingGestorId === employee.id ? (
+                      <div className="flex items-center gap-2">
+                        <Select value={selectedGestor} onValueChange={setSelectedGestor}>
+                          <SelectTrigger className="h-9 w-48">
+                            <SelectValue placeholder="Selecione um gestor..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="">Nenhum</SelectItem>
+                            {employees
+                              .filter(e => e.id !== employee.id)
+                              .map(e => (
+                                <SelectItem key={e.id} value={e.id}>{e.name}</SelectItem>
+                              ))
+                            }
+                          </SelectContent>
+                        </Select>
+                        <button
+                          onClick={() => handleEditGestorSave(employee.id)}
+                          className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors"
+                          title="Salvar"
+                        >
+                          <Check className="w-4 h-4" />
+                        </button>
+                        <button
+                          onClick={handleEditGestorCancel}
+                          className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                          title="Cancelar"
+                        >
+                          <X className="w-4 h-4" />
+                        </button>
+                      </div>
+                    ) : (
+                      <div 
+                        className="flex items-center gap-2 text-sm cursor-pointer hover:text-brand-600 group"
+                        onClick={() => handleEditGestorStart(employee as Employee & { gestorId?: string })}
+                      >
+                        <UserCheck className="w-4 h-4 text-muted-foreground group-hover:text-brand-600" />
+                        {getGestorName((employee as Employee & { gestorId?: string }).gestorId) || (
+                          <span className="text-muted-foreground italic">Não definido</span>
+                        )}
+                        <Edit2 className="w-3 h-3 opacity-0 group-hover:opacity-100 text-muted-foreground" />
+                      </div>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     {editingId === employee.id ? (

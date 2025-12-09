@@ -26,6 +26,7 @@ export interface Employee {
   email: string;
   admissionDate: string;
   customNotes?: string;
+  gestorId?: string;
 }
 
 export interface CompanyContext {
