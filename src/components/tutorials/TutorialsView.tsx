@@ -17,6 +17,13 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { TutorialModal } from './TutorialModal';
 
+// Import tutorial images
+import dashboardImg from '@/assets/tutorials/dashboard-overview.png';
+import rolesImg from '@/assets/tutorials/roles-management.png';
+import skillsImg from '@/assets/tutorials/skills-repository.png';
+import roadmapImg from '@/assets/tutorials/career-roadmap.png';
+import performanceImg from '@/assets/tutorials/performance-reviews.png';
+
 interface Tutorial {
   id: string;
   title: string;
@@ -44,15 +51,18 @@ const tutorials: Tutorial[] = [
     steps: [
       {
         title: 'Visão geral do Dashboard',
-        description: 'O Dashboard é sua central de comando. Aqui você encontra uma visão consolidada de todos os indicadores importantes da gestão de talentos: total de colaboradores, cargos, habilidades mapeadas e roadmaps criados.'
+        description: 'O Dashboard é sua central de comando. Aqui você encontra uma visão consolidada de todos os indicadores importantes da gestão de talentos: total de colaboradores, cargos, habilidades mapeadas e roadmaps criados.',
+        image: dashboardImg
       },
       {
         title: 'Cards de estatísticas',
-        description: 'Cada card no topo mostra uma métrica chave. Clique nos cards para navegar diretamente para o módulo relacionado e explorar os dados em detalhes.'
+        description: 'Cada card no topo mostra uma métrica chave. Clique nos cards para navegar diretamente para o módulo relacionado e explorar os dados em detalhes.',
+        image: dashboardImg
       },
       {
         title: 'Análise rápida',
-        description: 'Use o Dashboard como ponto de partida para identificar áreas que precisam de atenção, como falta de habilidades mapeadas ou avaliações pendentes.'
+        description: 'Use o Dashboard como ponto de partida para identificar áreas que precisam de atenção, como falta de habilidades mapeadas ou avaliações pendentes.',
+        image: dashboardImg
       }
     ]
   },
@@ -66,19 +76,23 @@ const tutorials: Tutorial[] = [
     steps: [
       {
         title: 'Cadastro de cargos',
-        description: 'Clique em "Novo Cargo" para adicionar um cargo. Preencha o título, nível hierárquico (Estagiário a C-Level), departamento e faixa salarial.'
+        description: 'Clique em "Novo Cargo" para adicionar um cargo. Preencha o título, nível hierárquico (Estagiário a C-Level), departamento e faixa salarial.',
+        image: rolesImg
       },
       {
         title: 'Refinamento com IA',
-        description: 'Use o botão "Refinar com IA" para gerar automaticamente descrições, conhecimentos técnicos, hard skills, soft skills e entregas esperadas baseadas no título do cargo.'
+        description: 'Use o botão "Refinar com IA" para gerar automaticamente descrições, conhecimentos técnicos, hard skills, soft skills e entregas esperadas baseadas no título do cargo.',
+        image: rolesImg
       },
       {
         title: 'Vinculação de habilidades',
-        description: 'Associe habilidades existentes ao cargo para definir o perfil técnico e comportamental esperado. Isso alimenta os roadmaps de carreira.'
+        description: 'Associe habilidades existentes ao cargo para definir o perfil técnico e comportamental esperado. Isso alimenta os roadmaps de carreira.',
+        image: rolesImg
       },
       {
         title: 'Gestão de salários',
-        description: 'Defina faixas salariais mínimas e máximas para cada cargo. Isso ajuda no planejamento de headcount e orçamento.'
+        description: 'Defina faixas salariais mínimas e máximas para cada cargo. Isso ajuda no planejamento de headcount e orçamento.',
+        image: rolesImg
       }
     ]
   },
@@ -92,19 +106,23 @@ const tutorials: Tutorial[] = [
     steps: [
       {
         title: 'Categorias de habilidades',
-        description: 'As habilidades são organizadas em 4 categorias: Technical (habilidades técnicas), Soft Skill (comportamentais), Language (idiomas) e Leadership (liderança).'
+        description: 'As habilidades são organizadas em 4 categorias: Technical (habilidades técnicas), Soft Skill (comportamentais), Language (idiomas) e Leadership (liderança).',
+        image: skillsImg
       },
       {
         title: 'Criação manual',
-        description: 'Clique em "Nova Habilidade" para adicionar manualmente. Informe nome, categoria e uma descrição opcional.'
+        description: 'Clique em "Nova Habilidade" para adicionar manualmente. Informe nome, categoria e uma descrição opcional.',
+        image: skillsImg
       },
       {
         title: 'Geração com IA',
-        description: 'Use "Gerar com IA" para criar habilidades automaticamente. Selecione um cargo existente ou digite um título, e o sistema sugere habilidades relevantes.'
+        description: 'Use "Gerar com IA" para criar habilidades automaticamente. Selecione um cargo existente ou digite um título, e o sistema sugere habilidades relevantes.',
+        image: skillsImg
       },
       {
         title: 'Filtros e busca',
-        description: 'Use os filtros por categoria e a busca por nome para encontrar rapidamente as habilidades cadastradas.'
+        description: 'Use os filtros por categoria e a busca por nome para encontrar rapidamente as habilidades cadastradas.',
+        image: skillsImg
       }
     ]
   },
@@ -166,19 +184,23 @@ const tutorials: Tutorial[] = [
     steps: [
       {
         title: 'O que é um Roadmap',
-        description: 'Um roadmap de carreira é um plano estruturado que mostra os passos necessários para um colaborador evoluir de um cargo atual para um cargo alvo.'
+        description: 'Um roadmap de carreira é um plano estruturado que mostra os passos necessários para um colaborador evoluir de um cargo atual para um cargo alvo.',
+        image: roadmapImg
       },
       {
         title: 'Geração com IA',
-        description: 'Selecione o cargo atual, o cargo desejado e opcionalmente o colaborador. A IA gera automaticamente os passos, habilidades necessárias e duração estimada.'
+        description: 'Selecione o cargo atual, o cargo desejado e opcionalmente o colaborador. A IA gera automaticamente os passos, habilidades necessárias e duração estimada.',
+        image: roadmapImg
       },
       {
         title: 'Passos do roadmap',
-        description: 'Cada passo inclui título, descrição detalhada, habilidades a desenvolver e tempo estimado. Use isso para criar PDIs (Planos de Desenvolvimento Individual).'
+        description: 'Cada passo inclui título, descrição detalhada, habilidades a desenvolver e tempo estimado. Use isso para criar PDIs (Planos de Desenvolvimento Individual).',
+        image: roadmapImg
       },
       {
         title: 'Exportação em PDF',
-        description: 'Exporte o roadmap em PDF para compartilhar com o colaborador ou arquivar no prontuário. O PDF inclui todos os detalhes do plano.'
+        description: 'Exporte o roadmap em PDF para compartilhar com o colaborador ou arquivar no prontuário. O PDF inclui todos os detalhes do plano.',
+        image: roadmapImg
       }
     ]
   },
@@ -192,27 +214,33 @@ const tutorials: Tutorial[] = [
     steps: [
       {
         title: 'Ciclos de avaliação',
-        description: 'Crie ciclos com período definido (ex: Avaliação Anual 2024). Cada ciclo agrupa as avaliações de múltiplos colaboradores.'
+        description: 'Crie ciclos com período definido (ex: Avaliação Anual 2024). Cada ciclo agrupa as avaliações de múltiplos colaboradores.',
+        image: performanceImg
       },
       {
         title: 'Adicionando colaboradores',
-        description: 'Dentro do ciclo, adicione colaboradores individualmente. A IA gera perguntas personalizadas baseadas no cargo de cada pessoa.'
+        description: 'Dentro do ciclo, adicione colaboradores individualmente. A IA gera perguntas personalizadas baseadas no cargo de cada pessoa.',
+        image: performanceImg
       },
       {
         title: 'Fluxo de avaliação',
-        description: 'O processo tem 2 etapas: primeiro o colaborador faz a autoavaliação (portal público), depois o gestor realiza a avaliação final.'
+        description: 'O processo tem 2 etapas: primeiro o colaborador faz a autoavaliação (portal público), depois o gestor realiza a avaliação final.',
+        image: performanceImg
       },
       {
         title: 'Envio de convites',
-        description: 'Envie convites por e-mail via webhook n8n. O sistema envia automaticamente para o participante correto (colaborador ou gestor) baseado no status.'
+        description: 'Envie convites por e-mail via webhook n8n. O sistema envia automaticamente para o participante correto (colaborador ou gestor) baseado no status.',
+        image: performanceImg
       },
       {
         title: 'Histórico de convites',
-        description: 'Visualize o histórico de todos os convites enviados para cada avaliação, incluindo data, hora e destinatário.'
+        description: 'Visualize o histórico de todos os convites enviados para cada avaliação, incluindo data, hora e destinatário.',
+        image: performanceImg
       },
       {
         title: 'Templates de perguntas',
-        description: 'Configure templates de perguntas por categoria (Técnica, Cultural, Soft Skill, Metas) para reutilizar em futuras avaliações.'
+        description: 'Configure templates de perguntas por categoria (Técnica, Cultural, Soft Skill, Metas) para reutilizar em futuras avaliações.',
+        image: performanceImg
       }
     ]
   }
