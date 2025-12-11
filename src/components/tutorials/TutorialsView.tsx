@@ -23,6 +23,8 @@ import rolesImg from '@/assets/tutorials/roles-management.png';
 import skillsImg from '@/assets/tutorials/skills-repository.png';
 import roadmapImg from '@/assets/tutorials/career-roadmap.png';
 import performanceImg from '@/assets/tutorials/performance-reviews.png';
+import employeesImg from '@/assets/tutorials/employees-management.png';
+import costCentersImg from '@/assets/tutorials/cost-centers-management.png';
 
 interface Tutorial {
   id: string;
@@ -136,19 +138,23 @@ const tutorials: Tutorial[] = [
     steps: [
       {
         title: 'Listagem de colaboradores',
-        description: 'Visualize todos os colaboradores com nome, cargo, e-mail e data de admissão. Use a busca para encontrar pessoas específicas.'
+        description: 'Visualize todos os colaboradores com nome, cargo, e-mail e data de admissão. Use a busca para encontrar pessoas específicas.',
+        image: employeesImg
       },
       {
         title: 'Cadastro de colaborador',
-        description: 'Adicione colaboradores com nome, e-mail (necessário para avaliações), cargo e data de admissão. O e-mail permite acesso ao portal de autoavaliação.'
+        description: 'Adicione colaboradores com nome, e-mail (necessário para avaliações), cargo e data de admissão. O e-mail permite acesso ao portal de autoavaliação.',
+        image: employeesImg
       },
       {
         title: 'Gestor responsável',
-        description: 'Vincule cada colaborador a um gestor. O gestor será responsável por realizar a avaliação de desempenho após a autoavaliação.'
+        description: 'Vincule cada colaborador a um gestor. O gestor será responsável por realizar a avaliação de desempenho após a autoavaliação.',
+        image: employeesImg
       },
       {
         title: 'Integração com avaliações',
-        description: 'Colaboradores com e-mail cadastrado podem participar de ciclos de avaliação, recebendo convites para autoavaliação.'
+        description: 'Colaboradores com e-mail cadastrado podem participar de ciclos de avaliação, recebendo convites para autoavaliação.',
+        image: employeesImg
       }
     ]
   },
@@ -162,15 +168,18 @@ const tutorials: Tutorial[] = [
     steps: [
       {
         title: 'Estrutura organizacional',
-        description: 'Centros de custos representam a estrutura departamental da empresa. Cada centro pode ter múltiplos colaboradores vinculados.'
+        description: 'Centros de custos representam a estrutura departamental da empresa. Cada centro pode ter múltiplos colaboradores vinculados.',
+        image: costCentersImg
       },
       {
         title: 'Filtro por empresa',
-        description: 'Se você gerencia múltiplas empresas, use o filtro para visualizar os centros de custos de cada uma separadamente.'
+        description: 'Se você gerencia múltiplas empresas, use o filtro para visualizar os centros de custos de cada uma separadamente.',
+        image: costCentersImg
       },
       {
         title: 'Contagem de colaboradores',
-        description: 'Cada centro de custos exibe o número de colaboradores vinculados, facilitando a análise de distribuição de headcount.'
+        description: 'Cada centro de custos exibe o número de colaboradores vinculados, facilitando a análise de distribuição de headcount.',
+        image: costCentersImg
       }
     ]
   },
