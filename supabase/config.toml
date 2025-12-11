@@ -23,3 +23,6 @@ verify_jwt = false
 
 [functions.send-evaluation-invite]
 verify_jwt = true
+
+[functions.update-roadmap-progress]
+verify_jwt = true
