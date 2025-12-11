@@ -1,6 +1,6 @@
 import { forwardRef, useEffect, useState } from 'react';
-import { Flag, Trophy, Star, Zap, Lock, CheckCircle2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Flag, Trophy, Star } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { CareerRoadmap } from '@/types';
 
 interface RoadmapJourneyMapProps {
@@ -9,22 +9,20 @@ interface RoadmapJourneyMapProps {
 
 export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapProps>(
   ({ roadmap }, ref) => {
-    const [isVisible, setIsVisible] = useState(false);
+    const [animationKey, setAnimationKey] = useState(0);
     const progress = roadmap.progress;
     const totalSteps = roadmap.steps.length;
     
     useEffect(() => {
-      setIsVisible(true);
-    }, []);
+      setAnimationKey(prev => prev + 1);
+    }, [roadmap.id]);
 
-    // Generate path points for the winding road
-    const getPathPoints = (index: number, total: number) => {
+    const getPathPoints = (index: number) => {
       const isEven = index % 2 === 0;
       const yBase = 120 + index * 100;
       return {
         x: isEven ? 150 : 650,
         y: yBase,
-        curveX: isEven ? 650 : 150,
       };
     };
 
@@ -38,21 +36,23 @@ export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapPro
       switch (status) {
         case 'completed': return { bg: '#22c55e', border: '#16a34a', text: '#ffffff' };
         case 'current': return { bg: '#6366f1', border: '#4f46e5', text: '#ffffff' };
-        default: return { bg: '#e5e7eb', border: '#d1d5db', text: '#9ca3af' };
+        default: return { bg: '#64748b', border: '#475569', text: '#94a3b8' };
       }
     };
 
-    // Generate random but consistent star positions
-    const stars = Array.from({ length: 30 }).map((_, i) => ({
-      x: (i * 137.5) % 800,
-      y: (i * 89.3) % (180 + totalSteps * 100),
+    const stars = Array.from({ length: 40 }).map((_, i) => ({
+      x: (i * 137.5 + 50) % 800,
+      y: (i * 89.3 + 30) % (180 + totalSteps * 100),
       size: (i % 3) * 0.5 + 1,
-      delay: i * 0.1,
+      delay: (i % 10) * 0.2,
     }));
+
+    const svgHeight = 220 + totalSteps * 100;
 
     return (
       <div 
         ref={ref}
+        key={animationKey}
         className="bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 p-8 min-w-[800px] rounded-2xl overflow-hidden"
         style={{ fontFamily: 'Inter, system-ui, sans-serif' }}
       >
@@ -83,7 +83,6 @@ export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapPro
             <motion.div 
               className="text-center"
               whileHover={{ scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
             >
               <div className="text-4xl font-bold text-indigo-400">{progress.progressPercentage}%</div>
               <div className="text-slate-400 text-sm">Progresso</div>
@@ -91,7 +90,6 @@ export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapPro
             <motion.div 
               className="text-center"
               whileHover={{ scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
             >
               <div className="text-4xl font-bold text-green-400">{progress.completedSteps?.length || 0}</div>
               <div className="text-slate-400 text-sm">Concluídas</div>
@@ -99,7 +97,6 @@ export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapPro
             <motion.div 
               className="text-center"
               whileHover={{ scale: 1.1 }}
-              transition={{ type: "spring", stiffness: 300 }}
             >
               <div className="text-4xl font-bold text-amber-400">{progress.achievements.length}</div>
               <div className="text-slate-400 text-sm">Conquistas</div>
@@ -107,55 +104,51 @@ export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapPro
           </motion.div>
         )}
 
-        {/* Journey Map SVG */}
+        {/* Journey Map */}
         <div className="relative">
           <svg 
             width="800" 
-            height={180 + totalSteps * 100} 
-            viewBox={`0 0 800 ${180 + totalSteps * 100}`}
+            height={svgHeight} 
+            viewBox={`0 0 800 ${svgHeight}`}
             className="mx-auto"
           >
-            {/* Background stars with twinkle animation */}
+            <defs>
+              <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+                <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                <feMerge>
+                  <feMergeNode in="coloredBlur"/>
+                  <feMergeNode in="SourceGraphic"/>
+                </feMerge>
+              </filter>
+              <linearGradient id="pathGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                <stop offset="0%" stopColor="#6366f1"/>
+                <stop offset="100%" stopColor="#818cf8"/>
+              </linearGradient>
+            </defs>
+
+            {/* Background stars with twinkle */}
             {stars.map((star, i) => (
-              <motion.circle
+              <circle
                 key={i}
                 cx={star.x}
                 cy={star.y}
                 r={star.size}
-                fill="rgba(255,255,255,0.5)"
-                initial={{ opacity: 0.2 }}
-                animate={{ 
-                  opacity: [0.2, 0.8, 0.2],
-                  scale: [1, 1.2, 1],
-                }}
-                transition={{
-                  duration: 2 + (i % 3),
-                  repeat: Infinity,
-                  delay: star.delay,
-                  ease: "easeInOut",
-                }}
+                fill="rgba(255,255,255,0.4)"
+                className="animate-pulse"
+                style={{ animationDelay: `${star.delay}s`, animationDuration: `${2 + (i % 3)}s` }}
               />
             ))}
 
             {/* Start point */}
-            <motion.g 
-              transform="translate(400, 40)"
+            <motion.g
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ duration: 0.5, delay: 0.3, type: "spring" }}
+              transition={{ duration: 0.5, delay: 0.3 }}
             >
-              <motion.circle 
-                r="35" 
-                fill="#6366f1" 
-                stroke="#818cf8" 
-                strokeWidth="4"
-                animate={{ 
-                  boxShadow: ["0 0 0 0 rgba(99, 102, 241, 0)", "0 0 0 10px rgba(99, 102, 241, 0.3)", "0 0 0 0 rgba(99, 102, 241, 0)"]
-                }}
-              />
-              <circle r="25" fill="#4f46e5" />
-              <Flag x="-12" y="-12" width="24" height="24" stroke="white" fill="none" strokeWidth="2" />
-              <text y="55" textAnchor="middle" fill="white" fontSize="12" fontWeight="600">
+              <circle cx="400" cy="50" r="35" fill="#6366f1" stroke="#818cf8" strokeWidth="4" filter="url(#glow)" />
+              <circle cx="400" cy="50" r="25" fill="#4f46e5" />
+              <Flag x="388" y="38" width="24" height="24" stroke="white" fill="none" strokeWidth="2" />
+              <text x="400" y="105" textAnchor="middle" fill="white" fontSize="12" fontWeight="600">
                 {roadmap.sourceRoleTitle}
               </text>
             </motion.g>
@@ -164,10 +157,11 @@ export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapPro
             {roadmap.steps.map((step, index) => {
               const status = getStepStatus(index);
               const colors = getStepColors(status);
-              const point = getPathPoints(index, totalSteps);
-              const prevPoint = index === 0 
-                ? { x: 400, y: 40 } 
-                : getPathPoints(index - 1, totalSteps);
+              const point = getPathPoints(index);
+              const prevPoint = index === 0 ? { x: 400, y: 50 } : getPathPoints(index - 1);
+              const isCompleted = status === 'completed';
+              const isCurrent = status === 'current';
+              const isActive = isCompleted || isCurrent;
 
               const pathD = `M ${prevPoint.x} ${prevPoint.y + (index === 0 ? 35 : 30)} 
                   Q ${(prevPoint.x + point.x) / 2} ${(prevPoint.y + point.y) / 2 + 30} 
@@ -175,173 +169,122 @@ export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapPro
 
               return (
                 <g key={index}>
-                  {/* Glowing effect for completed/current */}
-                  {status !== 'locked' && (
+                  {/* Path glow for active */}
+                  {isActive && (
                     <motion.path
                       d={pathD}
                       fill="none"
                       stroke="#818cf8"
-                      strokeWidth="12"
+                      strokeWidth="14"
                       strokeLinecap="round"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: [0.2, 0.5, 0.2] }}
-                      transition={{ 
-                        duration: 2, 
-                        repeat: Infinity,
-                        delay: index * 0.2 
-                      }}
+                      opacity="0.3"
+                      initial={{ pathLength: 0 }}
+                      animate={{ pathLength: 1 }}
+                      transition={{ duration: 0.8, delay: 0.5 + index * 0.4 }}
                     />
                   )}
 
-                  {/* Connecting path with draw animation */}
+                  {/* Main path */}
                   <motion.path
                     d={pathD}
                     fill="none"
-                    stroke={status === 'locked' ? '#475569' : '#6366f1'}
+                    stroke={isActive ? 'url(#pathGradient)' : '#475569'}
                     strokeWidth="6"
-                    strokeDasharray={status === 'locked' ? '10,10' : 'none'}
+                    strokeDasharray={status === 'locked' ? '12,8' : 'none'}
                     strokeLinecap="round"
-                    initial={{ pathLength: 0, opacity: 0 }}
-                    animate={{ pathLength: 1, opacity: 1 }}
-                    transition={{ 
-                      duration: 0.8, 
-                      delay: 0.5 + index * 0.3,
-                      ease: "easeInOut"
-                    }}
+                    initial={{ pathLength: 0 }}
+                    animate={{ pathLength: 1 }}
+                    transition={{ duration: 0.8, delay: 0.5 + index * 0.4 }}
                   />
 
-                  {/* Animated particle along path for current/completed */}
-                  {status !== 'locked' && (
+                  {/* Animated dot along path for active */}
+                  {isActive && (
                     <motion.circle
-                      r="4"
+                      r="5"
                       fill="#ffffff"
-                      initial={{ offsetDistance: "0%" }}
-                      animate={{ offsetDistance: "100%" }}
-                      transition={{
-                        duration: 2,
-                        repeat: Infinity,
-                        delay: index * 0.5,
-                        ease: "linear",
-                      }}
-                      style={{
-                        offsetPath: `path("${pathD}")`,
-                      }}
+                      filter="url(#glow)"
+                      initial={{ offsetDistance: '0%' }}
+                      animate={{ offsetDistance: '100%' }}
+                      transition={{ duration: 3, repeat: Infinity, ease: 'linear', delay: index * 0.5 }}
+                      style={{ offsetPath: `path("${pathD}")` }}
                     />
                   )}
 
                   {/* Step node */}
-                  <motion.g 
-                    transform={`translate(${point.x}, ${point.y})`}
+                  <motion.g
                     initial={{ scale: 0, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
-                    transition={{ 
-                      duration: 0.5, 
-                      delay: 0.8 + index * 0.3,
-                      type: "spring",
-                      stiffness: 200
-                    }}
+                    transition={{ duration: 0.5, delay: 0.8 + index * 0.4, type: 'spring' }}
                   >
-                    {/* Outer glow for current with pulse */}
-                    {status === 'current' && (
+                    {/* Pulse ring for current */}
+                    {isCurrent && (
                       <>
-                        <motion.circle 
-                          r="50" 
-                          fill="rgba(99, 102, 241, 0.2)"
-                          animate={{ 
-                            r: [50, 60, 50],
-                            opacity: [0.2, 0.4, 0.2]
-                          }}
-                          transition={{ 
-                            duration: 2, 
-                            repeat: Infinity,
-                            ease: "easeInOut"
-                          }}
-                        />
-                        <motion.circle 
-                          r="40" 
-                          fill="rgba(99, 102, 241, 0.3)"
-                          animate={{ 
-                            r: [40, 48, 40],
-                            opacity: [0.3, 0.5, 0.3]
-                          }}
-                          transition={{ 
-                            duration: 2, 
-                            repeat: Infinity,
-                            ease: "easeInOut",
-                            delay: 0.2
-                          }}
-                        />
+                        <circle cx={point.x} cy={point.y} r="50" fill="rgba(99, 102, 241, 0.15)">
+                          <animate attributeName="r" values="40;55;40" dur="2s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="0.3;0.1;0.3" dur="2s" repeatCount="indefinite" />
+                        </circle>
+                        <circle cx={point.x} cy={point.y} r="40" fill="rgba(99, 102, 241, 0.25)">
+                          <animate attributeName="r" values="35;45;35" dur="2s" repeatCount="indefinite" />
+                          <animate attributeName="opacity" values="0.4;0.2;0.4" dur="2s" repeatCount="indefinite" />
+                        </circle>
                       </>
                     )}
-                    
-                    {/* Main circle with hover effect */}
-                    <motion.circle 
+
+                    {/* Main node circle */}
+                    <circle 
+                      cx={point.x} 
+                      cy={point.y} 
                       r="30" 
                       fill={colors.bg} 
                       stroke={colors.border} 
                       strokeWidth="4"
-                      whileHover={{ scale: 1.15 }}
-                      transition={{ type: "spring", stiffness: 400 }}
+                      filter={isActive ? 'url(#glow)' : 'none'}
                     />
-                    
-                    {/* Step number or icon */}
+
+                    {/* Step number/check */}
                     <text
+                      x={point.x}
+                      y={point.y + 5}
                       textAnchor="middle"
-                      dominantBaseline="middle"
                       fill={colors.text}
                       fontSize="16"
                       fontWeight="bold"
                     >
-                      {status === 'completed' ? '✓' : index + 1}
+                      {isCompleted ? '✓' : index + 1}
                     </text>
 
-                    {/* Step title */}
-                    <motion.foreignObject
-                      x={point.x < 400 ? 40 : -200}
-                      y="-25"
-                      width="160"
-                      height="50"
-                      initial={{ opacity: 0, x: point.x < 400 ? 20 : -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.4, delay: 1 + index * 0.3 }}
+                    {/* Step label */}
+                    <text
+                      x={point.x < 400 ? point.x + 45 : point.x - 45}
+                      y={point.y - 8}
+                      textAnchor={point.x < 400 ? 'start' : 'end'}
+                      fill={status === 'locked' ? '#64748b' : '#e2e8f0'}
+                      fontSize="13"
+                      fontWeight="600"
                     >
-                      <div 
-                        style={{ 
-                          textAlign: point.x < 400 ? 'left' : 'right',
-                          color: status === 'locked' ? '#64748b' : '#e2e8f0'
-                        }}
-                      >
-                        <div style={{ fontSize: '13px', fontWeight: 600, lineHeight: 1.2 }}>
-                          {step.title}
-                        </div>
-                        <div style={{ fontSize: '11px', opacity: 0.7 }}>
-                          {step.estimatedDuration}
-                        </div>
-                      </div>
-                    </motion.foreignObject>
+                      {step.title.length > 20 ? step.title.slice(0, 20) + '...' : step.title}
+                    </text>
+                    <text
+                      x={point.x < 400 ? point.x + 45 : point.x - 45}
+                      y={point.y + 10}
+                      textAnchor={point.x < 400 ? 'start' : 'end'}
+                      fill="#64748b"
+                      fontSize="11"
+                    >
+                      {step.estimatedDuration}
+                    </text>
 
-                    {/* Achievement badge with bounce */}
-                    {status === 'completed' && (
-                      <motion.g 
-                        transform="translate(20, -20)"
+                    {/* Achievement star for completed */}
+                    {isCompleted && (
+                      <motion.g
                         initial={{ scale: 0, rotate: -180 }}
                         animate={{ scale: 1, rotate: 0 }}
-                        transition={{ 
-                          duration: 0.6, 
-                          delay: 1.2 + index * 0.3,
-                          type: "spring",
-                          stiffness: 200
-                        }}
+                        transition={{ duration: 0.5, delay: 1 + index * 0.4, type: 'spring' }}
                       >
-                        <motion.circle 
-                          r="12" 
-                          fill="#fbbf24" 
-                          stroke="#f59e0b" 
-                          strokeWidth="2"
-                          animate={{ scale: [1, 1.1, 1] }}
-                          transition={{ duration: 1.5, repeat: Infinity }}
-                        />
-                        <Star x="-6" y="-6" width="12" height="12" fill="#ffffff" stroke="none" />
+                        <circle cx={point.x + 22} cy={point.y - 22} r="12" fill="#fbbf24" stroke="#f59e0b" strokeWidth="2">
+                          <animate attributeName="r" values="12;14;12" dur="1.5s" repeatCount="indefinite" />
+                        </circle>
+                        <Star x={point.x + 16} y={point.y - 28} width="12" height="12" fill="#ffffff" stroke="none" />
                       </motion.g>
                     )}
                   </motion.g>
@@ -349,76 +292,63 @@ export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapPro
               );
             })}
 
-            {/* End point (Target role) */}
-            <motion.g 
-              transform={`translate(400, ${150 + totalSteps * 100})`}
+            {/* End point - Trophy */}
+            <motion.g
               initial={{ scale: 0, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
-              transition={{ 
-                duration: 0.6, 
-                delay: 1 + totalSteps * 0.3,
-                type: "spring"
-              }}
+              transition={{ duration: 0.6, delay: 1 + totalSteps * 0.4 }}
             >
-              {/* Connecting path to finish */}
+              {/* Path to trophy */}
               <motion.path
-                d={`M ${getPathPoints(totalSteps - 1, totalSteps).x} ${getPathPoints(totalSteps - 1, totalSteps).y + 30} 
-                    Q 400 ${120 + totalSteps * 100} 
-                    400 ${150 + totalSteps * 100 - 45}`}
+                d={`M ${getPathPoints(totalSteps - 1).x} ${getPathPoints(totalSteps - 1).y + 30} 
+                    Q 400 ${130 + totalSteps * 100} 
+                    400 ${svgHeight - 70}`}
                 fill="none"
-                stroke={progress?.progressPercentage === 100 ? '#6366f1' : '#475569'}
+                stroke={progress?.progressPercentage === 100 ? 'url(#pathGradient)' : '#475569'}
                 strokeWidth="6"
-                strokeDasharray={progress?.progressPercentage === 100 ? 'none' : '10,10'}
+                strokeDasharray={progress?.progressPercentage === 100 ? 'none' : '12,8'}
                 strokeLinecap="round"
                 initial={{ pathLength: 0 }}
                 animate={{ pathLength: 1 }}
-                transition={{ duration: 0.8, delay: 0.8 + totalSteps * 0.3 }}
+                transition={{ duration: 0.8, delay: 0.8 + totalSteps * 0.4 }}
               />
-              
-              {/* Trophy circle with celebration animation when complete */}
-              {progress?.progressPercentage === 100 ? (
-                <>
-                  <motion.circle 
-                    r="45" 
-                    fill="#fbbf24"
-                    stroke="#f59e0b"
-                    strokeWidth="5"
-                    animate={{ 
-                      scale: [1, 1.05, 1],
-                      filter: ["drop-shadow(0 0 0px #fbbf24)", "drop-shadow(0 0 20px #fbbf24)", "drop-shadow(0 0 0px #fbbf24)"]
-                    }}
-                    transition={{ duration: 2, repeat: Infinity }}
-                  />
-                  <motion.circle 
-                    r="35" 
-                    fill="#f59e0b"
-                  />
-                </>
-              ) : (
-                <>
-                  <circle 
-                    r="45" 
-                    fill="#374151"
-                    stroke="#4b5563"
-                    strokeWidth="5"
-                  />
-                  <circle r="35" fill="#1f2937" />
-                </>
+
+              {/* Trophy glow when complete */}
+              {progress?.progressPercentage === 100 && (
+                <circle cx="400" cy={svgHeight - 60} r="55" fill="rgba(251, 191, 36, 0.2)">
+                  <animate attributeName="r" values="50;60;50" dur="2s" repeatCount="indefinite" />
+                  <animate attributeName="opacity" values="0.3;0.5;0.3" dur="2s" repeatCount="indefinite" />
+                </circle>
               )}
-              
+
+              <circle 
+                cx="400" 
+                cy={svgHeight - 60} 
+                r="45" 
+                fill={progress?.progressPercentage === 100 ? '#fbbf24' : '#374151'}
+                stroke={progress?.progressPercentage === 100 ? '#f59e0b' : '#4b5563'}
+                strokeWidth="5"
+                filter={progress?.progressPercentage === 100 ? 'url(#glow)' : 'none'}
+              />
+              <circle 
+                cx="400" 
+                cy={svgHeight - 60} 
+                r="35" 
+                fill={progress?.progressPercentage === 100 ? '#f59e0b' : '#1f2937'}
+              />
               <Trophy 
-                x="-15" 
-                y="-15" 
+                x={385}
+                y={svgHeight - 75}
                 width="30" 
                 height="30" 
                 stroke={progress?.progressPercentage === 100 ? '#ffffff' : '#6b7280'}
                 fill="none"
                 strokeWidth="2"
               />
-              <text y="65" textAnchor="middle" fill="#e2e8f0" fontSize="14" fontWeight="700">
+              <text x="400" y={svgHeight + 5} textAnchor="middle" fill="#e2e8f0" fontSize="14" fontWeight="700">
                 {roadmap.targetRoleTitle}
               </text>
-              <text y="82" textAnchor="middle" fill="#94a3b8" fontSize="11">
+              <text x="400" y={svgHeight + 22} textAnchor="middle" fill="#94a3b8" fontSize="11">
                 {progress?.progressPercentage === 100 ? '🎯 Meta Alcançada!' : 'Cargo Alvo'}
               </text>
             </motion.g>
@@ -430,24 +360,14 @@ export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapPro
           className="flex justify-center gap-8 mt-6 text-sm"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5, delay: 1.5 + totalSteps * 0.3 }}
+          transition={{ duration: 0.5, delay: 1.5 }}
         >
           <div className="flex items-center gap-2">
-            <motion.div 
-              className="w-4 h-4 rounded-full bg-green-500"
-              animate={{ scale: [1, 1.2, 1] }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+            <div className="w-4 h-4 rounded-full bg-green-500 animate-pulse" />
             <span className="text-slate-400">Concluída</span>
           </div>
           <div className="flex items-center gap-2">
-            <motion.div 
-              className="w-4 h-4 rounded-full bg-indigo-500 ring-4 ring-indigo-500/30"
-              animate={{ 
-                boxShadow: ["0 0 0 0 rgba(99, 102, 241, 0.4)", "0 0 0 8px rgba(99, 102, 241, 0)", "0 0 0 0 rgba(99, 102, 241, 0)"]
-              }}
-              transition={{ duration: 2, repeat: Infinity }}
-            />
+            <div className="w-4 h-4 rounded-full bg-indigo-500 ring-4 ring-indigo-500/30 animate-pulse" />
             <span className="text-slate-400">Em andamento</span>
           </div>
           <div className="flex items-center gap-2">
@@ -457,16 +377,11 @@ export const RoadmapJourneyMap = forwardRef<HTMLDivElement, RoadmapJourneyMapPro
         </motion.div>
 
         {/* Footer */}
-        <motion.div 
-          className="text-center mt-6 pt-4 border-t border-slate-700"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 2 }}
-        >
+        <div className="text-center mt-6 pt-4 border-t border-slate-700">
           <p className="text-slate-500 text-xs">
             Gerado em {new Date().toLocaleDateString('pt-BR')} • GFloow
           </p>
-        </motion.div>
+        </div>
       </div>
     );
   }
