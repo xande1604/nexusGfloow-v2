@@ -1,8 +1,12 @@
-import { useState } from 'react';
-import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp } from 'lucide-react';
+import { useState, useRef, useCallback } from 'react';
+import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image } from 'lucide-react';
+import html2canvas from 'html2canvas';
 import { JobRole, Employee, CareerRoadmap, Skill } from '@/types';
 import { cn } from '@/lib/utils';
 import { RoadmapUpdateModal, RoadmapProgressData } from './RoadmapUpdateModal';
+import { RoadmapProgressChart } from './RoadmapProgressChart';
+import { RoadmapInfographic } from './RoadmapInfographic';
+import { useToast } from '@/hooks/use-toast';
 
 interface RoadmapViewProps {
   roles: JobRole[];
@@ -21,6 +25,40 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
   const [activeTab, setActiveTab] = useState<'create' | 'history'>('create');
   const [selectedRoadmap, setSelectedRoadmap] = useState<CareerRoadmap | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const infographicRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast();
+
+  const handleExportPNG = useCallback(async () => {
+    if (!infographicRef.current || !selectedRoadmap) return;
+    
+    setIsExporting(true);
+    try {
+      const canvas = await html2canvas(infographicRef.current, {
+        scale: 2,
+        backgroundColor: '#ffffff',
+        logging: false,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `roadmap-${selectedRoadmap.sourceRoleTitle}-${selectedRoadmap.targetRoleTitle}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast({
+        title: 'Infográfico exportado',
+        description: 'O arquivo PNG foi baixado com sucesso.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao exportar',
+        description: 'Não foi possível gerar o infográfico.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  }, [selectedRoadmap, toast]);
 
   const handleGenerate = async () => {
     if (sourceRole && targetRole) {
@@ -101,11 +139,19 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-2">
               <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-lg">
                 <Clock className="w-4 h-4" />
                 {calculateTotalDuration(selectedRoadmap)}
               </div>
+              <button
+                onClick={handleExportPNG}
+                disabled={isExporting}
+                className="flex items-center gap-2 px-4 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors disabled:opacity-50"
+              >
+                <Image className="w-4 h-4" />
+                {isExporting ? 'Exportando...' : 'Exportar PNG'}
+              </button>
               <button
                 onClick={() => setIsUpdateModalOpen(true)}
                 className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-primary-foreground rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
@@ -202,6 +248,9 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
                 </div>
               </div>
             )}
+
+            {/* Progress Evolution Chart */}
+            <RoadmapProgressChart progress={progress} />
           </div>
         )}
 
@@ -278,6 +327,11 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Hidden Infographic for Export */}
+        <div className="fixed left-[-9999px] top-0">
+          <RoadmapInfographic ref={infographicRef} roadmap={selectedRoadmap} />
         </div>
 
         {/* Update Modal */}
