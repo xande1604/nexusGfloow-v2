@@ -209,6 +209,58 @@ Seja preciso na análise, cruzando as habilidades obtidas com as necessárias em
 
     console.log('Progress updated successfully');
 
+    // Send notification to manager if employee has one
+    if (employeeId) {
+      try {
+        // Get employee and manager info
+        const { data: employee } = await supabase
+          .from('employees')
+          .select('nome, gestor_id, email')
+          .eq('id', employeeId)
+          .single();
+
+        if (employee?.gestor_id) {
+          const { data: manager } = await supabase
+            .from('employees')
+            .select('nome, email')
+            .eq('id', employee.gestor_id)
+            .single();
+
+          if (manager?.email) {
+            const N8N_WEBHOOK_URL = Deno.env.get('N8N_WEBHOOK_URL');
+            
+            if (N8N_WEBHOOK_URL) {
+              console.log('Sending notification to manager:', manager.email);
+              
+              await fetch(N8N_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'roadmap_progress_update',
+                  to: manager.email,
+                  managerName: manager.nome,
+                  employeeName: employee.nome,
+                  sourceRole: sourceRoleTitle,
+                  targetRole: targetRoleTitle,
+                  progressPercentage: analysisResult.progressPercentage,
+                  achievementsCount: analysisResult.achievements.length,
+                  summary: analysisResult.summary,
+                  updatedAt: new Date().toISOString()
+                })
+              });
+              
+              console.log('Manager notification sent successfully');
+            } else {
+              console.log('N8N_WEBHOOK_URL not configured, skipping notification');
+            }
+          }
+        }
+      } catch (notifyError) {
+        // Don't fail the main operation if notification fails
+        console.error('Error sending manager notification:', notifyError);
+      }
+    }
+
     return new Response(JSON.stringify({
       success: true,
       progress: progressData
