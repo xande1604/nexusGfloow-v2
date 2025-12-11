@@ -152,6 +152,7 @@ export type Database = {
           employee_id: string | null
           id: string
           owner_admin_id: string | null
+          progress: Json | null
           source_role_title: string
           steps: Json
           target_role_title: string
@@ -161,6 +162,7 @@ export type Database = {
           employee_id?: string | null
           id?: string
           owner_admin_id?: string | null
+          progress?: Json | null
           source_role_title: string
           steps: Json
           target_role_title: string
@@ -170,6 +172,7 @@ export type Database = {
           employee_id?: string | null
           id?: string
           owner_admin_id?: string | null
+          progress?: Json | null
           source_role_title?: string
           steps?: Json
           target_role_title?: string

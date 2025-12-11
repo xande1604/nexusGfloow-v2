@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { CareerRoadmap, RoadmapStep } from '@/types';
+import { CareerRoadmap, RoadmapStep, RoadmapProgress } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
 export const useRoadmaps = () => {
@@ -24,6 +24,7 @@ export const useRoadmaps = () => {
         targetRoleTitle: row.target_role_title,
         steps: (row.steps as unknown as RoadmapStep[]) || [],
         createdAt: row.created_at || new Date().toISOString(),
+        progress: row.progress as unknown as RoadmapProgress | undefined,
       }));
 
       setRoadmaps(mappedRoadmaps);
@@ -70,6 +71,50 @@ export const useRoadmaps = () => {
     }
   };
 
+  const updateRoadmapProgress = async (
+    roadmapId: string,
+    employeeId: string | undefined,
+    acquiredSkills: string[],
+    completedTrainings: { name: string; date: string; institution?: string }[],
+    additionalNotes: string | undefined,
+    roadmapSteps: RoadmapStep[],
+    sourceRoleTitle: string,
+    targetRoleTitle: string
+  ): Promise<RoadmapProgress | null> => {
+    try {
+      const { data, error } = await supabase.functions.invoke('update-roadmap-progress', {
+        body: {
+          roadmapId,
+          employeeId,
+          acquiredSkills,
+          completedTrainings,
+          additionalNotes,
+          roadmapSteps,
+          sourceRoleTitle,
+          targetRoleTitle
+        }
+      });
+
+      if (error) throw error;
+      if (data.error) throw new Error(data.error);
+
+      toast({
+        title: 'Progresso atualizado',
+        description: 'O roadmap foi atualizado com sucesso.',
+      });
+
+      await fetchRoadmaps();
+      return data.progress;
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atualizar progresso',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return null;
+    }
+  };
+
   const deleteRoadmap = async (id: string) => {
     try {
       const { error } = await supabase
@@ -98,5 +143,5 @@ export const useRoadmaps = () => {
     fetchRoadmaps();
   }, []);
 
-  return { roadmaps, loading, saveRoadmap, deleteRoadmap, refetch: fetchRoadmaps };
+  return { roadmaps, loading, saveRoadmap, deleteRoadmap, updateRoadmapProgress, refetch: fetchRoadmaps };
 };
