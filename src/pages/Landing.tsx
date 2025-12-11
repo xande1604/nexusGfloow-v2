@@ -1,6 +1,13 @@
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { z } from "zod";
 import { 
   Users, 
   Target, 
@@ -20,12 +27,103 @@ import {
   Lightbulb,
   Route,
   Star,
-  ChevronRight
+  ChevronRight,
+  Send,
+  Loader2,
+  Mail,
+  Phone,
+  User,
+  Building
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+const contactSchema = z.object({
+  nome: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
+  email: z.string().trim().email("Email inválido").max(255, "Email muito longo"),
+  empresa: z.string().trim().max(100, "Nome da empresa muito longo").optional(),
+  telefone: z.string().trim().max(20, "Telefone muito longo").optional(),
+  mensagem: z.string().trim().min(10, "Mensagem deve ter pelo menos 10 caracteres").max(1000, "Mensagem muito longa"),
+});
+
+type ContactFormData = z.infer<typeof contactSchema>;
+
 const Landing = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  const [formData, setFormData] = useState<ContactFormData>({
+    nome: "",
+    email: "",
+    empresa: "",
+    telefone: "",
+    mensagem: "",
+  });
+  const [formErrors, setFormErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+    // Clear error when user starts typing
+    if (formErrors[name as keyof ContactFormData]) {
+      setFormErrors(prev => ({ ...prev, [name]: undefined }));
+    }
+  };
+
+  const handleSubmitContact = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate form
+    const result = contactSchema.safeParse(formData);
+    if (!result.success) {
+      const errors: Partial<Record<keyof ContactFormData, string>> = {};
+      result.error.errors.forEach(err => {
+        if (err.path[0]) {
+          errors[err.path[0] as keyof ContactFormData] = err.message;
+        }
+      });
+      setFormErrors(errors);
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      const { error } = await supabase.from('contatos').insert({
+        nome: result.data.nome,
+        email: result.data.email,
+        empresa: result.data.empresa || null,
+        telefone: result.data.telefone || null,
+        mensagem: result.data.mensagem,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Mensagem enviada!",
+        description: "Entraremos em contato em breve.",
+      });
+
+      // Reset form
+      setFormData({
+        nome: "",
+        email: "",
+        empresa: "",
+        telefone: "",
+        mensagem: "",
+      });
+      setFormErrors({});
+    } catch (error: any) {
+      console.error('Error submitting contact form:', error);
+      toast({
+        title: "Erro ao enviar",
+        description: "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const features = [
     {
@@ -135,6 +233,7 @@ const Landing = () => {
               <a href="#beneficios" className="text-muted-foreground hover:text-foreground transition-colors">Benefícios</a>
               <a href="#ia" className="text-muted-foreground hover:text-foreground transition-colors">IA</a>
               <a href="#depoimentos" className="text-muted-foreground hover:text-foreground transition-colors">Depoimentos</a>
+              <a href="#contato" className="text-muted-foreground hover:text-foreground transition-colors">Contato</a>
             </div>
             <div className="flex items-center gap-3">
               <Button variant="ghost" onClick={() => navigate('/auth')}>
@@ -451,6 +550,182 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Contact Form Section */}
+      <section id="contato" className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-start">
+            <div>
+              <Badge variant="outline" className="mb-4">
+                <Mail className="w-4 h-4 mr-2 inline" />
+                Fale Conosco
+              </Badge>
+              <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
+                Quer saber mais? Entre em contato!
+              </h2>
+              <p className="text-xl text-muted-foreground mb-8">
+                Preencha o formulário e nossa equipe entrará em contato para tirar suas dúvidas 
+                e apresentar as melhores soluções para sua empresa.
+              </p>
+
+              <div className="space-y-6">
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Demonstração Personalizada</h3>
+                    <p className="text-muted-foreground">Mostramos como a plataforma se adapta às suas necessidades.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Suporte Especializado</h3>
+                    <p className="text-muted-foreground">Equipe brasileira pronta para ajudar em português.</p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4">
+                  <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                    <CheckCircle2 className="w-6 h-6 text-primary" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground mb-1">Sem Compromisso</h3>
+                    <p className="text-muted-foreground">Conheça a plataforma sem obrigação de contratação.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <Card className="bg-card border-border/50 shadow-xl">
+              <CardContent className="p-8">
+                <form onSubmit={handleSubmitContact} className="space-y-5">
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="nome" className="flex items-center gap-2">
+                        <User className="w-4 h-4" />
+                        Nome *
+                      </Label>
+                      <Input
+                        id="nome"
+                        name="nome"
+                        placeholder="Seu nome"
+                        value={formData.nome}
+                        onChange={handleInputChange}
+                        className={formErrors.nome ? "border-destructive" : ""}
+                      />
+                      {formErrors.nome && (
+                        <p className="text-sm text-destructive">{formErrors.nome}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="email" className="flex items-center gap-2">
+                        <Mail className="w-4 h-4" />
+                        Email *
+                      </Label>
+                      <Input
+                        id="email"
+                        name="email"
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        className={formErrors.email ? "border-destructive" : ""}
+                      />
+                      {formErrors.email && (
+                        <p className="text-sm text-destructive">{formErrors.email}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="grid sm:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="empresa" className="flex items-center gap-2">
+                        <Building className="w-4 h-4" />
+                        Empresa
+                      </Label>
+                      <Input
+                        id="empresa"
+                        name="empresa"
+                        placeholder="Nome da empresa"
+                        value={formData.empresa}
+                        onChange={handleInputChange}
+                        className={formErrors.empresa ? "border-destructive" : ""}
+                      />
+                      {formErrors.empresa && (
+                        <p className="text-sm text-destructive">{formErrors.empresa}</p>
+                      )}
+                    </div>
+
+                    <div className="space-y-2">
+                      <Label htmlFor="telefone" className="flex items-center gap-2">
+                        <Phone className="w-4 h-4" />
+                        Telefone
+                      </Label>
+                      <Input
+                        id="telefone"
+                        name="telefone"
+                        placeholder="(11) 99999-9999"
+                        value={formData.telefone}
+                        onChange={handleInputChange}
+                        className={formErrors.telefone ? "border-destructive" : ""}
+                      />
+                      {formErrors.telefone && (
+                        <p className="text-sm text-destructive">{formErrors.telefone}</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="mensagem" className="flex items-center gap-2">
+                      Mensagem *
+                    </Label>
+                    <Textarea
+                      id="mensagem"
+                      name="mensagem"
+                      placeholder="Conte-nos sobre suas necessidades de RH..."
+                      rows={4}
+                      value={formData.mensagem}
+                      onChange={handleInputChange}
+                      className={formErrors.mensagem ? "border-destructive" : ""}
+                    />
+                    {formErrors.mensagem && (
+                      <p className="text-sm text-destructive">{formErrors.mensagem}</p>
+                    )}
+                  </div>
+
+                  <Button 
+                    type="submit" 
+                    className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90"
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Enviando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="w-4 h-4 mr-2" />
+                        Enviar Mensagem
+                      </>
+                    )}
+                  </Button>
+
+                  <p className="text-xs text-muted-foreground text-center">
+                    Ao enviar, você concorda com nossa Política de Privacidade.
+                  </p>
+                </form>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
       {/* CTA Section */}
       <section className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-4xl mx-auto">
@@ -518,7 +793,7 @@ const Landing = () => {
                 <li><a href="#" className="hover:text-foreground transition-colors">Sobre nós</a></li>
                 <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
                 <li><a href="#" className="hover:text-foreground transition-colors">Carreiras</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Contato</a></li>
+                <li><a href="#contato" className="hover:text-foreground transition-colors">Contato</a></li>
               </ul>
             </div>
             
