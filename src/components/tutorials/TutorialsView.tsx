@@ -20,6 +20,9 @@ import { TutorialModal } from './TutorialModal';
 // Import tutorial images
 import dashboardImg from '@/assets/tutorials/dashboard-overview.png';
 import rolesImg from '@/assets/tutorials/roles-management.png';
+import rolesListImg from '@/assets/tutorials/roles-list.png';
+import rolesEditFormImg from '@/assets/tutorials/roles-edit-form.png';
+import rolesAiRefinementImg from '@/assets/tutorials/roles-ai-refinement.png';
 import skillsImg from '@/assets/tutorials/skills-repository.png';
 import roadmapImg from '@/assets/tutorials/career-roadmap.png';
 import performanceImg from '@/assets/tutorials/performance-reviews.png';
@@ -79,22 +82,22 @@ const tutorials: Tutorial[] = [
       {
         title: 'Cadastro de cargos',
         description: 'Clique em "Novo Cargo" para adicionar um cargo. Preencha o título, nível hierárquico (Estagiário a C-Level), departamento e faixa salarial.',
-        image: rolesImg
+        image: rolesListImg
       },
       {
         title: 'Refinamento com IA',
         description: 'Use o botão "Refinar com IA" para gerar automaticamente descrições, conhecimentos técnicos, hard skills, soft skills e entregas esperadas baseadas no título do cargo.',
-        image: rolesImg
+        image: rolesAiRefinementImg
       },
       {
         title: 'Vinculação de habilidades',
         description: 'Associe habilidades existentes ao cargo para definir o perfil técnico e comportamental esperado. Isso alimenta os roadmaps de carreira.',
-        image: rolesImg
+        image: rolesEditFormImg
       },
       {
         title: 'Gestão de salários',
         description: 'Defina faixas salariais mínimas e máximas para cada cargo. Isso ajuda no planejamento de headcount e orçamento.',
-        image: rolesImg
+        image: rolesEditFormImg
       }
     ]
   },
