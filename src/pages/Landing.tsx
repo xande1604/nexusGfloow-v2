@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { z } from "zod";
+import { motion } from "framer-motion";
 import { 
   Users, 
   Target, 
@@ -47,6 +48,42 @@ const contactSchema = z.object({
 
 type ContactFormData = z.infer<typeof contactSchema>;
 
+// Animation variants
+const fadeInUp = {
+  initial: { opacity: 0, y: 40 },
+  whileInView: { opacity: 1, y: 0 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1] as const }
+};
+
+const fadeIn = {
+  initial: { opacity: 0 },
+  whileInView: { opacity: 1 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1] as const }
+};
+
+const staggerContainer = {
+  initial: {},
+  whileInView: {
+    transition: { staggerChildren: 0.1 }
+  },
+  viewport: { once: true, margin: "-100px" }
+};
+
+const staggerItem = {
+  initial: { opacity: 0, y: 20 },
+  whileInView: { opacity: 1, y: 0 },
+  transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as const }
+};
+
+const scaleIn = {
+  initial: { opacity: 0, scale: 0.9 },
+  whileInView: { opacity: 1, scale: 1 },
+  viewport: { once: true, margin: "-100px" },
+  transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] as const }
+};
+
 const Landing = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -64,7 +101,6 @@ const Landing = () => {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ ...prev, [name]: value }));
-    // Clear error when user starts typing
     if (formErrors[name as keyof ContactFormData]) {
       setFormErrors(prev => ({ ...prev, [name]: undefined }));
     }
@@ -73,7 +109,6 @@ const Landing = () => {
   const handleSubmitContact = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Validate form
     const result = contactSchema.safeParse(formData);
     if (!result.success) {
       const errors: Partial<Record<keyof ContactFormData, string>> = {};
@@ -104,7 +139,6 @@ const Landing = () => {
         description: "Entraremos em contato em breve.",
       });
 
-      // Reset form
       setFormData({
         nome: "",
         email: "",
@@ -254,24 +288,50 @@ const Landing = () => {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
         
         <div className="max-w-7xl mx-auto relative">
-          <div className="text-center max-w-4xl mx-auto">
-            <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm">
-              <Sparkles className="w-4 h-4 mr-2 inline" />
-              Potencializado por Inteligência Artificial
-            </Badge>
+          <motion.div 
+            className="text-center max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ duration: 0.5, delay: 0.2 }}
+            >
+              <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm">
+                <Sparkles className="w-4 h-4 mr-2 inline" />
+                Potencializado por Inteligência Artificial
+              </Badge>
+            </motion.div>
             
-            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+            <motion.h1 
+              className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.3 }}
+            >
               Gestão de Talentos
               <span className="bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent"> Inteligente </span>
               para PMEs
-            </h1>
+            </motion.h1>
             
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <motion.p 
+              className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.4 }}
+            >
               Transforme seu RH com uma plataforma completa que une gestão de pessoas, 
               avaliações de desempenho e desenvolvimento de carreira — tudo impulsionado por IA.
-            </p>
+            </motion.p>
             
-            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-4 justify-center mb-12"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.6, delay: 0.5 }}
+            >
               <Button 
                 size="lg" 
                 onClick={() => navigate('/auth')}
@@ -288,9 +348,14 @@ const Landing = () => {
               >
                 Conhecer Recursos
               </Button>
-            </div>
+            </motion.div>
 
-            <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
+            <motion.div 
+              className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.6 }}
+            >
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                 <span>Setup em minutos</span>
@@ -299,36 +364,52 @@ const Landing = () => {
                 <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                 <span>Suporte em português</span>
               </div>
-            </div>
-          </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
       {/* Metrics Section */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
+      <motion.section 
+        className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30"
+        {...fadeIn}
+      >
         <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+          <motion.div 
+            className="grid grid-cols-2 md:grid-cols-4 gap-8"
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="whileInView"
+            viewport={{ once: true, margin: "-100px" }}
+          >
             {[
               { value: "10+", label: "Empresas Ativas" },
               { value: "5k+", label: "Colaboradores Gerenciados" },
               { value: "98%", label: "Satisfação dos Clientes" },
               { value: "40%", label: "Redução de Turnover" }
             ].map((metric, index) => (
-              <div key={index} className="text-center">
+              <motion.div 
+                key={index} 
+                className="text-center"
+                variants={staggerItem}
+              >
                 <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent mb-2">
                   {metric.value}
                 </div>
                 <div className="text-muted-foreground text-sm sm:text-base">{metric.label}</div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
-      </section>
+      </motion.section>
 
       {/* Features Section */}
       <section id="recursos" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <motion.div 
+            className="text-center mb-16"
+            {...fadeInUp}
+          >
             <Badge variant="outline" className="mb-4">Recursos</Badge>
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               Tudo que seu RH precisa em um só lugar
@@ -336,21 +417,29 @@ const Landing = () => {
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Funcionalidades completas para gestão de talentos, do recrutamento ao desenvolvimento contínuo.
             </p>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <motion.div 
+            className="grid md:grid-cols-2 lg:grid-cols-3 gap-6"
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="whileInView"
+            viewport={{ once: true, margin: "-100px" }}
+          >
             {features.map((feature, index) => (
-              <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
-                <CardContent className="p-6">
-                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-indigo-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
-                    <feature.icon className={`w-6 h-6 ${feature.color}`} />
-                  </div>
-                  <h3 className="text-xl font-semibold text-foreground mb-2">{feature.title}</h3>
-                  <p className="text-muted-foreground">{feature.description}</p>
-                </CardContent>
-              </Card>
+              <motion.div key={index} variants={staggerItem}>
+                <Card className="group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30 h-full">
+                  <CardContent className="p-6">
+                    <div className={`w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-indigo-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                      <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                    </div>
+                    <h3 className="text-xl font-semibold text-foreground mb-2">{feature.title}</h3>
+                    <p className="text-muted-foreground">{feature.description}</p>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -358,7 +447,7 @@ const Landing = () => {
       <section id="beneficios" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary/5 via-background to-indigo-500/5">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-center">
-            <div>
+            <motion.div {...fadeInUp}>
               <Badge variant="outline" className="mb-4">Benefícios</Badge>
               <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
                 Resultados reais para sua empresa
@@ -367,9 +456,15 @@ const Landing = () => {
                 Nossos clientes alcançam resultados mensuráveis desde o primeiro mês de uso.
               </p>
 
-              <div className="space-y-6">
+              <motion.div 
+                className="space-y-6"
+                variants={staggerContainer}
+                initial="initial"
+                whileInView="whileInView"
+                viewport={{ once: true, margin: "-100px" }}
+              >
                 {benefits.map((benefit, index) => (
-                  <div key={index} className="flex gap-4">
+                  <motion.div key={index} className="flex gap-4" variants={staggerItem}>
                     <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                       <benefit.icon className="w-6 h-6 text-primary" />
                     </div>
@@ -377,12 +472,12 @@ const Landing = () => {
                       <h3 className="font-semibold text-foreground mb-1">{benefit.title}</h3>
                       <p className="text-muted-foreground">{benefit.description}</p>
                     </div>
-                  </div>
+                  </motion.div>
                 ))}
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
-            <div className="relative">
+            <motion.div className="relative" {...scaleIn}>
               <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-indigo-500/20 rounded-3xl blur-2xl" />
               <Card className="relative bg-card/80 backdrop-blur border-border/50">
                 <CardContent className="p-8">
@@ -422,7 +517,7 @@ const Landing = () => {
                   </div>
                 </CardContent>
               </Card>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -430,7 +525,10 @@ const Landing = () => {
       {/* AI Section */}
       <section id="ia" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <motion.div 
+            className="text-center mb-16"
+            {...fadeInUp}
+          >
             <Badge variant="outline" className="mb-4">
               <Brain className="w-4 h-4 mr-2 inline" />
               Inteligência Artificial
@@ -441,10 +539,10 @@ const Landing = () => {
             <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
               Automatize tarefas repetitivas e tome decisões mais inteligentes com nossa IA integrada.
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1">
+            <motion.div className="order-2 lg:order-1" {...scaleIn}>
               <Card className="bg-gradient-to-br from-primary/5 to-indigo-500/5 border-primary/20">
                 <CardContent className="p-8">
                   <div className="flex items-center gap-3 mb-6">
@@ -454,20 +552,36 @@ const Landing = () => {
                     <span className="font-semibold text-foreground">GFloow AI</span>
                   </div>
                   
-                  <div className="space-y-3">
+                  <motion.div 
+                    className="space-y-3"
+                    variants={staggerContainer}
+                    initial="initial"
+                    whileInView="whileInView"
+                    viewport={{ once: true, margin: "-100px" }}
+                  >
                     {aiFeatures.map((feature, index) => (
-                      <div key={index} className="flex items-center gap-3 p-3 bg-background/50 rounded-lg">
+                      <motion.div 
+                        key={index} 
+                        className="flex items-center gap-3 p-3 bg-background/50 rounded-lg"
+                        variants={staggerItem}
+                      >
                         <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
                         <span className="text-foreground">{feature}</span>
-                      </div>
+                      </motion.div>
                     ))}
-                  </div>
+                  </motion.div>
                 </CardContent>
               </Card>
-            </div>
+            </motion.div>
 
-            <div className="order-1 lg:order-2 space-y-6">
-              <div className="flex gap-4">
+            <motion.div 
+              className="order-1 lg:order-2 space-y-6"
+              variants={staggerContainer}
+              initial="initial"
+              whileInView="whileInView"
+              viewport={{ once: true, margin: "-100px" }}
+            >
+              <motion.div className="flex gap-4" variants={staggerItem}>
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Zap className="w-6 h-6 text-primary" />
                 </div>
@@ -478,9 +592,9 @@ const Landing = () => {
                     sugestões de desenvolvimento e análise de competências.
                   </p>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="flex gap-4">
+              <motion.div className="flex gap-4" variants={staggerItem}>
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <Shield className="w-6 h-6 text-primary" />
                 </div>
@@ -491,9 +605,9 @@ const Landing = () => {
                     Privacidade total com criptografia de ponta a ponta.
                   </p>
                 </div>
-              </div>
+              </motion.div>
 
-              <div className="flex gap-4">
+              <motion.div className="flex gap-4" variants={staggerItem}>
                 <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                   <TrendingUp className="w-6 h-6 text-primary" />
                 </div>
@@ -504,8 +618,8 @@ const Landing = () => {
                     melhorar retenção, engajamento e performance.
                   </p>
                 </div>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
           </div>
         </div>
       </section>
@@ -513,36 +627,47 @@ const Landing = () => {
       {/* Testimonials Section */}
       <section id="depoimentos" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="max-w-7xl mx-auto">
-          <div className="text-center mb-16">
+          <motion.div 
+            className="text-center mb-16"
+            {...fadeInUp}
+          >
             <Badge variant="outline" className="mb-4">Depoimentos</Badge>
             <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
               O que nossos clientes dizem
             </h2>
-          </div>
+          </motion.div>
 
-          <div className="grid md:grid-cols-3 gap-6">
+          <motion.div 
+            className="grid md:grid-cols-3 gap-6"
+            variants={staggerContainer}
+            initial="initial"
+            whileInView="whileInView"
+            viewport={{ once: true, margin: "-100px" }}
+          >
             {testimonials.map((testimonial, index) => (
-              <Card key={index} className="bg-card border-border/50">
-                <CardContent className="p-6">
-                  <div className="flex gap-1 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-foreground mb-6 italic">"{testimonial.quote}"</p>
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-semibold">
-                      {testimonial.author.charAt(0)}
+              <motion.div key={index} variants={staggerItem}>
+                <Card className="bg-card border-border/50 h-full">
+                  <CardContent className="p-6">
+                    <div className="flex gap-1 mb-4">
+                      {[...Array(5)].map((_, i) => (
+                        <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                      ))}
                     </div>
-                    <div>
-                      <div className="font-semibold text-foreground">{testimonial.author}</div>
-                      <div className="text-sm text-muted-foreground">{testimonial.role}, {testimonial.company}</div>
+                    <p className="text-foreground mb-6 italic">"{testimonial.quote}"</p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-semibold">
+                        {testimonial.author.charAt(0)}
+                      </div>
+                      <div>
+                        <div className="font-semibold text-foreground">{testimonial.author}</div>
+                        <div className="text-sm text-muted-foreground">{testimonial.role}, {testimonial.company}</div>
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         </div>
       </section>
 
@@ -550,7 +675,7 @@ const Landing = () => {
       <section id="contato" className="py-20 px-4 sm:px-6 lg:px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
-            <div>
+            <motion.div {...fadeInUp}>
               <Badge variant="outline" className="mb-4">
                 <Mail className="w-4 h-4 mr-2 inline" />
                 Fale Conosco
@@ -563,8 +688,14 @@ const Landing = () => {
                 e apresentar as melhores soluções para sua empresa.
               </p>
 
-              <div className="space-y-6">
-                <div className="flex gap-4">
+              <motion.div 
+                className="space-y-6"
+                variants={staggerContainer}
+                initial="initial"
+                whileInView="whileInView"
+                viewport={{ once: true, margin: "-100px" }}
+              >
+                <motion.div className="flex gap-4" variants={staggerItem}>
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <CheckCircle2 className="w-6 h-6 text-primary" />
                   </div>
@@ -572,9 +703,9 @@ const Landing = () => {
                     <h3 className="font-semibold text-foreground mb-1">Demonstração Personalizada</h3>
                     <p className="text-muted-foreground">Mostramos como a plataforma se adapta às suas necessidades.</p>
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="flex gap-4">
+                <motion.div className="flex gap-4" variants={staggerItem}>
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <CheckCircle2 className="w-6 h-6 text-primary" />
                   </div>
@@ -582,9 +713,9 @@ const Landing = () => {
                     <h3 className="font-semibold text-foreground mb-1">Suporte Especializado</h3>
                     <p className="text-muted-foreground">Equipe brasileira pronta para ajudar em português.</p>
                   </div>
-                </div>
+                </motion.div>
 
-                <div className="flex gap-4">
+                <motion.div className="flex gap-4" variants={staggerItem}>
                   <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
                     <CheckCircle2 className="w-6 h-6 text-primary" />
                   </div>
@@ -592,138 +723,143 @@ const Landing = () => {
                     <h3 className="font-semibold text-foreground mb-1">Sem Compromisso</h3>
                     <p className="text-muted-foreground">Conheça a plataforma sem obrigação de contratação.</p>
                   </div>
-                </div>
-              </div>
-            </div>
+                </motion.div>
+              </motion.div>
+            </motion.div>
 
-            <Card className="bg-card border-border/50 shadow-xl">
-              <CardContent className="p-8">
-                <form onSubmit={handleSubmitContact} className="space-y-5">
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="nome" className="flex items-center gap-2">
-                        <User className="w-4 h-4" />
-                        Nome *
-                      </Label>
-                      <Input
-                        id="nome"
-                        name="nome"
-                        placeholder="Seu nome"
-                        value={formData.nome}
-                        onChange={handleInputChange}
-                        className={formErrors.nome ? "border-destructive" : ""}
-                      />
-                      {formErrors.nome && (
-                        <p className="text-sm text-destructive">{formErrors.nome}</p>
-                      )}
+            <motion.div {...scaleIn}>
+              <Card className="bg-card border-border/50 shadow-xl">
+                <CardContent className="p-8">
+                  <form onSubmit={handleSubmitContact} className="space-y-5">
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="nome" className="flex items-center gap-2">
+                          <User className="w-4 h-4" />
+                          Nome *
+                        </Label>
+                        <Input
+                          id="nome"
+                          name="nome"
+                          placeholder="Seu nome"
+                          value={formData.nome}
+                          onChange={handleInputChange}
+                          className={formErrors.nome ? "border-destructive" : ""}
+                        />
+                        {formErrors.nome && (
+                          <p className="text-sm text-destructive">{formErrors.nome}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="email" className="flex items-center gap-2">
+                          <Mail className="w-4 h-4" />
+                          Email *
+                        </Label>
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="seu@email.com"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className={formErrors.email ? "border-destructive" : ""}
+                        />
+                        {formErrors.email && (
+                          <p className="text-sm text-destructive">{formErrors.email}</p>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="grid sm:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor="empresa" className="flex items-center gap-2">
+                          <Building className="w-4 h-4" />
+                          Empresa
+                        </Label>
+                        <Input
+                          id="empresa"
+                          name="empresa"
+                          placeholder="Nome da empresa"
+                          value={formData.empresa}
+                          onChange={handleInputChange}
+                          className={formErrors.empresa ? "border-destructive" : ""}
+                        />
+                        {formErrors.empresa && (
+                          <p className="text-sm text-destructive">{formErrors.empresa}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="telefone" className="flex items-center gap-2">
+                          <Phone className="w-4 h-4" />
+                          Telefone
+                        </Label>
+                        <Input
+                          id="telefone"
+                          name="telefone"
+                          placeholder="(11) 99999-9999"
+                          value={formData.telefone}
+                          onChange={handleInputChange}
+                          className={formErrors.telefone ? "border-destructive" : ""}
+                        />
+                        {formErrors.telefone && (
+                          <p className="text-sm text-destructive">{formErrors.telefone}</p>
+                        )}
+                      </div>
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="email" className="flex items-center gap-2">
-                        <Mail className="w-4 h-4" />
-                        Email *
+                      <Label htmlFor="mensagem" className="flex items-center gap-2">
+                        Mensagem *
                       </Label>
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="seu@email.com"
-                        value={formData.email}
+                      <Textarea
+                        id="mensagem"
+                        name="mensagem"
+                        placeholder="Conte-nos sobre suas necessidades de RH..."
+                        rows={4}
+                        value={formData.mensagem}
                         onChange={handleInputChange}
-                        className={formErrors.email ? "border-destructive" : ""}
+                        className={formErrors.mensagem ? "border-destructive" : ""}
                       />
-                      {formErrors.email && (
-                        <p className="text-sm text-destructive">{formErrors.email}</p>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="grid sm:grid-cols-2 gap-4">
-                    <div className="space-y-2">
-                      <Label htmlFor="empresa" className="flex items-center gap-2">
-                        <Building className="w-4 h-4" />
-                        Empresa
-                      </Label>
-                      <Input
-                        id="empresa"
-                        name="empresa"
-                        placeholder="Nome da empresa"
-                        value={formData.empresa}
-                        onChange={handleInputChange}
-                        className={formErrors.empresa ? "border-destructive" : ""}
-                      />
-                      {formErrors.empresa && (
-                        <p className="text-sm text-destructive">{formErrors.empresa}</p>
+                      {formErrors.mensagem && (
+                        <p className="text-sm text-destructive">{formErrors.mensagem}</p>
                       )}
                     </div>
 
-                    <div className="space-y-2">
-                      <Label htmlFor="telefone" className="flex items-center gap-2">
-                        <Phone className="w-4 h-4" />
-                        Telefone
-                      </Label>
-                      <Input
-                        id="telefone"
-                        name="telefone"
-                        placeholder="(11) 99999-9999"
-                        value={formData.telefone}
-                        onChange={handleInputChange}
-                        className={formErrors.telefone ? "border-destructive" : ""}
-                      />
-                      {formErrors.telefone && (
-                        <p className="text-sm text-destructive">{formErrors.telefone}</p>
+                    <Button 
+                      type="submit" 
+                      className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90"
+                      disabled={isSubmitting}
+                    >
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4 mr-2" />
+                          Enviar Mensagem
+                        </>
                       )}
-                    </div>
-                  </div>
+                    </Button>
 
-                  <div className="space-y-2">
-                    <Label htmlFor="mensagem" className="flex items-center gap-2">
-                      Mensagem *
-                    </Label>
-                    <Textarea
-                      id="mensagem"
-                      name="mensagem"
-                      placeholder="Conte-nos sobre suas necessidades de RH..."
-                      rows={4}
-                      value={formData.mensagem}
-                      onChange={handleInputChange}
-                      className={formErrors.mensagem ? "border-destructive" : ""}
-                    />
-                    {formErrors.mensagem && (
-                      <p className="text-sm text-destructive">{formErrors.mensagem}</p>
-                    )}
-                  </div>
-
-                  <Button 
-                    type="submit" 
-                    className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90"
-                    disabled={isSubmitting}
-                  >
-                    {isSubmitting ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Enviando...
-                      </>
-                    ) : (
-                      <>
-                        <Send className="w-4 h-4 mr-2" />
-                        Enviar Mensagem
-                      </>
-                    )}
-                  </Button>
-
-                  <p className="text-xs text-muted-foreground text-center">
-                    Ao enviar, você concorda com nossa Política de Privacidade.
-                  </p>
-                </form>
-              </CardContent>
-            </Card>
+                    <p className="text-xs text-muted-foreground text-center">
+                      Ao enviar, você concorda com nossa Política de Privacidade.
+                    </p>
+                  </form>
+                </CardContent>
+              </Card>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* CTA Section */}
-      <section className="py-20 px-4 sm:px-6 lg:px-8">
+      <motion.section 
+        className="py-20 px-4 sm:px-6 lg:px-8"
+        {...fadeInUp}
+      >
         <div className="max-w-4xl mx-auto">
           <Card className="bg-gradient-to-br from-primary to-indigo-600 border-0 overflow-hidden relative">
             <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
@@ -755,7 +891,7 @@ const Landing = () => {
             </CardContent>
           </Card>
         </div>
-      </section>
+      </motion.section>
 
       {/* Footer */}
       <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-border">
@@ -808,9 +944,15 @@ const Landing = () => {
               © 2024 GFloow Nexus. Todos os direitos reservados.
             </p>
             <div className="flex gap-4">
-              <Badge variant="outline" className="text-xs">
-                🇧🇷 Feito no Brasil
-              </Badge>
+              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                LinkedIn
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                Instagram
+              </a>
+              <a href="#" className="text-muted-foreground hover:text-foreground transition-colors">
+                Twitter
+              </a>
             </div>
           </div>
         </div>
