@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image } from 'lucide-react';
+import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image, FileText } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { JobRole, Employee, CareerRoadmap, Skill } from '@/types';
 import { cn } from '@/lib/utils';
@@ -7,6 +7,7 @@ import { RoadmapUpdateModal, RoadmapProgressData } from './RoadmapUpdateModal';
 import { RoadmapProgressChart } from './RoadmapProgressChart';
 import { RoadmapInfographic } from './RoadmapInfographic';
 import { useToast } from '@/hooks/use-toast';
+import { generateRoadmapPDF } from '@/lib/generateRoadmapPDF';
 
 interface RoadmapViewProps {
   roles: JobRole[];
@@ -57,6 +58,24 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
       });
     } finally {
       setIsExporting(false);
+    }
+  }, [selectedRoadmap, toast]);
+
+  const handleExportPDF = useCallback(() => {
+    if (!selectedRoadmap) return;
+    
+    try {
+      generateRoadmapPDF(selectedRoadmap);
+      toast({
+        title: 'PDF exportado',
+        description: 'O arquivo PDF foi baixado com sucesso.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao exportar',
+        description: 'Não foi possível gerar o PDF.',
+        variant: 'destructive',
+      });
     }
   }, [selectedRoadmap, toast]);
 
@@ -147,10 +166,17 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
               <button
                 onClick={handleExportPNG}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-4 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 px-3 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors disabled:opacity-50"
               >
                 <Image className="w-4 h-4" />
-                {isExporting ? 'Exportando...' : 'Exportar PNG'}
+                PNG
+              </button>
+              <button
+                onClick={handleExportPDF}
+                className="flex items-center gap-2 px-3 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
+              >
+                <FileText className="w-4 h-4" />
+                PDF
               </button>
               <button
                 onClick={() => setIsUpdateModalOpen(true)}
