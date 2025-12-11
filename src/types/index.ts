@@ -1,3 +1,10 @@
+export interface ProgressHistoryEntry {
+  date: string;
+  percentage: number;
+  achievementsCount: number;
+  note?: string;
+}
+
 export interface JobRole {
   id: string;
   title: string;
@@ -69,6 +76,7 @@ export interface RoadmapProgress {
     completedTrainings: { name: string; date: string; institution?: string }[];
     additionalNotes?: string;
   }[];
+  history?: ProgressHistoryEntry[];
 }
 
 export interface CareerRoadmap {

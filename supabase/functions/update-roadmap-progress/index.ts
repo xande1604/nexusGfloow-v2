@@ -37,6 +37,16 @@ serve(async (req) => {
     const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, supabaseKey);
 
+    // Fetch existing roadmap progress
+    const { data: existingRoadmap } = await supabase
+      .from('career_roadmaps')
+      .select('progress')
+      .eq('id', roadmapId)
+      .single();
+
+    const existingProgress = existingRoadmap?.progress as any;
+    console.log('Existing progress:', existingProgress ? 'found' : 'none');
+
     // Fetch employee's self-assessments and manager evaluations if employeeId provided
     let evaluationData = null;
     if (employeeId) {
@@ -154,6 +164,23 @@ Seja preciso na análise, cruzando as habilidades obtidas com as necessárias em
       throw new Error('Falha ao processar resposta da IA');
     }
 
+    // Merge existing update history with new entry
+    const existingUpdateHistory = existingProgress?.updateHistory || [];
+    const newUpdateEntry = {
+      date: new Date().toISOString(),
+      acquiredSkills,
+      completedTrainings,
+      additionalNotes
+    };
+
+    // Create history array for chart (track progress over time)
+    const existingHistory = existingProgress?.history || [];
+    const newHistoryEntry = {
+      date: new Date().toISOString(),
+      percentage: analysisResult.progressPercentage,
+      achievementsCount: analysisResult.achievements.length
+    };
+
     // Update the roadmap in database with progress data
     const progressData = {
       currentStepIndex: analysisResult.currentStepIndex,
@@ -164,12 +191,8 @@ Seja preciso na análise, cruzando as habilidades obtidas com as necessárias em
       nextActions: analysisResult.nextActions,
       summary: analysisResult.summary,
       lastUpdated: new Date().toISOString(),
-      updateHistory: [{
-        date: new Date().toISOString(),
-        acquiredSkills,
-        completedTrainings,
-        additionalNotes
-      }]
+      updateHistory: [...existingUpdateHistory, newUpdateEntry],
+      history: [...existingHistory, newHistoryEntry]
     };
 
     const { error: updateError } = await supabase
