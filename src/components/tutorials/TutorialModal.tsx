@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { ChevronLeft, ChevronRight, CheckCircle2, X } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { ChevronLeft, ChevronRight, CheckCircle2, X, SkipForward } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -13,25 +13,39 @@ import { TutorialStep } from './TutorialsView';
 interface Tutorial {
   id: string;
   title: string;
+  description: string;
+  icon: React.ElementType;
+  duration: string;
   steps: TutorialStep[];
+  category: 'basics' | 'advanced';
 }
 
 interface TutorialModalProps {
   tutorial: Tutorial | null;
+  allTutorials: Tutorial[];
   isOpen: boolean;
   onClose: () => void;
   onComplete: (tutorialId: string) => void;
+  onNavigateToTutorial: (tutorial: Tutorial) => void;
   isCompleted: boolean;
+  completedTutorials: string[];
 }
 
 export const TutorialModal = ({
   tutorial,
+  allTutorials,
   isOpen,
   onClose,
   onComplete,
-  isCompleted
+  onNavigateToTutorial,
+  isCompleted,
+  completedTutorials
 }: TutorialModalProps) => {
   const [currentStep, setCurrentStep] = useState(0);
+
+  useEffect(() => {
+    setCurrentStep(0);
+  }, [tutorial?.id]);
 
   if (!tutorial) return null;
 
@@ -40,13 +54,15 @@ export const TutorialModal = ({
   const progressPercent = ((currentStep + 1) / totalSteps) * 100;
   const isLastStep = currentStep === totalSteps - 1;
 
+  const currentIndex = allTutorials.findIndex(t => t.id === tutorial.id);
+  const previousTutorial = currentIndex > 0 ? allTutorials[currentIndex - 1] : null;
+  const nextTutorial = currentIndex < allTutorials.length - 1 ? allTutorials[currentIndex + 1] : null;
+
   const handleNext = () => {
     if (isLastStep) {
       if (!isCompleted) {
         onComplete(tutorial.id);
       }
-      onClose();
-      setCurrentStep(0);
     } else {
       setCurrentStep(prev => prev + 1);
     }
@@ -63,12 +79,30 @@ export const TutorialModal = ({
     setCurrentStep(0);
   };
 
+  const handleGoToNextTutorial = () => {
+    if (nextTutorial) {
+      onNavigateToTutorial(nextTutorial);
+    }
+  };
+
+  const handleGoToPreviousTutorial = () => {
+    if (previousTutorial) {
+      onNavigateToTutorial(previousTutorial);
+    }
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl">
-        <DialogHeader className="space-y-4">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-hidden flex flex-col">
+        <DialogHeader className="space-y-4 flex-shrink-0">
           <div className="flex items-center justify-between">
-            <DialogTitle className="text-xl">{tutorial.title}</DialogTitle>
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-muted-foreground">
+                Tutorial {currentIndex + 1} de {allTutorials.length}
+              </span>
+              <span className="text-muted-foreground">•</span>
+              <DialogTitle className="text-xl">{tutorial.title}</DialogTitle>
+            </div>
             <Button variant="ghost" size="icon" onClick={handleClose}>
               <X className="w-4 h-4" />
             </Button>
@@ -82,7 +116,7 @@ export const TutorialModal = ({
           </div>
         </DialogHeader>
 
-        <div className="py-6 space-y-4">
+        <div className="py-6 space-y-4 overflow-y-auto flex-1">
           <h3 className="text-lg font-semibold text-foreground">
             {step.title}
           </h3>
@@ -102,7 +136,7 @@ export const TutorialModal = ({
         </div>
 
         {/* Step indicators */}
-        <div className="flex items-center justify-center gap-2 py-2">
+        <div className="flex items-center justify-center gap-2 py-2 flex-shrink-0">
           {tutorial.steps.map((_, index) => (
             <button
               key={index}
@@ -118,33 +152,61 @@ export const TutorialModal = ({
           ))}
         </div>
 
-        <div className="flex items-center justify-between pt-4 border-t border-border">
-          <Button
-            variant="outline"
-            onClick={handlePrevious}
-            disabled={currentStep === 0}
-            className="gap-2"
-          >
-            <ChevronLeft className="w-4 h-4" />
-            Anterior
-          </Button>
+        <div className="flex flex-col gap-4 pt-4 border-t border-border flex-shrink-0">
+          {/* Step Navigation */}
+          <div className="flex items-center justify-between">
+            <Button
+              variant="outline"
+              onClick={handlePrevious}
+              disabled={currentStep === 0}
+              className="gap-2"
+            >
+              <ChevronLeft className="w-4 h-4" />
+              Anterior
+            </Button>
 
-          <Button
-            onClick={handleNext}
-            className="gap-2"
-          >
-            {isLastStep ? (
-              <>
-                <CheckCircle2 className="w-4 h-4" />
-                {isCompleted ? 'Fechar' : 'Concluir'}
-              </>
-            ) : (
-              <>
-                Próximo
-                <ChevronRight className="w-4 h-4" />
-              </>
-            )}
-          </Button>
+            <Button
+              onClick={handleNext}
+              className="gap-2"
+            >
+              {isLastStep ? (
+                <>
+                  <CheckCircle2 className="w-4 h-4" />
+                  {isCompleted ? 'Concluído' : 'Concluir'}
+                </>
+              ) : (
+                <>
+                  Próximo
+                  <ChevronRight className="w-4 h-4" />
+                </>
+              )}
+            </Button>
+          </div>
+
+          {/* Tutorial Navigation - show after completing current or when already completed */}
+          {(isLastStep || isCompleted) && (
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+              <Button
+                variant="ghost"
+                onClick={handleGoToPreviousTutorial}
+                disabled={!previousTutorial}
+                className="gap-2 text-muted-foreground"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                {previousTutorial ? previousTutorial.title : 'Anterior'}
+              </Button>
+
+              <Button
+                variant="ghost"
+                onClick={handleGoToNextTutorial}
+                disabled={!nextTutorial}
+                className="gap-2 text-muted-foreground"
+              >
+                {nextTutorial ? nextTutorial.title : 'Próximo'}
+                <SkipForward className="w-4 h-4" />
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>

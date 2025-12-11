@@ -400,10 +400,13 @@ export const TutorialsView = () => {
       {/* Tutorial Modal */}
       <TutorialModal
         tutorial={selectedTutorial}
+        allTutorials={tutorials}
         isOpen={!!selectedTutorial}
         onClose={() => setSelectedTutorial(null)}
         onComplete={handleCompleteTutorial}
+        onNavigateToTutorial={(tutorial) => setSelectedTutorial(tutorial)}
         isCompleted={selectedTutorial ? completedTutorials.includes(selectedTutorial.id) : false}
+        completedTutorials={completedTutorials}
       />
     </div>
   );
