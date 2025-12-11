@@ -1,11 +1,12 @@
 import { useState, useRef, useCallback } from 'react';
-import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image, FileText } from 'lucide-react';
+import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image, FileText, Map } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { JobRole, Employee, CareerRoadmap, Skill } from '@/types';
 import { cn } from '@/lib/utils';
 import { RoadmapUpdateModal, RoadmapProgressData } from './RoadmapUpdateModal';
 import { RoadmapProgressChart } from './RoadmapProgressChart';
 import { RoadmapInfographic } from './RoadmapInfographic';
+import { RoadmapJourneyMap } from './RoadmapJourneyMap';
 import { useToast } from '@/hooks/use-toast';
 import { generateRoadmapPDF } from '@/lib/generateRoadmapPDF';
 
@@ -27,7 +28,9 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
   const [selectedRoadmap, setSelectedRoadmap] = useState<CareerRoadmap | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [showJourneyMap, setShowJourneyMap] = useState(false);
   const infographicRef = useRef<HTMLDivElement>(null);
+  const journeyMapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
 
   const handleExportPNG = useCallback(async () => {
@@ -76,6 +79,37 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
         description: 'Não foi possível gerar o PDF.',
         variant: 'destructive',
       });
+    }
+  }, [selectedRoadmap, toast]);
+
+  const handleExportJourneyMap = useCallback(async () => {
+    if (!journeyMapRef.current || !selectedRoadmap) return;
+    
+    setIsExporting(true);
+    try {
+      const canvas = await html2canvas(journeyMapRef.current, {
+        scale: 2,
+        backgroundColor: '#0f172a',
+        logging: false,
+      });
+      
+      const link = document.createElement('a');
+      link.download = `jornada-${selectedRoadmap.sourceRoleTitle}-${selectedRoadmap.targetRoleTitle}.png`;
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+      
+      toast({
+        title: 'Mapa da jornada exportado',
+        description: 'O arquivo PNG foi baixado com sucesso.',
+      });
+    } catch (error) {
+      toast({
+        title: 'Erro ao exportar',
+        description: 'Não foi possível gerar o mapa.',
+        variant: 'destructive',
+      });
+    } finally {
+      setIsExporting(false);
     }
   }, [selectedRoadmap, toast]);
 
@@ -164,7 +198,19 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
                 {calculateTotalDuration(selectedRoadmap)}
               </div>
               <button
-                onClick={handleExportPNG}
+                onClick={() => setShowJourneyMap(!showJourneyMap)}
+                className={cn(
+                  "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  showJourneyMap 
+                    ? "bg-brand-600 text-primary-foreground" 
+                    : "bg-secondary text-foreground hover:bg-secondary/80"
+                )}
+              >
+                <Map className="w-4 h-4" />
+                Mapa
+              </button>
+              <button
+                onClick={showJourneyMap ? handleExportJourneyMap : handleExportPNG}
                 disabled={isExporting}
                 className="flex items-center gap-2 px-3 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors disabled:opacity-50"
               >
@@ -183,7 +229,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
                 className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-primary-foreground rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
               >
                 <RefreshCw className="w-4 h-4" />
-                Atualizar Progresso
+                Atualizar
               </button>
             </div>
           </div>
@@ -280,84 +326,92 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
           </div>
         )}
 
-        {/* Roadmap Steps */}
-        <div className="bg-card rounded-xl p-6 shadow-medium">
-          <h3 className="text-lg font-semibold text-foreground mb-6">Plano de Desenvolvimento</h3>
-          
-          <div className="relative">
-            {/* Timeline line */}
-            <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-brand-200" />
+        {/* Journey Map View */}
+        {showJourneyMap ? (
+          <div className="overflow-x-auto">
+            <RoadmapJourneyMap ref={journeyMapRef} roadmap={selectedRoadmap} />
+          </div>
+        ) : (
+          /* Roadmap Steps (default view) */
+          <div className="bg-card rounded-xl p-6 shadow-medium">
+            <h3 className="text-lg font-semibold text-foreground mb-6">Plano de Desenvolvimento</h3>
+            
+            <div className="relative">
+              {/* Timeline line */}
+              <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-brand-200" />
 
-            <div className="space-y-6">
-              {selectedRoadmap.steps.map((step, index) => {
-                const isCompleted = progress?.completedSteps?.includes(index);
-                const isCurrent = progress?.currentStepIndex === index;
+              <div className="space-y-6">
+                {selectedRoadmap.steps.map((step, index) => {
+                  const isCompleted = progress?.completedSteps?.includes(index);
+                  const isCurrent = progress?.currentStepIndex === index;
 
-                return (
-                  <div key={index} className="relative flex gap-4 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                    {/* Timeline dot */}
-                    <div className={cn(
-                      "relative z-10 w-12 h-12 rounded-full border-4 border-card flex items-center justify-center flex-shrink-0 transition-all",
-                      isCompleted ? "bg-brand-600" : isCurrent ? "bg-brand-100 ring-4 ring-brand-200" : "bg-brand-100"
-                    )}>
-                      {isCompleted ? (
-                        <CheckCircle2 className="w-5 h-5 text-primary-foreground" />
-                      ) : (
-                        <span className={cn("text-sm font-bold", isCurrent ? "text-brand-700" : "text-brand-600")}>{index + 1}</span>
-                      )}
-                    </div>
-
-                    {/* Content */}
-                    <div className={cn(
-                      "flex-1 rounded-xl p-4 transition-colors",
-                      isCompleted ? "bg-brand-50 border border-brand-200" : isCurrent ? "bg-brand-50/50 border border-brand-300" : "bg-secondary/50 hover:bg-secondary"
-                    )}>
-                      <div className="flex items-start justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <h4 className="font-semibold text-foreground">{step.title}</h4>
-                          {isCompleted && <span className="px-2 py-0.5 bg-brand-600 text-primary-foreground rounded-full text-xs font-medium">Concluída</span>}
-                          {isCurrent && <span className="px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">Em andamento</span>}
-                        </div>
-                        <span className="text-xs text-muted-foreground flex items-center gap-1 bg-background px-2 py-1 rounded">
-                          <Clock className="w-3 h-3" />
-                          {step.estimatedDuration}
-                        </span>
+                  return (
+                    <div key={index} className="relative flex gap-4 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
+                      {/* Timeline dot */}
+                      <div className={cn(
+                        "relative z-10 w-12 h-12 rounded-full border-4 border-card flex items-center justify-center flex-shrink-0 transition-all",
+                        isCompleted ? "bg-brand-600" : isCurrent ? "bg-brand-100 ring-4 ring-brand-200" : "bg-brand-100"
+                      )}>
+                        {isCompleted ? (
+                          <CheckCircle2 className="w-5 h-5 text-primary-foreground" />
+                        ) : (
+                          <span className={cn("text-sm font-bold", isCurrent ? "text-brand-700" : "text-brand-600")}>{index + 1}</span>
+                        )}
                       </div>
-                      <p className="text-sm text-muted-foreground mb-3">{step.description}</p>
-                      <div className="flex flex-wrap gap-1.5">
-                        {step.requiredSkills.map(skill => (
-                          <span
-                            key={skill}
-                            className="px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs font-medium"
-                          >
-                            {skill}
+
+                      {/* Content */}
+                      <div className={cn(
+                        "flex-1 rounded-xl p-4 transition-colors",
+                        isCompleted ? "bg-brand-50 border border-brand-200" : isCurrent ? "bg-brand-50/50 border border-brand-300" : "bg-secondary/50 hover:bg-secondary"
+                      )}>
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <h4 className="font-semibold text-foreground">{step.title}</h4>
+                            {isCompleted && <span className="px-2 py-0.5 bg-brand-600 text-primary-foreground rounded-full text-xs font-medium">Concluída</span>}
+                            {isCurrent && <span className="px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">Em andamento</span>}
+                          </div>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1 bg-background px-2 py-1 rounded">
+                            <Clock className="w-3 h-3" />
+                            {step.estimatedDuration}
                           </span>
-                        ))}
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{step.description}</p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {step.requiredSkills.map(skill => (
+                            <span
+                              key={skill}
+                              className="px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs font-medium"
+                            >
+                              {skill}
+                            </span>
+                          ))}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Target */}
-            <div className="relative flex gap-4 mt-6">
-              <div className="relative z-10 w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0">
-                <Target className="w-5 h-5 text-primary-foreground" />
+                  );
+                })}
               </div>
-              <div className="flex-1 bg-brand-50 rounded-xl p-4 border border-brand-200">
-                <h4 className="font-semibold text-brand-700">{selectedRoadmap.targetRoleTitle}</h4>
-                <p className="text-sm text-brand-600">
-                  {progress && progress.progressPercentage === 100 ? 'Meta alcançada! 🎯' : 'Cargo alvo'}
-                </p>
+
+              {/* Target */}
+              <div className="relative flex gap-4 mt-6">
+                <div className="relative z-10 w-12 h-12 rounded-full bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0">
+                  <Target className="w-5 h-5 text-primary-foreground" />
+                </div>
+                <div className="flex-1 bg-brand-50 rounded-xl p-4 border border-brand-200">
+                  <h4 className="font-semibold text-brand-700">{selectedRoadmap.targetRoleTitle}</h4>
+                  <p className="text-sm text-brand-600">
+                    {progress && progress.progressPercentage === 100 ? 'Meta alcançada! 🎯' : 'Cargo alvo'}
+                  </p>
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Hidden Infographic for Export */}
+        {/* Hidden Components for Export */}
         <div className="fixed left-[-9999px] top-0">
           <RoadmapInfographic ref={infographicRef} roadmap={selectedRoadmap} />
+          <RoadmapJourneyMap ref={journeyMapRef} roadmap={selectedRoadmap} />
         </div>
 
         {/* Update Modal */}
