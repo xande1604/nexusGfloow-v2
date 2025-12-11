@@ -293,10 +293,6 @@ const Landing = () => {
             <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-5 h-5 text-emerald-500" />
-                <span>Sem cartão de crédito</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
                 <span>Setup em minutos</span>
               </div>
               <div className="flex items-center gap-2">
@@ -313,8 +309,8 @@ const Landing = () => {
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
             {[
-              { value: "500+", label: "Empresas Ativas" },
-              { value: "50k+", label: "Colaboradores Gerenciados" },
+              { value: "10+", label: "Empresas Ativas" },
+              { value: "5k+", label: "Colaboradores Gerenciados" },
               { value: "98%", label: "Satisfação dos Clientes" },
               { value: "40%", label: "Redução de Turnover" }
             ].map((metric, index) => (
