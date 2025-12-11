@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from 'react';
-import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image, FileText, Map } from 'lucide-react';
+import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image, FileText, Map, Play } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { JobRole, Employee, CareerRoadmap, Skill } from '@/types';
 import { cn } from '@/lib/utils';
@@ -29,9 +29,18 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [showJourneyMap, setShowJourneyMap] = useState(false);
+  const [journeyMapKey, setJourneyMapKey] = useState(0);
   const infographicRef = useRef<HTMLDivElement>(null);
   const journeyMapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  const handleReplayAnimation = useCallback(() => {
+    setJourneyMapKey(prev => prev + 1);
+    toast({
+      title: 'Animação reiniciada',
+      description: 'A jornada está sendo reexibida.',
+    });
+  }, [toast]);
 
   const handleExportPNG = useCallback(async () => {
     if (!infographicRef.current || !selectedRoadmap) return;
@@ -209,6 +218,16 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
                 <Map className="w-4 h-4" />
                 Mapa
               </button>
+              {showJourneyMap && (
+                <button
+                  onClick={handleReplayAnimation}
+                  className="flex items-center gap-2 px-3 py-2 bg-brand-100 text-brand-700 rounded-lg text-sm font-medium hover:bg-brand-200 transition-colors"
+                  title="Replay animação"
+                >
+                  <Play className="w-4 h-4" />
+                  Replay
+                </button>
+              )}
               <button
                 onClick={showJourneyMap ? handleExportJourneyMap : handleExportPNG}
                 disabled={isExporting}
@@ -329,7 +348,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
         {/* Journey Map View */}
         {showJourneyMap ? (
           <div className="overflow-x-auto">
-            <RoadmapJourneyMap ref={journeyMapRef} roadmap={selectedRoadmap} />
+            <RoadmapJourneyMap key={journeyMapKey} ref={journeyMapRef} roadmap={selectedRoadmap} />
           </div>
         ) : (
           /* Roadmap Steps (default view) */
