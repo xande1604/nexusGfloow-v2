@@ -1,22 +1,26 @@
 import { useState } from 'react';
-import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, X, ArrowLeft } from 'lucide-react';
-import { JobRole, Employee, CareerRoadmap } from '@/types';
+import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp } from 'lucide-react';
+import { JobRole, Employee, CareerRoadmap, Skill } from '@/types';
 import { cn } from '@/lib/utils';
+import { RoadmapUpdateModal, RoadmapProgressData } from './RoadmapUpdateModal';
 
 interface RoadmapViewProps {
   roles: JobRole[];
   employees: Employee[];
   roadmaps: CareerRoadmap[];
+  skills: Skill[];
   onGenerateRoadmap: (sourceRole: string, targetRole: string, employeeName?: string) => void;
+  onUpdateProgress: (roadmapId: string, employeeId: string | undefined, data: RoadmapProgressData, roadmap: CareerRoadmap) => Promise<void>;
 }
 
-export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: RoadmapViewProps) => {
+export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoadmap, onUpdateProgress }: RoadmapViewProps) => {
   const [sourceRole, setSourceRole] = useState('');
   const [targetRole, setTargetRole] = useState('');
   const [employeeName, setEmployeeName] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [activeTab, setActiveTab] = useState<'create' | 'history'>('create');
   const [selectedRoadmap, setSelectedRoadmap] = useState<CareerRoadmap | null>(null);
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
 
   const handleGenerate = async () => {
     if (sourceRole && targetRole) {
@@ -40,14 +44,35 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
     setSelectedRoadmap(null);
   };
 
+  const handleUpdateProgress = async (data: RoadmapProgressData) => {
+    if (selectedRoadmap) {
+      await onUpdateProgress(selectedRoadmap.id, selectedRoadmap.employeeId, data, selectedRoadmap);
+      // Refresh the selected roadmap
+      const updatedRoadmap = roadmaps.find(r => r.id === selectedRoadmap.id);
+      if (updatedRoadmap) {
+        setSelectedRoadmap(updatedRoadmap);
+      }
+    }
+  };
+
   // Calculate total duration from steps
   const calculateTotalDuration = (roadmap: CareerRoadmap) => {
     if (!roadmap.steps || roadmap.steps.length === 0) return 'N/A';
     return `${roadmap.steps.length} etapas`;
   };
 
+  const getPriorityColor = (priority: 'high' | 'medium' | 'low') => {
+    switch (priority) {
+      case 'high': return 'text-destructive bg-destructive/10';
+      case 'medium': return 'text-amber-600 bg-amber-100';
+      case 'low': return 'text-muted-foreground bg-secondary';
+    }
+  };
+
   // Render selected roadmap details
   if (selectedRoadmap) {
+    const progress = selectedRoadmap.progress;
+
     return (
       <div className="space-y-6 animate-fade-in">
         {/* Back button */}
@@ -76,12 +101,109 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-lg">
-              <Clock className="w-4 h-4" />
-              {calculateTotalDuration(selectedRoadmap)}
+            <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-lg">
+                <Clock className="w-4 h-4" />
+                {calculateTotalDuration(selectedRoadmap)}
+              </div>
+              <button
+                onClick={() => setIsUpdateModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-primary-foreground rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+              >
+                <RefreshCw className="w-4 h-4" />
+                Atualizar Progresso
+              </button>
             </div>
           </div>
+
+          {/* Progress Bar */}
+          {progress && (
+            <div className="mt-4 pt-4 border-t border-border">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium text-foreground">Progresso Geral</span>
+                <span className="text-sm font-bold text-brand-600">{progress.progressPercentage}%</span>
+              </div>
+              <div className="h-3 bg-secondary rounded-full overflow-hidden">
+                <div 
+                  className="h-full bg-gradient-to-r from-brand-500 to-brand-600 rounded-full transition-all duration-500"
+                  style={{ width: `${progress.progressPercentage}%` }}
+                />
+              </div>
+              {progress.summary && (
+                <p className="mt-3 text-sm text-muted-foreground">{progress.summary}</p>
+              )}
+            </div>
+          )}
         </div>
+
+        {/* Progress Details */}
+        {progress && (
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Achievements */}
+            {progress.achievements.length > 0 && (
+              <div className="bg-card rounded-xl p-6 shadow-soft">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground mb-4">
+                  <Award className="w-5 h-5 text-brand-600" />
+                  Conquistas
+                </h3>
+                <div className="space-y-3">
+                  {progress.achievements.map((achievement, index) => (
+                    <div key={index} className="flex items-start gap-3 p-3 bg-brand-50 rounded-lg">
+                      <CheckCircle2 className="w-5 h-5 text-brand-600 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-foreground">{achievement.title}</p>
+                        <p className="text-sm text-muted-foreground">{achievement.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Gaps */}
+            {progress.gaps.length > 0 && (
+              <div className="bg-card rounded-xl p-6 shadow-soft">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground mb-4">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  Áreas de Desenvolvimento
+                </h3>
+                <div className="space-y-3">
+                  {progress.gaps.map((gap, index) => (
+                    <div key={index} className="p-3 bg-secondary/50 rounded-lg">
+                      <div className="flex items-center justify-between mb-1">
+                        <p className="font-medium text-foreground">{gap.skill}</p>
+                        <span className={cn("px-2 py-0.5 rounded-full text-xs font-medium", getPriorityColor(gap.priority))}>
+                          {gap.priority === 'high' ? 'Alta' : gap.priority === 'medium' ? 'Média' : 'Baixa'}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground">{gap.recommendation}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Next Actions */}
+            {progress.nextActions.length > 0 && (
+              <div className="bg-card rounded-xl p-6 shadow-soft lg:col-span-2">
+                <h3 className="flex items-center gap-2 text-lg font-semibold text-foreground mb-4">
+                  <TrendingUp className="w-5 h-5 text-brand-600" />
+                  Próximos Passos Recomendados
+                </h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                  {progress.nextActions.map((action, index) => (
+                    <div key={index} className="flex items-start gap-2 p-3 bg-secondary/50 rounded-lg">
+                      <span className="w-6 h-6 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-sm font-bold flex-shrink-0">
+                        {index + 1}
+                      </span>
+                      <p className="text-sm text-foreground">{action}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Roadmap Steps */}
         <div className="bg-card rounded-xl p-6 shadow-medium">
@@ -92,36 +214,55 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
             <div className="absolute left-[23px] top-8 bottom-8 w-0.5 bg-brand-200" />
 
             <div className="space-y-6">
-              {selectedRoadmap.steps.map((step, index) => (
-                <div key={index} className="relative flex gap-4 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
-                  {/* Timeline dot */}
-                  <div className="relative z-10 w-12 h-12 rounded-full bg-brand-100 border-4 border-card flex items-center justify-center flex-shrink-0">
-                    <span className="text-sm font-bold text-brand-600">{index + 1}</span>
-                  </div>
+              {selectedRoadmap.steps.map((step, index) => {
+                const isCompleted = progress?.completedSteps?.includes(index);
+                const isCurrent = progress?.currentStepIndex === index;
 
-                  {/* Content */}
-                  <div className="flex-1 bg-secondary/50 rounded-xl p-4 hover:bg-secondary transition-colors">
-                    <div className="flex items-start justify-between mb-2">
-                      <h4 className="font-semibold text-foreground">{step.title}</h4>
-                      <span className="text-xs text-muted-foreground flex items-center gap-1 bg-background px-2 py-1 rounded">
-                        <Clock className="w-3 h-3" />
-                        {step.estimatedDuration}
-                      </span>
+                return (
+                  <div key={index} className="relative flex gap-4 animate-slide-up" style={{ animationDelay: `${index * 100}ms` }}>
+                    {/* Timeline dot */}
+                    <div className={cn(
+                      "relative z-10 w-12 h-12 rounded-full border-4 border-card flex items-center justify-center flex-shrink-0 transition-all",
+                      isCompleted ? "bg-brand-600" : isCurrent ? "bg-brand-100 ring-4 ring-brand-200" : "bg-brand-100"
+                    )}>
+                      {isCompleted ? (
+                        <CheckCircle2 className="w-5 h-5 text-primary-foreground" />
+                      ) : (
+                        <span className={cn("text-sm font-bold", isCurrent ? "text-brand-700" : "text-brand-600")}>{index + 1}</span>
+                      )}
                     </div>
-                    <p className="text-sm text-muted-foreground mb-3">{step.description}</p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {step.requiredSkills.map(skill => (
-                        <span
-                          key={skill}
-                          className="px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs font-medium"
-                        >
-                          {skill}
+
+                    {/* Content */}
+                    <div className={cn(
+                      "flex-1 rounded-xl p-4 transition-colors",
+                      isCompleted ? "bg-brand-50 border border-brand-200" : isCurrent ? "bg-brand-50/50 border border-brand-300" : "bg-secondary/50 hover:bg-secondary"
+                    )}>
+                      <div className="flex items-start justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold text-foreground">{step.title}</h4>
+                          {isCompleted && <span className="px-2 py-0.5 bg-brand-600 text-primary-foreground rounded-full text-xs font-medium">Concluída</span>}
+                          {isCurrent && <span className="px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs font-medium">Em andamento</span>}
+                        </div>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1 bg-background px-2 py-1 rounded">
+                          <Clock className="w-3 h-3" />
+                          {step.estimatedDuration}
                         </span>
-                      ))}
+                      </div>
+                      <p className="text-sm text-muted-foreground mb-3">{step.description}</p>
+                      <div className="flex flex-wrap gap-1.5">
+                        {step.requiredSkills.map(skill => (
+                          <span
+                            key={skill}
+                            className="px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full text-xs font-medium"
+                          >
+                            {skill}
+                          </span>
+                        ))}
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Target */}
@@ -131,11 +272,22 @@ export const RoadmapView = ({ roles, employees, roadmaps, onGenerateRoadmap }: R
               </div>
               <div className="flex-1 bg-brand-50 rounded-xl p-4 border border-brand-200">
                 <h4 className="font-semibold text-brand-700">{selectedRoadmap.targetRoleTitle}</h4>
-                <p className="text-sm text-brand-600">Meta alcançada! 🎯</p>
+                <p className="text-sm text-brand-600">
+                  {progress && progress.progressPercentage === 100 ? 'Meta alcançada! 🎯' : 'Cargo alvo'}
+                </p>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Update Modal */}
+        <RoadmapUpdateModal
+          isOpen={isUpdateModalOpen}
+          onClose={() => setIsUpdateModalOpen(false)}
+          roadmap={selectedRoadmap}
+          availableSkills={skills}
+          onUpdate={handleUpdateProgress}
+        />
       </div>
     );
   }

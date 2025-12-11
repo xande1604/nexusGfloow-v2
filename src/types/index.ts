@@ -42,6 +42,35 @@ export interface RoadmapStep {
   requiredSkills: string[];
 }
 
+export interface RoadmapAchievement {
+  title: string;
+  description: string;
+  type: 'skill' | 'training' | 'milestone';
+}
+
+export interface RoadmapGap {
+  skill: string;
+  priority: 'high' | 'medium' | 'low';
+  recommendation: string;
+}
+
+export interface RoadmapProgress {
+  currentStepIndex: number;
+  progressPercentage: number;
+  completedSteps: number[];
+  achievements: RoadmapAchievement[];
+  gaps: RoadmapGap[];
+  nextActions: string[];
+  summary: string;
+  lastUpdated: string;
+  updateHistory: {
+    date: string;
+    acquiredSkills: string[];
+    completedTrainings: { name: string; date: string; institution?: string }[];
+    additionalNotes?: string;
+  }[];
+}
+
 export interface CareerRoadmap {
   id: string;
   employeeId?: string;
@@ -50,6 +79,7 @@ export interface CareerRoadmap {
   targetRoleTitle: string;
   steps: RoadmapStep[];
   createdAt: string;
+  progress?: RoadmapProgress;
 }
 
 export enum AppView {

@@ -46,7 +46,7 @@ const Index = () => {
   // Supabase hooks
   const { roles, loading: rolesLoading, saveRole, deleteRole } = useJobRoles();
   const { skills, loading: skillsLoading, saveSkill, deleteSkill } = useSkills();
-  const { roadmaps, loading: roadmapsLoading, saveRoadmap } = useRoadmaps();
+  const { roadmaps, loading: roadmapsLoading, saveRoadmap, updateRoadmapProgress } = useRoadmaps();
   const { employees, loading: employeesLoading, updateEmployeeEmail, updateEmployeeGestor } = useEmployees();
 
   const handleGenerateRoadmap = async (sourceRole: string, targetRole: string, employeeName?: string) => {
@@ -85,6 +85,24 @@ const Index = () => {
     }
   };
 
+  const handleUpdateRoadmapProgress = async (
+    roadmapId: string, 
+    employeeId: string | undefined, 
+    data: { acquiredSkills: string[]; completedTrainings: { name: string; date: string; institution?: string }[]; additionalNotes?: string },
+    roadmap: { steps: any[]; sourceRoleTitle: string; targetRoleTitle: string }
+  ) => {
+    await updateRoadmapProgress(
+      roadmapId,
+      employeeId,
+      data.acquiredSkills,
+      data.completedTrainings,
+      data.additionalNotes,
+      roadmap.steps,
+      roadmap.sourceRoleTitle,
+      roadmap.targetRoleTitle
+    );
+  };
+
   // Show loading while checking auth
   if (authLoading) {
     return (
@@ -120,7 +138,7 @@ const Index = () => {
       case AppView.EMPLOYEES:
         return <EmployeesView employees={employees} roles={roles} onUpdateEmail={updateEmployeeEmail} onUpdateGestor={updateEmployeeGestor} />;
       case AppView.ROADMAP:
-        return <RoadmapView roles={roles} employees={employees} roadmaps={roadmaps} onGenerateRoadmap={handleGenerateRoadmap} />;
+        return <RoadmapView roles={roles} employees={employees} roadmaps={roadmaps} skills={skills} onGenerateRoadmap={handleGenerateRoadmap} onUpdateProgress={handleUpdateRoadmapProgress} />;
       case AppView.PERFORMANCE:
         return <PerformanceView employees={employees} roles={roles} />;
       case AppView.COST_CENTERS:
