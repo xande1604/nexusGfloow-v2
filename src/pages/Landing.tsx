@@ -1,0 +1,551 @@
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { 
+  Users, 
+  Target, 
+  TrendingUp, 
+  Award, 
+  Brain, 
+  BarChart3, 
+  Shield, 
+  Zap, 
+  CheckCircle2, 
+  ArrowRight,
+  Sparkles,
+  Building2,
+  Clock,
+  DollarSign,
+  Heart,
+  Lightbulb,
+  Route,
+  Star,
+  ChevronRight
+} from "lucide-react";
+import { useNavigate } from "react-router-dom";
+
+const Landing = () => {
+  const navigate = useNavigate();
+
+  const features = [
+    {
+      icon: Users,
+      title: "Gestão de Colaboradores",
+      description: "Centralize todas as informações dos seus colaboradores em um único lugar, com histórico completo e dados sempre atualizados.",
+      color: "text-blue-500"
+    },
+    {
+      icon: Target,
+      title: "Cargos e Salários",
+      description: "Estruture sua política de cargos com faixas salariais competitivas e descrições de cargo geradas por IA.",
+      color: "text-indigo-500"
+    },
+    {
+      icon: Lightbulb,
+      title: "Repositório de Habilidades",
+      description: "Mapeie competências técnicas e comportamentais da sua equipe, identificando gaps e oportunidades de desenvolvimento.",
+      color: "text-purple-500"
+    },
+    {
+      icon: Route,
+      title: "Roadmap de Carreira",
+      description: "Crie trilhas de desenvolvimento personalizadas com IA, mostrando o caminho claro para crescimento profissional.",
+      color: "text-teal-500"
+    },
+    {
+      icon: Award,
+      title: "Avaliações de Desempenho",
+      description: "Ciclos de avaliação completos com autoavaliação, avaliação do gestor e feedback estruturado.",
+      color: "text-amber-500"
+    },
+    {
+      icon: BarChart3,
+      title: "Analytics de RH",
+      description: "Dashboards intuitivos com métricas de turnover, headcount, performance e muito mais.",
+      color: "text-emerald-500"
+    }
+  ];
+
+  const benefits = [
+    {
+      icon: Clock,
+      title: "Economize Tempo",
+      description: "Automatize processos manuais e reduza em até 70% o tempo gasto com tarefas administrativas de RH."
+    },
+    {
+      icon: DollarSign,
+      title: "Reduza Custos",
+      description: "Diminua o turnover com planos de carreira claros e avaliações justas que engajam colaboradores."
+    },
+    {
+      icon: TrendingUp,
+      title: "Tome Decisões Baseadas em Dados",
+      description: "Acesse insights em tempo real sobre sua equipe para decisões estratégicas fundamentadas."
+    },
+    {
+      icon: Heart,
+      title: "Aumente o Engajamento",
+      description: "Colaboradores com visão clara de crescimento são 3x mais engajados e produtivos."
+    }
+  ];
+
+  const aiFeatures = [
+    "Geração automática de descrições de cargo",
+    "Criação de perguntas de avaliação personalizadas",
+    "Roadmaps de carreira sob medida",
+    "Sugestões de habilidades por função",
+    "Análise inteligente de gaps de competência"
+  ];
+
+  const testimonials = [
+    {
+      quote: "O GFloow transformou completamente nosso processo de avaliação. Antes levávamos semanas, agora dias.",
+      author: "Maria Silva",
+      role: "Diretora de RH",
+      company: "TechCorp Brasil"
+    },
+    {
+      quote: "A funcionalidade de roadmap de carreira reduziu nosso turnover em 40% no primeiro ano.",
+      author: "Carlos Santos",
+      role: "CEO",
+      company: "Inova Serviços"
+    },
+    {
+      quote: "Finalmente uma ferramenta que entende as necessidades do RH de PMEs brasileiras.",
+      author: "Ana Oliveira",
+      role: "Gerente de Pessoas",
+      company: "Grupo Futuro"
+    }
+  ];
+
+  return (
+    <div className="min-h-screen bg-background">
+      {/* Navigation */}
+      <nav className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-lg border-b border-border">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">G</span>
+              </div>
+              <span className="font-bold text-xl text-foreground">GFloow Nexus</span>
+            </div>
+            <div className="hidden md:flex items-center gap-8">
+              <a href="#recursos" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
+              <a href="#beneficios" className="text-muted-foreground hover:text-foreground transition-colors">Benefícios</a>
+              <a href="#ia" className="text-muted-foreground hover:text-foreground transition-colors">IA</a>
+              <a href="#depoimentos" className="text-muted-foreground hover:text-foreground transition-colors">Depoimentos</a>
+            </div>
+            <div className="flex items-center gap-3">
+              <Button variant="ghost" onClick={() => navigate('/auth')}>
+                Entrar
+              </Button>
+              <Button onClick={() => navigate('/auth')} className="bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90">
+                Começar Grátis
+              </Button>
+            </div>
+          </div>
+        </div>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="pt-32 pb-20 px-4 sm:px-6 lg:px-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-indigo-500/5" />
+        <div className="absolute top-20 left-10 w-72 h-72 bg-primary/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-indigo-500/10 rounded-full blur-3xl" />
+        
+        <div className="max-w-7xl mx-auto relative">
+          <div className="text-center max-w-4xl mx-auto">
+            <Badge variant="secondary" className="mb-6 px-4 py-2 text-sm">
+              <Sparkles className="w-4 h-4 mr-2 inline" />
+              Potencializado por Inteligência Artificial
+            </Badge>
+            
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-foreground mb-6 leading-tight">
+              Gestão de Talentos
+              <span className="bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent"> Inteligente </span>
+              para PMEs
+            </h1>
+            
+            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+              Transforme seu RH com uma plataforma completa que une gestão de pessoas, 
+              avaliações de desempenho e desenvolvimento de carreira — tudo impulsionado por IA.
+            </p>
+            
+            <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
+              <Button 
+                size="lg" 
+                onClick={() => navigate('/auth')}
+                className="bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90 text-lg px-8 py-6"
+              >
+                Começar Gratuitamente
+                <ArrowRight className="ml-2 w-5 h-5" />
+              </Button>
+              <Button 
+                size="lg" 
+                variant="outline" 
+                className="text-lg px-8 py-6"
+                onClick={() => document.getElementById('recursos')?.scrollIntoView({ behavior: 'smooth' })}
+              >
+                Conhecer Recursos
+              </Button>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center gap-8 text-sm text-muted-foreground">
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                <span>Sem cartão de crédito</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                <span>Setup em minutos</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <CheckCircle2 className="w-5 h-5 text-emerald-500" />
+                <span>Suporte em português</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Metrics Section */}
+      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {[
+              { value: "500+", label: "Empresas Ativas" },
+              { value: "50k+", label: "Colaboradores Gerenciados" },
+              { value: "98%", label: "Satisfação dos Clientes" },
+              { value: "40%", label: "Redução de Turnover" }
+            ].map((metric, index) => (
+              <div key={index} className="text-center">
+                <div className="text-3xl sm:text-4xl font-bold bg-gradient-to-r from-primary to-indigo-600 bg-clip-text text-transparent mb-2">
+                  {metric.value}
+                </div>
+                <div className="text-muted-foreground text-sm sm:text-base">{metric.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Features Section */}
+      <section id="recursos" className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4">Recursos</Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Tudo que seu RH precisa em um só lugar
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Funcionalidades completas para gestão de talentos, do recrutamento ao desenvolvimento contínuo.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {features.map((feature, index) => (
+              <Card key={index} className="group hover:shadow-lg transition-all duration-300 border-border/50 hover:border-primary/30">
+                <CardContent className="p-6">
+                  <div className={`w-12 h-12 rounded-xl bg-gradient-to-br from-primary/10 to-indigo-500/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform`}>
+                    <feature.icon className={`w-6 h-6 ${feature.color}`} />
+                  </div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">{feature.title}</h3>
+                  <p className="text-muted-foreground">{feature.description}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Benefits Section */}
+      <section id="beneficios" className="py-20 px-4 sm:px-6 lg:px-8 bg-gradient-to-br from-primary/5 via-background to-indigo-500/5">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div>
+              <Badge variant="outline" className="mb-4">Benefícios</Badge>
+              <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-6">
+                Resultados reais para sua empresa
+              </h2>
+              <p className="text-xl text-muted-foreground mb-8">
+                Nossos clientes alcançam resultados mensuráveis desde o primeiro mês de uso.
+              </p>
+
+              <div className="space-y-6">
+                {benefits.map((benefit, index) => (
+                  <div key={index} className="flex gap-4">
+                    <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <benefit.icon className="w-6 h-6 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="font-semibold text-foreground mb-1">{benefit.title}</h3>
+                      <p className="text-muted-foreground">{benefit.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-indigo-500/20 rounded-3xl blur-2xl" />
+              <Card className="relative bg-card/80 backdrop-blur border-border/50">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <Building2 className="w-8 h-8 text-primary" />
+                    <div>
+                      <div className="font-semibold text-foreground">Empresa Exemplo</div>
+                      <div className="text-sm text-muted-foreground">150 colaboradores</div>
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-4">
+                    <div className="flex justify-between items-center p-4 bg-muted/50 rounded-lg">
+                      <span className="text-muted-foreground">Tempo em processos de RH</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-destructive line-through">40h/mês</span>
+                        <ArrowRight className="w-4 h-4" />
+                        <span className="text-emerald-500 font-semibold">12h/mês</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center p-4 bg-muted/50 rounded-lg">
+                      <span className="text-muted-foreground">Taxa de turnover</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-destructive line-through">25%</span>
+                        <ArrowRight className="w-4 h-4" />
+                        <span className="text-emerald-500 font-semibold">15%</span>
+                      </div>
+                    </div>
+                    <div className="flex justify-between items-center p-4 bg-muted/50 rounded-lg">
+                      <span className="text-muted-foreground">Engajamento</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-destructive line-through">62%</span>
+                        <ArrowRight className="w-4 h-4" />
+                        <span className="text-emerald-500 font-semibold">89%</span>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* AI Section */}
+      <section id="ia" className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4">
+              <Brain className="w-4 h-4 mr-2 inline" />
+              Inteligência Artificial
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              IA que trabalha para você
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Automatize tarefas repetitivas e tome decisões mais inteligentes com nossa IA integrada.
+            </p>
+          </div>
+
+          <div className="grid lg:grid-cols-2 gap-12 items-center">
+            <div className="order-2 lg:order-1">
+              <Card className="bg-gradient-to-br from-primary/5 to-indigo-500/5 border-primary/20">
+                <CardContent className="p-8">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center">
+                      <Sparkles className="w-5 h-5 text-white" />
+                    </div>
+                    <span className="font-semibold text-foreground">GFloow AI</span>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {aiFeatures.map((feature, index) => (
+                      <div key={index} className="flex items-center gap-3 p-3 bg-background/50 rounded-lg">
+                        <CheckCircle2 className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+                        <span className="text-foreground">{feature}</span>
+                      </div>
+                    ))}
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            <div className="order-1 lg:order-2 space-y-6">
+              <div className="flex gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Zap className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Automação Inteligente</h3>
+                  <p className="text-muted-foreground">
+                    Nossa IA aprende com seus dados e automatiza tarefas como criação de descrições de cargo, 
+                    sugestões de desenvolvimento e análise de competências.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <Shield className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Seguro e Confidencial</h3>
+                  <p className="text-muted-foreground">
+                    Seus dados nunca são compartilhados ou usados para treinar modelos externos. 
+                    Privacidade total com criptografia de ponta a ponta.
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex gap-4">
+                <div className="w-12 h-12 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+                  <TrendingUp className="w-6 h-6 text-primary" />
+                </div>
+                <div>
+                  <h3 className="text-xl font-semibold text-foreground mb-2">Insights Acionáveis</h3>
+                  <p className="text-muted-foreground">
+                    Receba recomendações personalizadas baseadas em análise de dados para 
+                    melhorar retenção, engajamento e performance.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Testimonials Section */}
+      <section id="depoimentos" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16">
+            <Badge variant="outline" className="mb-4">Depoimentos</Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              O que nossos clientes dizem
+            </h2>
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            {testimonials.map((testimonial, index) => (
+              <Card key={index} className="bg-card border-border/50">
+                <CardContent className="p-6">
+                  <div className="flex gap-1 mb-4">
+                    {[...Array(5)].map((_, i) => (
+                      <Star key={i} className="w-5 h-5 fill-amber-400 text-amber-400" />
+                    ))}
+                  </div>
+                  <p className="text-foreground mb-6 italic">"{testimonial.quote}"</p>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center text-white font-semibold">
+                      {testimonial.author.charAt(0)}
+                    </div>
+                    <div>
+                      <div className="font-semibold text-foreground">{testimonial.author}</div>
+                      <div className="text-sm text-muted-foreground">{testimonial.role}, {testimonial.company}</div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl mx-auto">
+          <Card className="bg-gradient-to-br from-primary to-indigo-600 border-0 overflow-hidden relative">
+            <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRjMC0yLjIwOS0xLjc5MS00LTQtNHMtNCAxLjc5MS00IDQgMS43OTEgNCA0IDQgNC0xLjc5MSA0LTR6Ii8+PC9nPjwvZz48L3N2Zz4=')] opacity-30" />
+            <CardContent className="p-8 sm:p-12 text-center relative">
+              <h2 className="text-3xl sm:text-4xl font-bold text-white mb-4">
+                Pronto para transformar seu RH?
+              </h2>
+              <p className="text-xl text-white/80 mb-8 max-w-2xl mx-auto">
+                Junte-se a centenas de empresas que já modernizaram sua gestão de talentos com o GFloow Nexus.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button 
+                  size="lg" 
+                  variant="secondary"
+                  onClick={() => navigate('/auth')}
+                  className="text-lg px-8 py-6"
+                >
+                  Começar Gratuitamente
+                  <ChevronRight className="ml-2 w-5 h-5" />
+                </Button>
+                <Button 
+                  size="lg" 
+                  variant="outline"
+                  className="text-lg px-8 py-6 bg-transparent border-white text-white hover:bg-white/10"
+                >
+                  Agendar Demonstração
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="py-12 px-4 sm:px-6 lg:px-8 border-t border-border">
+        <div className="max-w-7xl mx-auto">
+          <div className="grid md:grid-cols-4 gap-8 mb-8">
+            <div>
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-indigo-600 flex items-center justify-center">
+                  <span className="text-primary-foreground font-bold text-sm">G</span>
+                </div>
+                <span className="font-bold text-lg text-foreground">GFloow Nexus</span>
+              </div>
+              <p className="text-muted-foreground text-sm">
+                Plataforma completa de gestão de talentos para PMEs brasileiras.
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">Produto</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#recursos" className="hover:text-foreground transition-colors">Recursos</a></li>
+                <li><a href="#beneficios" className="hover:text-foreground transition-colors">Benefícios</a></li>
+                <li><a href="#ia" className="hover:text-foreground transition-colors">Inteligência Artificial</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Preços</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">Empresa</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-foreground transition-colors">Sobre nós</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Carreiras</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Contato</a></li>
+              </ul>
+            </div>
+            
+            <div>
+              <h4 className="font-semibold text-foreground mb-4">Legal</h4>
+              <ul className="space-y-2 text-sm text-muted-foreground">
+                <li><a href="#" className="hover:text-foreground transition-colors">Termos de Uso</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">Política de Privacidade</a></li>
+                <li><a href="#" className="hover:text-foreground transition-colors">LGPD</a></li>
+              </ul>
+            </div>
+          </div>
+          
+          <div className="pt-8 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-4">
+            <p className="text-sm text-muted-foreground">
+              © 2024 GFloow Nexus. Todos os direitos reservados.
+            </p>
+            <div className="flex gap-4">
+              <Badge variant="outline" className="text-xs">
+                🇧🇷 Feito no Brasil
+              </Badge>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default Landing;

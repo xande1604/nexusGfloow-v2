@@ -29,7 +29,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (isAuthenticated && !loading) {
-      navigate('/');
+      navigate('/app');
     }
   }, [isAuthenticated, loading, navigate]);
 
