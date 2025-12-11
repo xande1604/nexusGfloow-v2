@@ -38,7 +38,7 @@ import {
   Menu,
   X
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 
 const contactSchema = z.object({
   nome: z.string().trim().min(2, "Nome deve ter pelo menos 2 caracteres").max(100, "Nome muito longo"),
@@ -102,11 +102,11 @@ const Landing = () => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = [
-    { href: "#recursos", label: "Recursos" },
-    { href: "#beneficios", label: "Benefícios" },
-    { href: "#ia", label: "IA" },
-    { href: "#depoimentos", label: "Depoimentos" },
-    { href: "#contato", label: "Contato" },
+    { href: "#recursos", label: "Recursos", isExternal: false },
+    { href: "#beneficios", label: "Benefícios", isExternal: false },
+    { href: "#ia", label: "IA", isExternal: false },
+    { href: "/blog", label: "Blog", isExternal: true },
+    { href: "#contato", label: "Contato", isExternal: false },
   ];
 
   const handleNavClick = (href: string) => {
@@ -285,13 +285,23 @@ const Landing = () => {
             {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
               {navLinks.map((link) => (
-                <a 
-                  key={link.href}
-                  href={link.href} 
-                  className="text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {link.label}
-                </a>
+                link.isExternal ? (
+                  <Link 
+                    key={link.href}
+                    to={link.href} 
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {link.label}
+                  </Link>
+                ) : (
+                  <a 
+                    key={link.href}
+                    href={link.href} 
+                    className="text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {link.label}
+                  </a>
+                )
               ))}
             </div>
             
@@ -332,17 +342,28 @@ const Landing = () => {
         >
           <div className="px-4 py-4 space-y-3">
             {navLinks.map((link) => (
-              <a
-                key={link.href}
-                href={link.href}
-                onClick={(e) => {
-                  e.preventDefault();
-                  handleNavClick(link.href);
-                }}
-                className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                {link.label}
-              </a>
+              link.isExternal ? (
+                <Link
+                  key={link.href}
+                  to={link.href}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {link.label}
+                </Link>
+              ) : (
+                <a
+                  key={link.href}
+                  href={link.href}
+                  onClick={(e) => {
+                    e.preventDefault();
+                    handleNavClick(link.href);
+                  }}
+                  className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {link.label}
+                </a>
+              )
             ))}
             <div className="pt-4 space-y-3 border-t border-border">
               <Button 
@@ -1011,7 +1032,7 @@ const Landing = () => {
               <h4 className="font-semibold text-foreground mb-4">Empresa</h4>
               <ul className="space-y-2 text-sm text-muted-foreground">
                 <li><a href="#" className="hover:text-foreground transition-colors">Sobre nós</a></li>
-                <li><a href="#" className="hover:text-foreground transition-colors">Blog</a></li>
+                <li><Link to="/blog" className="hover:text-foreground transition-colors">Blog</Link></li>
                 <li><a href="#" className="hover:text-foreground transition-colors">Carreiras</a></li>
                 <li><a href="#contato" className="hover:text-foreground transition-colors">Contato</a></li>
               </ul>
