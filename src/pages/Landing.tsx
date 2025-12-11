@@ -34,7 +34,9 @@ import {
   Mail,
   Phone,
   User,
-  Building
+  Building,
+  Menu,
+  X
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
@@ -97,6 +99,23 @@ const Landing = () => {
   });
   const [formErrors, setFormErrors] = useState<Partial<Record<keyof ContactFormData, string>>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const navLinks = [
+    { href: "#recursos", label: "Recursos" },
+    { href: "#beneficios", label: "Benefícios" },
+    { href: "#ia", label: "IA" },
+    { href: "#depoimentos", label: "Depoimentos" },
+    { href: "#contato", label: "Contato" },
+  ];
+
+  const handleNavClick = (href: string) => {
+    setMobileMenuOpen(false);
+    const element = document.querySelector(href);
+    if (element) {
+      element.scrollIntoView({ behavior: 'smooth' });
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
@@ -262,14 +281,22 @@ const Landing = () => {
               </div>
               <span className="font-bold text-xl text-foreground">GFloow Nexus</span>
             </div>
+            
+            {/* Desktop Navigation */}
             <div className="hidden md:flex items-center gap-8">
-              <a href="#recursos" className="text-muted-foreground hover:text-foreground transition-colors">Recursos</a>
-              <a href="#beneficios" className="text-muted-foreground hover:text-foreground transition-colors">Benefícios</a>
-              <a href="#ia" className="text-muted-foreground hover:text-foreground transition-colors">IA</a>
-              <a href="#depoimentos" className="text-muted-foreground hover:text-foreground transition-colors">Depoimentos</a>
-              <a href="#contato" className="text-muted-foreground hover:text-foreground transition-colors">Contato</a>
+              {navLinks.map((link) => (
+                <a 
+                  key={link.href}
+                  href={link.href} 
+                  className="text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  {link.label}
+                </a>
+              ))}
             </div>
-            <div className="flex items-center gap-3">
+            
+            {/* Desktop Buttons */}
+            <div className="hidden md:flex items-center gap-3">
               <Button variant="ghost" onClick={() => navigate('/auth')}>
                 Entrar
               </Button>
@@ -277,8 +304,69 @@ const Landing = () => {
                 Começar Grátis
               </Button>
             </div>
+
+            {/* Mobile Menu Button */}
+            <button
+              className="md:hidden p-2 rounded-lg hover:bg-muted transition-colors"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              aria-label={mobileMenuOpen ? "Fechar menu" : "Abrir menu"}
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6 text-foreground" />
+              ) : (
+                <Menu className="w-6 h-6 text-foreground" />
+              )}
+            </button>
           </div>
         </div>
+
+        {/* Mobile Menu */}
+        <motion.div
+          initial={false}
+          animate={{
+            height: mobileMenuOpen ? "auto" : 0,
+            opacity: mobileMenuOpen ? 1 : 0,
+          }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+          className="md:hidden overflow-hidden bg-background border-b border-border"
+        >
+          <div className="px-4 py-4 space-y-3">
+            {navLinks.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handleNavClick(link.href);
+                }}
+                className="block py-2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                {link.label}
+              </a>
+            ))}
+            <div className="pt-4 space-y-3 border-t border-border">
+              <Button 
+                variant="outline" 
+                className="w-full" 
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate('/auth');
+                }}
+              >
+                Entrar
+              </Button>
+              <Button 
+                className="w-full bg-gradient-to-r from-primary to-indigo-600 hover:from-primary/90 hover:to-indigo-600/90"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  navigate('/auth');
+                }}
+              >
+                Começar Grátis
+              </Button>
+            </div>
+          </div>
+        </motion.div>
       </nav>
 
       {/* Hero Section */}
