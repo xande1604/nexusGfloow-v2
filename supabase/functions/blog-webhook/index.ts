@@ -186,12 +186,13 @@ serve(async (req) => {
     const htmlContent = textToHtml(content);
     console.log('Converted content to HTML');
     
-    // Handle cover image
-    let coverImageUrl = body.cover_image || null;
+    // Handle cover image - accept both cover_image and image_url field names
+    let coverImageUrl = body.cover_image || body.image_url || body.image || null;
+    console.log('Cover image received:', coverImageUrl ? 'yes' : 'no');
     
     // If cover_image is a base64 string, we could store it (for now, just use URL)
     if (coverImageUrl && coverImageUrl.startsWith('data:')) {
-      console.log('Base64 image detected - storing as-is for now');
+      console.log('Base64 image detected - storing as-is');
       // For base64 images, keep them as-is (they work in img src)
     } else if (coverImageUrl) {
       // Validate URL format
