@@ -26,3 +26,6 @@ verify_jwt = true
 
 [functions.update-roadmap-progress]
 verify_jwt = true
+
+[functions.blog-webhook]
+verify_jwt = false
