@@ -34,16 +34,28 @@ import { useEmpresas } from '@/hooks/useEmpresas';
 import { CostCenterFormModal } from './CostCenterFormModal';
 import { CostCenter } from '@/types';
 import { Loader2 } from 'lucide-react';
+import { useDemo } from '@/contexts/DemoContext';
+import { demoCostCenters, demoEmpresas } from '@/components/demo/demoData';
+import { toast } from 'sonner';
 
 export const CostCentersView = () => {
-  const { costCenters, loading, saveCostCenter, deleteCostCenter } = useCostCenters();
-  const { empresas } = useEmpresas();
+  const { isDemoMode } = useDemo();
+  const { costCenters: realCostCenters, loading, saveCostCenter, deleteCostCenter } = useCostCenters();
+  const { empresas: realEmpresas } = useEmpresas();
+  
+  const costCenters = isDemoMode ? demoCostCenters : realCostCenters;
+  const empresas = isDemoMode ? demoEmpresas : realEmpresas;
+  
   const [search, setSearch] = useState('');
   const [empresaFilter, setEmpresaFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingCostCenter, setEditingCostCenter] = useState<CostCenterWithCount | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [costCenterToDelete, setCostCenterToDelete] = useState<CostCenterWithCount | null>(null);
+  
+  const handleDemoAction = () => {
+    toast.info('Funcionalidade restrita no modo demonstração');
+  };
 
   const filteredCostCenters = useMemo(() => {
     return costCenters.filter(cc => {
@@ -65,11 +77,19 @@ export const CostCentersView = () => {
   };
 
   const handleEdit = (costCenter: CostCenterWithCount) => {
+    if (isDemoMode) {
+      handleDemoAction();
+      return;
+    }
     setEditingCostCenter(costCenter);
     setIsModalOpen(true);
   };
 
   const handleDelete = (costCenter: CostCenterWithCount) => {
+    if (isDemoMode) {
+      handleDemoAction();
+      return;
+    }
     setCostCenterToDelete(costCenter);
     setDeleteDialogOpen(true);
   };
@@ -167,7 +187,7 @@ export const CostCentersView = () => {
               <Building2 className="w-5 h-5 text-brand-600" />
               Centros de Custos
             </CardTitle>
-            <Button onClick={() => setIsModalOpen(true)} className="gap-2">
+            <Button onClick={() => isDemoMode ? handleDemoAction() : setIsModalOpen(true)} className="gap-2">
               <Plus className="w-4 h-4" />
               Novo Centro de Custos
             </Button>

@@ -1,5 +1,6 @@
 // Static demo data for users without access key
 import { JobRole, Skill, Employee, CareerRoadmap } from '@/types';
+import { CostCenterWithCount } from '@/hooks/useCostCenters';
 
 export const demoEmployees: Employee[] = [
   {
@@ -306,12 +307,6 @@ export const demoRoadmaps: CareerRoadmap[] = [
   },
 ];
 
-export const demoCostCenters = [
-  { id: 'cc-1', codcentrodecustos: 'TI-001', nomecentrodecustos: 'Tecnologia da Informação', employeeCount: 2 },
-  { id: 'cc-2', codcentrodecustos: 'PROJ-001', nomecentrodecustos: 'Gestão de Projetos', employeeCount: 1 },
-  { id: 'cc-3', codcentrodecustos: 'RH-001', nomecentrodecustos: 'Recursos Humanos', employeeCount: 1 },
-  { id: 'cc-4', codcentrodecustos: 'FIN-001', nomecentrodecustos: 'Financeiro', employeeCount: 1 },
-];
 
 export const demoPerformanceReviews = [
   {
@@ -519,3 +514,53 @@ export const demoStats = {
   avgSalary: 11400,
   pendingReviews: 2,
 };
+
+export const demoEmpresas = [
+  {
+    id: 'empresa-1',
+    codempresa: 'EMP001',
+    nomeempresa: 'Tech Solutions Ltda',
+    cnae: '6201-5/00',
+    grau_risco: 1,
+    percentual_encargos: 80,
+  },
+  {
+    id: 'empresa-2',
+    codempresa: 'EMP002',
+    nomeempresa: 'Consultoria ABC',
+    cnae: '7020-4/00',
+    grau_risco: 1,
+    percentual_encargos: 75,
+  },
+];
+
+export const demoCostCenters: CostCenterWithCount[] = [
+  {
+    id: 'cc-1',
+    codcentrodecustos: 'CC001',
+    nomecentrodecustos: 'Desenvolvimento de Software',
+    codempresa: 'EMP001',
+    employeeCount: 3,
+  },
+  {
+    id: 'cc-2',
+    codcentrodecustos: 'CC002',
+    nomecentrodecustos: 'Recursos Humanos',
+    codempresa: 'EMP001',
+    employeeCount: 1,
+  },
+  {
+    id: 'cc-3',
+    codcentrodecustos: 'CC003',
+    nomecentrodecustos: 'Comercial e Vendas',
+    codempresa: 'EMP002',
+    employeeCount: 1,
+  },
+  {
+    id: 'cc-4',
+    codcentrodecustos: 'CC004',
+    nomecentrodecustos: 'Administrativo',
+    codempresa: 'EMP002',
+    employeeCount: 0,
+  },
+];
