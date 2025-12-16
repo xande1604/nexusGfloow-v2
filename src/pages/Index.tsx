@@ -11,7 +11,9 @@ import { PerformanceView } from '@/components/performance/PerformanceView';
 import { CostCentersView } from '@/components/cost-centers/CostCentersView';
 import { EmployeesView } from '@/components/employees/EmployeesView';
 import { TutorialsView } from '@/components/tutorials/TutorialsView';
-import { NoAccessMessage } from '@/components/NoAccessMessage';
+import { DemoLeadForm } from '@/components/demo/DemoLeadForm';
+import { DemoBanner } from '@/components/demo/DemoBanner';
+import { demoEmployees, demoCargos, demoSkills, demoStats } from '@/components/demo/demoData';
 import { AppView, CompanyContext } from '@/types';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useSkills } from '@/hooks/useSkills';
@@ -19,6 +21,7 @@ import { useRoadmaps } from '@/hooks/useRoadmaps';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
+import { useDemo } from '@/contexts/DemoContext';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -33,9 +36,11 @@ const Index = () => {
   const [activeView, setActiveView] = useState<AppView>(AppView.DASHBOARD);
   const [companyContext, setCompanyContext] = useState<CompanyContext>(initialContext);
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
+  const [showAccessRequest, setShowAccessRequest] = useState(false);
 
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { hasAccess, loading: roleLoading } = useUserRole();
+  const { hasCompletedLeadForm, setHasCompletedLeadForm, isDemoMode, setIsDemoMode } = useDemo();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -46,6 +51,15 @@ const Index = () => {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
+  // Set demo mode when user doesn't have access
+  useEffect(() => {
+    if (!roleLoading && !hasAccess && hasCompletedLeadForm) {
+      setIsDemoMode(true);
+    } else {
+      setIsDemoMode(false);
+    }
+  }, [roleLoading, hasAccess, hasCompletedLeadForm, setIsDemoMode]);
+
   // Supabase hooks
   const { roles, loading: rolesLoading, saveRole, deleteRole } = useJobRoles();
   const { skills, loading: skillsLoading, saveSkill, deleteSkill } = useSkills();
@@ -53,6 +67,15 @@ const Index = () => {
   const { employees, loading: employeesLoading, updateEmployeeEmail, updateEmployeeGestor } = useEmployees();
 
   const handleGenerateRoadmap = async (sourceRole: string, targetRole: string, employeeName?: string) => {
+    if (isDemoMode) {
+      toast({
+        title: 'Modo demonstração',
+        description: 'Esta funcionalidade está disponível apenas para usuários com acesso completo.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     setIsGeneratingRoadmap(true);
     try {
       const { data, error } = await supabase.functions.invoke('generate-roadmap', {
@@ -94,6 +117,15 @@ const Index = () => {
     data: { acquiredSkills: string[]; completedTrainings: { name: string; date: string; institution?: string }[]; additionalNotes?: string },
     roadmap: { steps: any[]; sourceRoleTitle: string; targetRoleTitle: string }
   ) => {
+    if (isDemoMode) {
+      toast({
+        title: 'Modo demonstração',
+        description: 'Esta funcionalidade está disponível apenas para usuários com acesso completo.',
+        variant: 'destructive',
+      });
+      return;
+    }
+    
     await updateRoadmapProgress(
       roadmapId,
       employeeId,
@@ -120,12 +152,23 @@ const Index = () => {
     return null;
   }
 
-  // Show no access message if user doesn't have a role
-  if (!hasAccess) {
-    return <NoAccessMessage />;
+  // Show lead capture form if user doesn't have access and hasn't completed the form
+  if (!hasAccess && !hasCompletedLeadForm) {
+    return <DemoLeadForm onSuccess={() => setHasCompletedLeadForm(true)} />;
   }
 
-  const isLoading = rolesLoading || skillsLoading || roadmapsLoading || employeesLoading;
+  // Get data - use demo data if in demo mode, otherwise use real data
+  const displayRoles = isDemoMode ? demoCargos : roles;
+  const displaySkills = isDemoMode ? demoSkills : skills;
+  const displayEmployees = isDemoMode ? demoEmployees : employees;
+
+  const isLoading = !isDemoMode && (rolesLoading || skillsLoading || roadmapsLoading || employeesLoading);
+
+  // Dummy handlers for demo mode
+  const demoNoOp = async () => {
+    toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' });
+    return { success: false };
+  };
 
   const renderView = () => {
     if (isLoading) {
@@ -138,17 +181,17 @@ const Index = () => {
 
     switch (activeView) {
       case AppView.DASHBOARD:
-        return <DashboardView roles={roles} skills={skills} employees={employees} />;
+        return <DashboardView roles={displayRoles} skills={displaySkills} employees={displayEmployees} />;
       case AppView.ROLES:
-        return <RolesView roles={roles} skills={skills} onSaveRole={saveRole} onDeleteRole={deleteRole} />;
+        return <RolesView roles={displayRoles} skills={displaySkills} onSaveRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveRole} onDeleteRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteRole} />;
       case AppView.SKILLS:
-        return <SkillsView skills={skills} roles={roles} onSaveSkill={saveSkill} onDeleteSkill={deleteSkill} />;
+        return <SkillsView skills={displaySkills} roles={displayRoles} onSaveSkill={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveSkill} onDeleteSkill={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteSkill} />;
       case AppView.EMPLOYEES:
-        return <EmployeesView employees={employees} roles={roles} onUpdateEmail={updateEmployeeEmail} onUpdateGestor={updateEmployeeGestor} />;
+        return <EmployeesView employees={displayEmployees} roles={displayRoles} onUpdateEmail={isDemoMode ? demoNoOp : updateEmployeeEmail} onUpdateGestor={isDemoMode ? demoNoOp : updateEmployeeGestor} />;
       case AppView.ROADMAP:
-        return <RoadmapView roles={roles} employees={employees} roadmaps={roadmaps} skills={skills} onGenerateRoadmap={handleGenerateRoadmap} onUpdateProgress={handleUpdateRoadmapProgress} />;
+        return <RoadmapView roles={displayRoles} employees={displayEmployees} roadmaps={isDemoMode ? [] : roadmaps} skills={displaySkills} onGenerateRoadmap={handleGenerateRoadmap} onUpdateProgress={handleUpdateRoadmapProgress} />;
       case AppView.PERFORMANCE:
-        return <PerformanceView employees={employees} roles={roles} />;
+        return <PerformanceView employees={displayEmployees} roles={displayRoles} />;
       case AppView.COST_CENTERS:
         return <CostCentersView />;
       case AppView.TUTORIALS:
@@ -156,15 +199,16 @@ const Index = () => {
       case AppView.SETTINGS:
         return <SettingsView companyContext={companyContext} onSaveContext={setCompanyContext} />;
       default:
-        return <DashboardView roles={roles} skills={skills} employees={employees} />;
+        return <DashboardView roles={displayRoles} skills={displaySkills} employees={displayEmployees} />;
     }
   };
 
   return (
     <div className="min-h-screen bg-background">
+      {isDemoMode && <DemoBanner onRequestAccess={() => setShowAccessRequest(true)} />}
       <Sidebar activeView={activeView} onViewChange={setActiveView} />
       
-      <div className="pl-64 transition-all duration-300">
+      <div className={`pl-64 transition-all duration-300 ${isDemoMode ? 'pt-0' : ''}`}>
         <Header activeView={activeView} />
         
         <main className="p-6">
