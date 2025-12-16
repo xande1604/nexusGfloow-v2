@@ -15,6 +15,8 @@ import { Employee, JobRole } from '@/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
+import { useDemo } from '@/contexts/DemoContext';
+import { demoEvaluationCycles, demoEvaluations } from '@/components/demo/demoData';
 
 interface InviteHistoryItem {
   id: string;
@@ -38,7 +40,12 @@ interface GeneratedQuestion {
 }
 
 export const CycleManagementView = ({ employees, roles }: CycleManagementViewProps) => {
-  const { cycles, evaluations, loading, createCycle, closeCycle, addEmployeesToCycle, submitManagerEvaluation, fetchEvaluations } = useEvaluationCycles();
+  const { isDemoMode } = useDemo();
+  const { cycles: realCycles, evaluations: realEvaluations, loading, createCycle, closeCycle, addEmployeesToCycle, submitManagerEvaluation, fetchEvaluations } = useEvaluationCycles();
+  
+  // Use demo data when in demo mode
+  const cycles = isDemoMode ? demoEvaluationCycles as EvaluationCycle[] : realCycles;
+  const evaluations = isDemoMode ? demoEvaluations as unknown as EmployeeEvaluation[] : realEvaluations;
   
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
   const [isAddEmployeesModalOpen, setIsAddEmployeesModalOpen] = useState(false);
@@ -275,7 +282,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
     setGeneratedQuestions(prev => prev.filter(q => q.id !== questionId));
   };
 
-  if (loading) {
+  if (!isDemoMode && loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-brand-600" />

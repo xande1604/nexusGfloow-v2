@@ -8,6 +8,8 @@ import { PerformanceEvolutionChart } from './PerformanceEvolutionChart';
 import { CycleManagementView } from './CycleManagementView';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { useDemo } from '@/contexts/DemoContext';
+import { demoPerformanceReviews, demoEvaluationCycles, demoEvaluations } from '@/components/demo/demoData';
 
 interface PerformanceViewProps {
   employees: Employee[];
@@ -20,7 +22,11 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<PerformanceReview | null>(null);
 
-  const { reviews, loading, saveReview, updateReview, deleteReview, defaultQuestions } = usePerformanceReviews();
+  const { isDemoMode } = useDemo();
+  const { reviews: realReviews, loading, saveReview, updateReview, deleteReview, defaultQuestions } = usePerformanceReviews();
+
+  // Use demo data when in demo mode
+  const reviews = isDemoMode ? demoPerformanceReviews as PerformanceReview[] : realReviews;
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -67,7 +73,7 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
     }
   };
 
-  if (loading) {
+  if (!isDemoMode && loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
