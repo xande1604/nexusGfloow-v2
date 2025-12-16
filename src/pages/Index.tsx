@@ -13,7 +13,7 @@ import { EmployeesView } from '@/components/employees/EmployeesView';
 import { TutorialsView } from '@/components/tutorials/TutorialsView';
 import { DemoLeadForm } from '@/components/demo/DemoLeadForm';
 import { DemoBanner } from '@/components/demo/DemoBanner';
-import { demoEmployees, demoCargos, demoSkills, demoStats } from '@/components/demo/demoData';
+import { demoEmployees, demoCargos, demoSkills, demoRoadmaps } from '@/components/demo/demoData';
 import { AppView, CompanyContext } from '@/types';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useSkills } from '@/hooks/useSkills';
@@ -189,7 +189,7 @@ const Index = () => {
       case AppView.EMPLOYEES:
         return <EmployeesView employees={displayEmployees} roles={displayRoles} onUpdateEmail={isDemoMode ? demoNoOp : updateEmployeeEmail} onUpdateGestor={isDemoMode ? demoNoOp : updateEmployeeGestor} />;
       case AppView.ROADMAP:
-        return <RoadmapView roles={displayRoles} employees={displayEmployees} roadmaps={isDemoMode ? [] : roadmaps} skills={displaySkills} onGenerateRoadmap={handleGenerateRoadmap} onUpdateProgress={handleUpdateRoadmapProgress} />;
+        return <RoadmapView roles={displayRoles} employees={displayEmployees} roadmaps={isDemoMode ? demoRoadmaps : roadmaps} skills={displaySkills} onGenerateRoadmap={handleGenerateRoadmap} onUpdateProgress={handleUpdateRoadmapProgress} />;
       case AppView.PERFORMANCE:
         return <PerformanceView employees={displayEmployees} roles={displayRoles} />;
       case AppView.COST_CENTERS:
