@@ -11,12 +11,14 @@ import { PerformanceView } from '@/components/performance/PerformanceView';
 import { CostCentersView } from '@/components/cost-centers/CostCentersView';
 import { EmployeesView } from '@/components/employees/EmployeesView';
 import { TutorialsView } from '@/components/tutorials/TutorialsView';
+import { NoAccessMessage } from '@/components/NoAccessMessage';
 import { AppView, CompanyContext } from '@/types';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useSkills } from '@/hooks/useSkills';
 import { useRoadmaps } from '@/hooks/useRoadmaps';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserRole } from '@/hooks/useUserRole';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -33,6 +35,7 @@ const Index = () => {
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
 
   const { isAuthenticated, loading: authLoading } = useAuth();
+  const { hasAccess, loading: roleLoading } = useUserRole();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -103,8 +106,8 @@ const Index = () => {
     );
   };
 
-  // Show loading while checking auth
-  if (authLoading) {
+  // Show loading while checking auth or role
+  if (authLoading || roleLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
@@ -115,6 +118,11 @@ const Index = () => {
   // Don't render if not authenticated (will redirect)
   if (!isAuthenticated) {
     return null;
+  }
+
+  // Show no access message if user doesn't have a role
+  if (!hasAccess) {
+    return <NoAccessMessage />;
   }
 
   const isLoading = rolesLoading || skillsLoading || roadmapsLoading || employeesLoading;
