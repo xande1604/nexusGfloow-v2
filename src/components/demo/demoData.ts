@@ -99,14 +99,30 @@ export const demoCargos: JobRole[] = [
 ];
 
 export const demoSkills: Skill[] = [
+  // Technical
   { id: 'skill-1', name: 'React', category: 'Technical', description: 'Biblioteca JavaScript para interfaces' },
   { id: 'skill-2', name: 'TypeScript', category: 'Technical', description: 'Superset tipado de JavaScript' },
-  { id: 'skill-3', name: 'Liderança', category: 'Leadership', description: 'Capacidade de guiar e inspirar equipes' },
-  { id: 'skill-4', name: 'Comunicação', category: 'Soft Skill', description: 'Expressar ideias com clareza' },
   { id: 'skill-5', name: 'Gestão de Projetos', category: 'Technical', description: 'Planejamento e execução de projetos' },
   { id: 'skill-6', name: 'SQL', category: 'Technical', description: 'Linguagem de consulta a bancos de dados' },
+  { id: 'skill-9', name: 'Python', category: 'Technical', description: 'Linguagem de programação versátil' },
+  { id: 'skill-10', name: 'Node.js', category: 'Technical', description: 'Runtime JavaScript server-side' },
+  { id: 'skill-11', name: 'Git', category: 'Technical', description: 'Controle de versão de código' },
+  { id: 'skill-12', name: 'Docker', category: 'Technical', description: 'Containerização de aplicações' },
+  // Soft Skills
+  { id: 'skill-4', name: 'Comunicação', category: 'Soft Skill', description: 'Expressar ideias com clareza' },
   { id: 'skill-7', name: 'Trabalho em Equipe', category: 'Soft Skill', description: 'Colaboração efetiva com colegas' },
   { id: 'skill-8', name: 'Resolução de Problemas', category: 'Soft Skill', description: 'Análise e solução de desafios complexos' },
+  { id: 'skill-13', name: 'Pensamento Crítico', category: 'Soft Skill', description: 'Avaliar informações de forma objetiva' },
+  { id: 'skill-14', name: 'Adaptabilidade', category: 'Soft Skill', description: 'Flexibilidade para mudanças' },
+  // Leadership
+  { id: 'skill-3', name: 'Liderança', category: 'Leadership', description: 'Capacidade de guiar e inspirar equipes' },
+  { id: 'skill-15', name: 'Gestão de Pessoas', category: 'Leadership', description: 'Desenvolver e motivar colaboradores' },
+  { id: 'skill-16', name: 'Tomada de Decisão', category: 'Leadership', description: 'Escolher a melhor ação estratégica' },
+  { id: 'skill-17', name: 'Delegação', category: 'Leadership', description: 'Distribuir tarefas eficientemente' },
+  // Languages
+  { id: 'skill-18', name: 'Inglês Avançado', category: 'Language', description: 'Fluência em comunicação profissional' },
+  { id: 'skill-19', name: 'Espanhol Intermediário', category: 'Language', description: 'Comunicação básica em espanhol' },
+  { id: 'skill-20', name: 'Inglês Técnico', category: 'Language', description: 'Leitura de documentação técnica' },
 ];
 
 export const demoRoadmaps: CareerRoadmap[] = [
