@@ -1,4 +1,5 @@
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 
 interface DemoContextType {
   isDemoMode: boolean;
@@ -10,17 +11,30 @@ interface DemoContextType {
 const DemoContext = createContext<DemoContextType | undefined>(undefined);
 
 export const DemoProvider = ({ children }: { children: ReactNode }) => {
+  const { user } = useAuth();
   const [isDemoMode, setIsDemoMode] = useState(false);
-  const [hasCompletedLeadForm, setHasCompletedLeadForm] = useState(() => {
-    return localStorage.getItem('gfloow_demo_lead') === 'true';
-  });
+  const [hasCompletedLeadForm, setHasCompletedLeadForm] = useState(false);
+
+  // Load lead form status based on user ID
+  useEffect(() => {
+    if (user?.id) {
+      const key = `gfloow_demo_lead_${user.id}`;
+      const completed = localStorage.getItem(key) === 'true';
+      setHasCompletedLeadForm(completed);
+    } else {
+      setHasCompletedLeadForm(false);
+    }
+  }, [user?.id]);
 
   const handleSetHasCompletedLeadForm = (value: boolean) => {
     setHasCompletedLeadForm(value);
-    if (value) {
-      localStorage.setItem('gfloow_demo_lead', 'true');
-    } else {
-      localStorage.removeItem('gfloow_demo_lead');
+    if (user?.id) {
+      const key = `gfloow_demo_lead_${user.id}`;
+      if (value) {
+        localStorage.setItem(key, 'true');
+      } else {
+        localStorage.removeItem(key);
+      }
     }
   };
 
