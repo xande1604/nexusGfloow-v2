@@ -1,8 +1,10 @@
 import { useState } from 'react';
-import { Save, Building2, Target, Heart, Plus, X, CheckCircle } from 'lucide-react';
+import { Save, Building2, Target, Heart, Plus, X, CheckCircle, Loader2 } from 'lucide-react';
 import { CompanyContext } from '@/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
+import { MasterAdminPanel } from './MasterAdminPanel';
+import { useMasterAdminData } from '@/hooks/useMasterAdminData';
 
 interface SettingsViewProps {
   companyContext: CompanyContext;
@@ -13,6 +15,8 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
   const [localContext, setLocalContext] = useState<CompanyContext>(companyContext);
   const [newValue, setNewValue] = useState('');
   const [isSaving, setIsSaving] = useState(false);
+  
+  const { isMasterAdmin, users, accessKeys, environments, loading: masterLoading, refreshData } = useMasterAdminData();
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -42,6 +46,20 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
 
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl">
+      {/* Master Admin Panel */}
+      {masterLoading ? (
+        <div className="bg-card rounded-xl p-6 shadow-medium flex items-center justify-center">
+          <Loader2 className="w-6 h-6 animate-spin text-brand-600" />
+        </div>
+      ) : isMasterAdmin && (
+        <MasterAdminPanel 
+          users={users} 
+          accessKeys={accessKeys} 
+          environments={environments}
+          onRefresh={refreshData}
+        />
+      )}
+
       {/* Company Context */}
       <div className="bg-card rounded-xl p-6 shadow-medium">
         <div className="flex items-center gap-3 mb-6">
