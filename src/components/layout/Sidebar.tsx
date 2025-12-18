@@ -15,10 +15,14 @@ import {
 import { AppView } from '@/types';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
+import { Sheet, SheetContent } from '@/components/ui/sheet';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface SidebarProps {
   activeView: AppView;
   onViewChange: (view: AppView) => void;
+  mobileOpen?: boolean;
+  onMobileClose?: () => void;
 }
 
 const menuItems = [
@@ -33,16 +37,21 @@ const menuItems = [
   { view: AppView.SETTINGS, label: 'Configurações', icon: Settings },
 ];
 
-export const Sidebar = ({ activeView, onViewChange }: SidebarProps) => {
-  const [collapsed, setCollapsed] = useState(false);
-
+const SidebarContent = ({ 
+  activeView, 
+  onViewChange, 
+  collapsed, 
+  setCollapsed,
+  onItemClick 
+}: { 
+  activeView: AppView; 
+  onViewChange: (view: AppView) => void;
+  collapsed: boolean;
+  setCollapsed: (v: boolean) => void;
+  onItemClick?: () => void;
+}) => {
   return (
-    <aside 
-      className={cn(
-        "fixed left-0 top-0 h-screen bg-card border-r border-border flex flex-col transition-all duration-300 z-50",
-        collapsed ? "w-[72px]" : "w-64"
-      )}
-    >
+    <>
       {/* Logo */}
       <div className="h-16 flex items-center gap-3 px-4 border-b border-border">
         <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0 shadow-medium">
@@ -65,7 +74,10 @@ export const Sidebar = ({ activeView, onViewChange }: SidebarProps) => {
           return (
             <button
               key={item.view}
-              onClick={() => onViewChange(item.view)}
+              onClick={() => {
+                onViewChange(item.view);
+                onItemClick?.();
+              }}
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 group",
                 isActive 
@@ -92,22 +104,63 @@ export const Sidebar = ({ activeView, onViewChange }: SidebarProps) => {
         })}
       </nav>
 
-      {/* Collapse Button */}
-      <div className="p-3 border-t border-border">
-        <button
-          onClick={() => setCollapsed(!collapsed)}
-          className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
-        >
-          {collapsed ? (
-            <ChevronRight className="w-5 h-5" />
-          ) : (
-            <>
-              <ChevronLeft className="w-5 h-5" />
-              <span className="text-sm">Recolher</span>
-            </>
-          )}
-        </button>
-      </div>
+      {/* Collapse Button - only on desktop */}
+      {setCollapsed && (
+        <div className="p-3 border-t border-border hidden md:block">
+          <button
+            onClick={() => setCollapsed(!collapsed)}
+            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+          >
+            {collapsed ? (
+              <ChevronRight className="w-5 h-5" />
+            ) : (
+              <>
+                <ChevronLeft className="w-5 h-5" />
+                <span className="text-sm">Recolher</span>
+              </>
+            )}
+          </button>
+        </div>
+      )}
+    </>
+  );
+};
+
+export const Sidebar = ({ activeView, onViewChange, mobileOpen, onMobileClose }: SidebarProps) => {
+  const [collapsed, setCollapsed] = useState(false);
+  const isMobile = useIsMobile();
+
+  // Mobile: use Sheet drawer
+  if (isMobile) {
+    return (
+      <Sheet open={mobileOpen} onOpenChange={(open) => !open && onMobileClose?.()}>
+        <SheetContent side="left" className="p-0 w-[280px] flex flex-col">
+          <SidebarContent 
+            activeView={activeView} 
+            onViewChange={onViewChange}
+            collapsed={false}
+            setCollapsed={() => {}}
+            onItemClick={onMobileClose}
+          />
+        </SheetContent>
+      </Sheet>
+    );
+  }
+
+  // Desktop: fixed sidebar
+  return (
+    <aside 
+      className={cn(
+        "fixed left-0 top-0 h-screen bg-card border-r border-border flex-col transition-all duration-300 z-50 hidden md:flex",
+        collapsed ? "w-[72px]" : "w-64"
+      )}
+    >
+      <SidebarContent 
+        activeView={activeView} 
+        onViewChange={onViewChange}
+        collapsed={collapsed}
+        setCollapsed={setCollapsed}
+      />
     </aside>
   );
 };

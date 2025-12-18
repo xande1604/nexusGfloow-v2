@@ -22,6 +22,7 @@ import { useEmployees } from '@/hooks/useEmployees';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserRole } from '@/hooks/useUserRole';
 import { useDemo } from '@/contexts/DemoContext';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
@@ -37,10 +38,12 @@ const Index = () => {
   const [companyContext, setCompanyContext] = useState<CompanyContext>(initialContext);
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
   const [showAccessRequest, setShowAccessRequest] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
 
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { hasAccess, loading: roleLoading } = useUserRole();
   const { hasCompletedLeadForm, setHasCompletedLeadForm, isDemoMode, setIsDemoMode } = useDemo();
+  const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -206,12 +209,20 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-background">
       {isDemoMode && <DemoBanner onRequestAccess={() => setShowAccessRequest(true)} />}
-      <Sidebar activeView={activeView} onViewChange={setActiveView} />
+      <Sidebar 
+        activeView={activeView} 
+        onViewChange={setActiveView} 
+        mobileOpen={mobileSidebarOpen}
+        onMobileClose={() => setMobileSidebarOpen(false)}
+      />
       
-      <div className={`pl-64 transition-all duration-300 ${isDemoMode ? 'pt-0' : ''}`}>
-        <Header activeView={activeView} />
+      <div className={`md:pl-64 transition-all duration-300 ${isDemoMode ? 'pt-0' : ''}`}>
+        <Header 
+          activeView={activeView} 
+          onMenuClick={() => setMobileSidebarOpen(true)}
+        />
         
-        <main className="p-6">
+        <main className="p-4 md:p-6">
           {renderView()}
         </main>
       </div>
