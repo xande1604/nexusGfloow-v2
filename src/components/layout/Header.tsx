@@ -1,12 +1,14 @@
-import { Bell, Search, User, LogOut, ChevronDown } from 'lucide-react';
+import { Bell, Search, User, LogOut, ChevronDown, Menu } from 'lucide-react';
 import { AppView } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface HeaderProps {
   activeView: AppView;
+  onMenuClick?: () => void;
 }
 
 const viewTitles: Record<AppView, { title: string; subtitle: string }> = {
@@ -21,13 +23,14 @@ const viewTitles: Record<AppView, { title: string; subtitle: string }> = {
   [AppView.SETTINGS]: { title: 'Configurações', subtitle: 'Contexto da empresa e preferências' },
 };
 
-export const Header = ({ activeView }: HeaderProps) => {
+export const Header = ({ activeView, onMenuClick }: HeaderProps) => {
   const { title, subtitle } = viewTitles[activeView];
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const isMobile = useIsMobile();
 
   // Close dropdown on outside click
   useEffect(() => {
@@ -56,15 +59,27 @@ export const Header = ({ activeView }: HeaderProps) => {
   const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário';
 
   return (
-    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-6 sticky top-0 z-40">
-      <div className="animate-fade-in">
-        <h2 className="text-xl font-semibold text-foreground">{title}</h2>
-        <p className="text-sm text-muted-foreground -mt-0.5">{subtitle}</p>
+    <header className="h-16 bg-card border-b border-border flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
+      <div className="flex items-center gap-3">
+        {/* Mobile menu button */}
+        {isMobile && (
+          <button 
+            onClick={onMenuClick}
+            className="w-9 h-9 flex items-center justify-center rounded-lg hover:bg-secondary transition-colors md:hidden"
+          >
+            <Menu className="w-5 h-5 text-muted-foreground" />
+          </button>
+        )}
+        
+        <div className="animate-fade-in">
+          <h2 className="text-lg md:text-xl font-semibold text-foreground">{title}</h2>
+          <p className="text-xs md:text-sm text-muted-foreground -mt-0.5 hidden sm:block">{subtitle}</p>
+        </div>
       </div>
 
-      <div className="flex items-center gap-3">
-        {/* Search */}
-        <div className="relative">
+      <div className="flex items-center gap-2 md:gap-3">
+        {/* Search - hidden on mobile */}
+        <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <input
             type="text"
@@ -83,13 +98,13 @@ export const Header = ({ activeView }: HeaderProps) => {
         <div className="relative" ref={dropdownRef}>
           <button 
             onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-            className="flex items-center gap-2 h-9 pl-2 pr-3 rounded-lg hover:bg-secondary transition-colors"
+            className="flex items-center gap-2 h-9 pl-2 pr-2 md:pr-3 rounded-lg hover:bg-secondary transition-colors"
           >
             <div className="w-7 h-7 rounded-full bg-gradient-to-br from-brand-400 to-brand-600 flex items-center justify-center">
               <User className="w-4 h-4 text-primary-foreground" />
             </div>
-            <span className="text-sm font-medium text-foreground max-w-[120px] truncate">{userName}</span>
-            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm font-medium text-foreground max-w-[80px] md:max-w-[120px] truncate hidden sm:block">{userName}</span>
+            <ChevronDown className="w-4 h-4 text-muted-foreground hidden sm:block" />
           </button>
 
           {isDropdownOpen && (

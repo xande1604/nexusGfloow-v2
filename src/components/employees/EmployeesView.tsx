@@ -174,22 +174,22 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
       {/* Employees Table */}
       <div className="bg-card border border-border rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
-          <table className="w-full">
+          <table className="w-full min-w-[600px] md:min-w-0">
             <thead className="bg-secondary/50">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 md:px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
                   Colaborador
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 md:px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden md:table-cell">
                   Cargo
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                <th className="px-3 md:px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">
                   Gestor/Avaliador
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  Email para Autoavaliação
+                <th className="px-3 md:px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                  Email
                 </th>
-                <th className="px-4 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider w-24">
+                <th className="px-3 md:px-4 py-3 text-center text-xs font-semibold text-muted-foreground uppercase tracking-wider w-20 md:w-24">
                   Ações
                 </th>
               </tr>
@@ -197,21 +197,24 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
             <tbody className="divide-y divide-border">
               {filteredEmployees.map((employee) => (
                 <tr key={employee.id} className="hover:bg-secondary/30 transition-colors">
-                  <td className="px-4 py-3">
-                    <div className="flex items-center gap-3">
-                      <div className="w-9 h-9 rounded-full bg-brand-100 flex items-center justify-center">
+                  <td className="px-3 md:px-4 py-3">
+                    <div className="flex items-center gap-2 md:gap-3">
+                      <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-brand-100 flex items-center justify-center flex-shrink-0">
                         <User className="w-4 h-4 text-brand-600" />
                       </div>
-                      <span className="font-medium text-foreground">{employee.name}</span>
+                      <div className="min-w-0">
+                        <span className="font-medium text-foreground text-sm md:text-base block truncate">{employee.name}</span>
+                        <span className="text-xs text-muted-foreground md:hidden truncate block">{getRoleName(employee.roleId)}</span>
+                      </div>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 md:px-4 py-3 hidden md:table-cell">
                     <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Briefcase className="w-4 h-4" />
-                      {getRoleName(employee.roleId)}
+                      <Briefcase className="w-4 h-4 flex-shrink-0" />
+                      <span className="truncate">{getRoleName(employee.roleId)}</span>
                     </div>
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 md:px-4 py-3 hidden lg:table-cell">
                     {editingGestorId === employee.id ? (
                       <div className="flex items-center gap-2">
                         <Select value={selectedGestor} onValueChange={setSelectedGestor}>
@@ -256,28 +259,28 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 md:px-4 py-3">
                     {editingId === employee.id ? (
                       <Input
                         type="email"
                         value={editingEmail}
                         onChange={(e) => setEditingEmail(e.target.value)}
                         placeholder="email@empresa.com"
-                        className="h-9"
+                        className="h-9 text-sm"
                         autoFocus
                       />
                     ) : (
-                      <div className="flex items-center gap-2 text-sm">
-                        <Mail className="w-4 h-4 text-muted-foreground" />
+                      <div className="flex items-center gap-2 text-xs md:text-sm">
+                        <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                         {employee.email ? (
-                          <span className="text-foreground">{employee.email}</span>
+                          <span className="text-foreground truncate max-w-[120px] md:max-w-none">{employee.email}</span>
                         ) : (
                           <span className="text-muted-foreground italic">Não cadastrado</span>
                         )}
                       </div>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-3 md:px-4 py-3">
                     <div className="flex items-center justify-center gap-1">
                       {editingId === employee.id ? (
                         <>

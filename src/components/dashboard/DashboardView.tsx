@@ -55,39 +55,39 @@ export const DashboardView = ({ roles, skills, employees }: DashboardViewProps) 
       </div>
 
       {/* Two Column Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-6">
         {/* Recent Roles */}
-        <div className="bg-card rounded-xl p-5 shadow-medium">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Cargos Recentes</h3>
-            <span className="text-xs text-muted-foreground">Últimos adicionados</span>
+        <div className="bg-card rounded-xl p-4 md:p-5 shadow-medium">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <h3 className="text-base md:text-lg font-semibold text-foreground">Cargos Recentes</h3>
+            <span className="text-[10px] md:text-xs text-muted-foreground">Últimos adicionados</span>
           </div>
-          <div className="space-y-3">
+          <div className="space-y-2 md:space-y-3">
             {roles.slice(0, 5).map((role, index) => (
               <div 
                 key={role.id} 
-                className="flex items-center justify-between p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors"
+                className="flex items-center justify-between p-2 md:p-3 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors"
                 style={{ animationDelay: `${index * 50}ms` }}
               >
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-brand-100 flex items-center justify-center">
-                    <Briefcase className="w-5 h-5 text-brand-600" />
+                <div className="flex items-center gap-2 md:gap-3 min-w-0 flex-1">
+                  <div className="w-8 h-8 md:w-10 md:h-10 rounded-lg bg-brand-100 flex items-center justify-center flex-shrink-0">
+                    <Briefcase className="w-4 h-4 md:w-5 md:h-5 text-brand-600" />
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{role.title}</p>
-                    <p className="text-xs text-muted-foreground">{role.department} • {role.level}</p>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-xs md:text-sm font-medium text-foreground truncate">{role.title}</p>
+                    <p className="text-[10px] md:text-xs text-muted-foreground truncate">{role.department} • {role.level}</p>
                   </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-semibold text-foreground">
+                <div className="text-right flex-shrink-0 ml-2">
+                  <p className="text-xs md:text-sm font-semibold text-foreground">
                     R$ {role.salaryRange.min.toLocaleString('pt-BR')}
                   </p>
-                  <p className="text-xs text-muted-foreground">a R$ {role.salaryRange.max.toLocaleString('pt-BR')}</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground hidden sm:block">a R$ {role.salaryRange.max.toLocaleString('pt-BR')}</p>
                 </div>
               </div>
             ))}
             {roles.length === 0 && (
-              <p className="text-center text-muted-foreground py-8">
+              <p className="text-center text-muted-foreground py-6 md:py-8 text-sm">
                 Nenhum cargo cadastrado ainda
               </p>
             )}
@@ -95,12 +95,12 @@ export const DashboardView = ({ roles, skills, employees }: DashboardViewProps) 
         </div>
 
         {/* Skills Overview */}
-        <div className="bg-card rounded-xl p-5 shadow-medium">
-          <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-foreground">Habilidades por Categoria</h3>
-            <span className="text-xs text-muted-foreground">{skills.length} total</span>
+        <div className="bg-card rounded-xl p-4 md:p-5 shadow-medium">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <h3 className="text-base md:text-lg font-semibold text-foreground">Habilidades por Categoria</h3>
+            <span className="text-[10px] md:text-xs text-muted-foreground">{skills.length} total</span>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-3 md:space-y-4">
             {[
               { label: 'Técnicas', value: skillsByCategory.technical, color: 'bg-brand-500' },
               { label: 'Comportamentais', value: skillsByCategory.soft, color: 'bg-emerald-500' },
@@ -109,12 +109,12 @@ export const DashboardView = ({ roles, skills, employees }: DashboardViewProps) 
             ].map((item) => {
               const percentage = skills.length > 0 ? (item.value / skills.length) * 100 : 0;
               return (
-                <div key={item.label} className="space-y-2">
+                <div key={item.label} className="space-y-1.5 md:space-y-2">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm font-medium text-foreground">{item.label}</span>
-                    <span className="text-sm text-muted-foreground">{item.value}</span>
+                    <span className="text-xs md:text-sm font-medium text-foreground">{item.label}</span>
+                    <span className="text-xs md:text-sm text-muted-foreground">{item.value}</span>
                   </div>
-                  <div className="h-2 bg-secondary rounded-full overflow-hidden">
+                  <div className="h-1.5 md:h-2 bg-secondary rounded-full overflow-hidden">
                     <div 
                       className={`h-full ${item.color} rounded-full transition-all duration-500`}
                       style={{ width: `${percentage}%` }}
@@ -126,16 +126,16 @@ export const DashboardView = ({ roles, skills, employees }: DashboardViewProps) 
           </div>
 
           {/* Quick Stats */}
-          <div className="grid grid-cols-2 gap-3 mt-6 pt-4 border-t border-border">
-            <div className="text-center p-3 bg-brand-50 rounded-lg">
-              <Award className="w-5 h-5 text-brand-600 mx-auto mb-1" />
-              <p className="text-lg font-bold text-brand-700">{roles.filter(r => r.requiredSkillIds.length > 0).length}</p>
-              <p className="text-xs text-muted-foreground">Cargos com skills</p>
+          <div className="grid grid-cols-2 gap-2 md:gap-3 mt-4 md:mt-6 pt-4 border-t border-border">
+            <div className="text-center p-2 md:p-3 bg-brand-50 rounded-lg">
+              <Award className="w-4 h-4 md:w-5 md:h-5 text-brand-600 mx-auto mb-1" />
+              <p className="text-base md:text-lg font-bold text-brand-700">{roles.filter(r => r.requiredSkillIds.length > 0).length}</p>
+              <p className="text-[10px] md:text-xs text-muted-foreground">Cargos com skills</p>
             </div>
-            <div className="text-center p-3 bg-emerald-50 rounded-lg">
-              <Route className="w-5 h-5 text-emerald-600 mx-auto mb-1" />
-              <p className="text-lg font-bold text-emerald-700">0</p>
-              <p className="text-xs text-muted-foreground">Roadmaps criados</p>
+            <div className="text-center p-2 md:p-3 bg-emerald-50 rounded-lg">
+              <Route className="w-4 h-4 md:w-5 md:h-5 text-emerald-600 mx-auto mb-1" />
+              <p className="text-base md:text-lg font-bold text-emerald-700">0</p>
+              <p className="text-[10px] md:text-xs text-muted-foreground">Roadmaps criados</p>
             </div>
           </div>
         </div>
