@@ -1,17 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
-import { DashboardView } from '@/components/dashboard/DashboardView';
-import { RolesView } from '@/components/roles/RolesView';
-import { SkillsView } from '@/components/skills/SkillsView';
-import { RoadmapView } from '@/components/roadmap/RoadmapView';
-import { SettingsView } from '@/components/settings/SettingsView';
-import { PerformanceView } from '@/components/performance/PerformanceView';
-import { CostCentersView } from '@/components/cost-centers/CostCentersView';
-import { EmployeesView } from '@/components/employees/EmployeesView';
-import { TutorialsView } from '@/components/tutorials/TutorialsView';
-import { DemoLeadForm } from '@/components/demo/DemoLeadForm';
 import { DemoBanner } from '@/components/demo/DemoBanner';
 import { demoEmployees, demoCargos, demoSkills, demoRoadmaps } from '@/components/demo/demoData';
 import { AppView, CompanyContext } from '@/types';
@@ -26,6 +16,24 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Loader2 } from 'lucide-react';
+
+// Lazy load heavy components
+const DashboardView = lazy(() => import('@/components/dashboard/DashboardView').then(m => ({ default: m.DashboardView })));
+const RolesView = lazy(() => import('@/components/roles/RolesView').then(m => ({ default: m.RolesView })));
+const SkillsView = lazy(() => import('@/components/skills/SkillsView').then(m => ({ default: m.SkillsView })));
+const RoadmapView = lazy(() => import('@/components/roadmap/RoadmapView').then(m => ({ default: m.RoadmapView })));
+const SettingsView = lazy(() => import('@/components/settings/SettingsView').then(m => ({ default: m.SettingsView })));
+const PerformanceView = lazy(() => import('@/components/performance/PerformanceView').then(m => ({ default: m.PerformanceView })));
+const CostCentersView = lazy(() => import('@/components/cost-centers/CostCentersView').then(m => ({ default: m.CostCentersView })));
+const EmployeesView = lazy(() => import('@/components/employees/EmployeesView').then(m => ({ default: m.EmployeesView })));
+const TutorialsView = lazy(() => import('@/components/tutorials/TutorialsView').then(m => ({ default: m.TutorialsView })));
+const DemoLeadForm = lazy(() => import('@/components/demo/DemoLeadForm').then(m => ({ default: m.DemoLeadForm })));
+
+const ViewLoader = () => (
+  <div className="flex items-center justify-center h-64">
+    <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+  </div>
+);
 
 const initialContext: CompanyContext = {
   mission: 'Transformar a gestão de talentos através de tecnologia e inteligência artificial.',
@@ -157,7 +165,11 @@ const Index = () => {
 
   // Show lead capture form if user doesn't have access and hasn't completed the form
   if (!hasAccess && !hasCompletedLeadForm) {
-    return <DemoLeadForm onSuccess={() => setHasCompletedLeadForm(true)} />;
+    return (
+      <Suspense fallback={<ViewLoader />}>
+        <DemoLeadForm onSuccess={() => setHasCompletedLeadForm(true)} />
+      </Suspense>
+    );
   }
 
   // Get data - use demo data if in demo mode, otherwise use real data
@@ -223,7 +235,9 @@ const Index = () => {
         />
         
         <main className="p-4 md:p-6">
-          {renderView()}
+          <Suspense fallback={<ViewLoader />}>
+            {renderView()}
+          </Suspense>
         </main>
       </div>
     </div>
