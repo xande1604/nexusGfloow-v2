@@ -12,6 +12,7 @@ import SelfAssessment from "./pages/SelfAssessment";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
 import PitchDeck from "./pages/PitchDeck";
+import Install from "./pages/Install";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -32,6 +33,7 @@ const App = () => (
               <Route path="/blog" element={<Blog />} />
               <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/pitch" element={<PitchDeck />} />
+              <Route path="/install" element={<Install />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </BrowserRouter>
