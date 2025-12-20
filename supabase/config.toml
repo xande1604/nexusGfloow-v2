@@ -29,3 +29,6 @@ verify_jwt = true
 
 [functions.blog-webhook]
 verify_jwt = false
+
+[functions.suggest-training-skills]
+verify_jwt = true

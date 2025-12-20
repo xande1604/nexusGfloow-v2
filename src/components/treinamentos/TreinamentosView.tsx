@@ -1,18 +1,22 @@
 import { useState, useMemo } from 'react';
-import { Plus, Search, BookOpen, Calendar, Clock, Building2, Trash2, Edit2, Filter, GraduationCap, CheckCircle2, XCircle, Loader2, BarChart3 } from 'lucide-react';
+import { Plus, Search, BookOpen, Calendar, Clock, Building2, Trash2, Edit2, Filter, GraduationCap, CheckCircle2, XCircle, Loader2, BarChart3, Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTreinamentos, Treinamento } from '@/hooks/useTreinamentos';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCostCenters } from '@/hooks/useCostCenters';
+import { useSkills } from '@/hooks/useSkills';
 import { TreinamentoFormModal } from './TreinamentoFormModal';
 import { TreinamentosReportsView } from './TreinamentosReportsView';
+import { SuggestSkillsModal } from './SuggestSkillsModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import { useToast } from '@/hooks/use-toast';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -35,10 +39,14 @@ export const TreinamentosView = ({ isDemoMode = false }: TreinamentosViewProps) 
   const [editingTreinamento, setEditingTreinamento] = useState<Treinamento | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState('list');
+  const [suggestSkillsOpen, setSuggestSkillsOpen] = useState(false);
+  const [selectedTreinamentoForSkills, setSelectedTreinamentoForSkills] = useState<Treinamento | null>(null);
 
   const { treinamentos, loading, saveTreinamento, updateTreinamento, deleteTreinamento } = useTreinamentos();
   const { employees } = useEmployees();
   const { costCenters } = useCostCenters();
+  const { skills } = useSkills();
+  const { toast } = useToast();
 
   const filteredTreinamentos = useMemo(() => {
     return treinamentos.filter(t => {
@@ -87,6 +95,21 @@ export const TreinamentosView = ({ isDemoMode = false }: TreinamentosViewProps) 
       setDeleteId(null);
     }
   };
+
+  const handleOpenSuggestSkills = (treinamento: Treinamento) => {
+    setSelectedTreinamentoForSkills(treinamento);
+    setSuggestSkillsOpen(true);
+  };
+
+  const handleSkillsSelected = (selectedSkills: any[]) => {
+    const skillNames = selectedSkills.map(s => s.name);
+    toast({
+      title: 'Habilidades sugeridas',
+      description: `${skillNames.length} habilidade${skillNames.length !== 1 ? 's' : ''} identificada${skillNames.length !== 1 ? 's' : ''}: ${skillNames.join(', ')}. Use-as ao atualizar o roadmap de carreira do colaborador.`
+    });
+  };
+
+  const existingSkillNames = useMemo(() => skills.map(s => s.name), [skills]);
 
   const stats = useMemo(() => {
     const total = treinamentos.length;
@@ -283,6 +306,26 @@ export const TreinamentosView = ({ isDemoMode = false }: TreinamentosViewProps) 
                     </div>
 
                     <div className="flex items-center gap-2 ml-11 lg:ml-0">
+                      {treinamento.status === 'concluido' && (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button 
+                                variant="ghost" 
+                                size="sm"
+                                onClick={() => handleOpenSuggestSkills(treinamento)}
+                                disabled={isDemoMode}
+                                className="text-primary hover:text-primary hover:bg-primary/10"
+                              >
+                                <Sparkles className="w-4 h-4" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Sugerir habilidades com IA</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
                       <Button 
                         variant="ghost" 
                         size="sm"
@@ -319,7 +362,14 @@ export const TreinamentosView = ({ isDemoMode = false }: TreinamentosViewProps) 
         employees={employees}
       />
 
-      {/* Delete Confirmation */}
+      {/* Suggest Skills Modal */}
+      <SuggestSkillsModal
+        isOpen={suggestSkillsOpen}
+        onClose={() => setSuggestSkillsOpen(false)}
+        treinamento={selectedTreinamentoForSkills}
+        existingSkills={existingSkillNames}
+        onSkillsSelected={handleSkillsSelected}
+      />
         </TabsContent>
 
         <TabsContent value="reports" className="mt-6">
