@@ -7,6 +7,7 @@ import { RoadmapUpdateModal, RoadmapProgressData, PrefilledTrainingData } from '
 import { RoadmapProgressChart } from './RoadmapProgressChart';
 import { RoadmapInfographic } from './RoadmapInfographic';
 import { RoadmapJourneyMap } from './RoadmapJourneyMap';
+import { RoadmapUpdateHistory } from './RoadmapUpdateHistory';
 import { useToast } from '@/hooks/use-toast';
 import { generateRoadmapPDF } from '@/lib/generateRoadmapPDF';
 
@@ -377,6 +378,11 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
 
             {/* Progress Evolution Chart */}
             <RoadmapProgressChart progress={progress} />
+
+            {/* Update History */}
+            <div className="lg:col-span-2">
+              <RoadmapUpdateHistory progress={progress} />
+            </div>
           </div>
         )}
 
