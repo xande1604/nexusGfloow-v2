@@ -10,7 +10,9 @@ import {
   Layers,
   Building2,
   Users,
-  GraduationCap
+  GraduationCap,
+  BookOpen,
+  HelpCircle
 } from 'lucide-react';
 import { AppView } from '@/types';
 import { cn } from '@/lib/utils';
@@ -33,7 +35,8 @@ const menuItems = [
   { view: AppView.COST_CENTERS, label: 'Centros de Custos', icon: Building2 },
   { view: AppView.ROADMAP, label: 'Roadmap de Carreira', icon: Route },
   { view: AppView.PERFORMANCE, label: 'Avaliações', icon: ClipboardCheck },
-  { view: AppView.TUTORIALS, label: 'Tutoriais', icon: GraduationCap },
+  { view: AppView.TRAININGS, label: 'Treinamentos', icon: GraduationCap },
+  { view: AppView.TUTORIALS, label: 'Tutoriais', icon: HelpCircle },
   { view: AppView.SETTINGS, label: 'Configurações', icon: Settings },
 ];
 
