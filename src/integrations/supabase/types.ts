@@ -1253,6 +1253,69 @@ export type Database = {
         }
         Relationships: []
       }
+      treinamentos: {
+        Row: {
+          carga_horaria: number | null
+          certificado_url: string | null
+          created_at: string
+          data_conclusao: string | null
+          data_inicio: string | null
+          employee_id: string | null
+          id: string
+          instituicao: string | null
+          nome_treinamento: string
+          observacoes: string | null
+          owner_admin_id: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          carga_horaria?: number | null
+          certificado_url?: string | null
+          created_at?: string
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          employee_id?: string | null
+          id?: string
+          instituicao?: string | null
+          nome_treinamento: string
+          observacoes?: string | null
+          owner_admin_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          carga_horaria?: number | null
+          certificado_url?: string | null
+          created_at?: string
+          data_conclusao?: string | null
+          data_inicio?: string | null
+          employee_id?: string | null
+          id?: string
+          instituicao?: string | null
+          nome_treinamento?: string
+          observacoes?: string | null
+          owner_admin_id?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "treinamentos_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "treinamentos_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_invites: {
         Row: {
           created_at: string | null

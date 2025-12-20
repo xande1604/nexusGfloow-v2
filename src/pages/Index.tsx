@@ -27,6 +27,7 @@ const PerformanceView = lazy(() => import('@/components/performance/PerformanceV
 const CostCentersView = lazy(() => import('@/components/cost-centers/CostCentersView').then(m => ({ default: m.CostCentersView })));
 const EmployeesView = lazy(() => import('@/components/employees/EmployeesView').then(m => ({ default: m.EmployeesView })));
 const TutorialsView = lazy(() => import('@/components/tutorials/TutorialsView').then(m => ({ default: m.TutorialsView })));
+const TreinamentosView = lazy(() => import('@/components/treinamentos/TreinamentosView').then(m => ({ default: m.TreinamentosView })));
 const DemoLeadForm = lazy(() => import('@/components/demo/DemoLeadForm').then(m => ({ default: m.DemoLeadForm })));
 
 const ViewLoader = () => (
@@ -207,6 +208,8 @@ const Index = () => {
         return <RoadmapView roles={displayRoles} employees={displayEmployees} roadmaps={isDemoMode ? demoRoadmaps : roadmaps} skills={displaySkills} onGenerateRoadmap={handleGenerateRoadmap} onUpdateProgress={handleUpdateRoadmapProgress} />;
       case AppView.PERFORMANCE:
         return <PerformanceView employees={displayEmployees} roles={displayRoles} />;
+      case AppView.TRAININGS:
+        return <TreinamentosView isDemoMode={isDemoMode} />;
       case AppView.COST_CENTERS:
         return <CostCentersView />;
       case AppView.TUTORIALS:
