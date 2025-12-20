@@ -28,11 +28,24 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 
-interface TreinamentosViewProps {
-  isDemoMode?: boolean;
+import { SuggestedSkill } from './SuggestSkillsModal';
+
+export interface TrainingSkillsData {
+  skills: SuggestedSkill[];
+  training: {
+    name: string;
+    date: string;
+    institution?: string;
+  };
+  employeeId: string;
 }
 
-export const TreinamentosView = ({ isDemoMode = false }: TreinamentosViewProps) => {
+interface TreinamentosViewProps {
+  isDemoMode?: boolean;
+  onNavigateToRoadmap?: (data: TrainingSkillsData) => void;
+}
+
+export const TreinamentosView = ({ isDemoMode = false, onNavigateToRoadmap }: TreinamentosViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -101,12 +114,26 @@ export const TreinamentosView = ({ isDemoMode = false }: TreinamentosViewProps) 
     setSuggestSkillsOpen(true);
   };
 
-  const handleSkillsSelected = (selectedSkills: any[]) => {
+  const handleSkillsSelected = (selectedSkills: SuggestedSkill[], treinamento: Treinamento) => {
     const skillNames = selectedSkills.map(s => s.name);
     toast({
-      title: 'Habilidades sugeridas',
-      description: `${skillNames.length} habilidade${skillNames.length !== 1 ? 's' : ''} identificada${skillNames.length !== 1 ? 's' : ''}: ${skillNames.join(', ')}. Use-as ao atualizar o roadmap de carreira do colaborador.`
+      title: 'Habilidades identificadas',
+      description: `${skillNames.length} habilidade${skillNames.length !== 1 ? 's' : ''}: ${skillNames.join(', ')}.`
     });
+  };
+
+  const handleNavigateToRoadmapWithSkills = (employeeId: string, selectedSkills: SuggestedSkill[], treinamento: Treinamento) => {
+    if (onNavigateToRoadmap) {
+      onNavigateToRoadmap({
+        skills: selectedSkills,
+        training: {
+          name: treinamento.nome_treinamento,
+          date: treinamento.data_conclusao || new Date().toISOString().split('T')[0],
+          institution: treinamento.instituicao || undefined
+        },
+        employeeId
+      });
+    }
   };
 
   const existingSkillNames = useMemo(() => skills.map(s => s.name), [skills]);
@@ -369,6 +396,7 @@ export const TreinamentosView = ({ isDemoMode = false }: TreinamentosViewProps) 
         treinamento={selectedTreinamentoForSkills}
         existingSkills={existingSkillNames}
         onSkillsSelected={handleSkillsSelected}
+        onNavigateToRoadmap={onNavigateToRoadmap ? handleNavigateToRoadmapWithSkills : undefined}
       />
         </TabsContent>
 

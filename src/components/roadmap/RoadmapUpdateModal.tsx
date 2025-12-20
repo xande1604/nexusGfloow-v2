@@ -3,12 +3,18 @@ import { X, Plus, Trash2, GraduationCap, Award, Sparkles, Loader2 } from 'lucide
 import { CareerRoadmap, Skill } from '@/types';
 import { cn } from '@/lib/utils';
 
+export interface PrefilledTrainingData {
+  skills: string[];
+  training: { name: string; date: string; institution?: string };
+}
+
 interface RoadmapUpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
   roadmap: CareerRoadmap;
   availableSkills: Skill[];
   onUpdate: (data: RoadmapProgressData) => Promise<void>;
+  prefilledData?: PrefilledTrainingData;
 }
 
 export interface RoadmapProgressData {
@@ -22,7 +28,8 @@ export const RoadmapUpdateModal = ({
   onClose,
   roadmap,
   availableSkills,
-  onUpdate
+  onUpdate,
+  prefilledData
 }: RoadmapUpdateModalProps) => {
   const [selectedSkills, setSelectedSkills] = useState<string[]>([]);
   const [trainings, setTrainings] = useState<{ name: string; date: string; institution?: string }[]>([
@@ -32,15 +39,21 @@ export const RoadmapUpdateModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [skillSearch, setSkillSearch] = useState('');
 
-  // Reset form when modal opens
+  // Reset form when modal opens, or prefill with data
   useEffect(() => {
     if (isOpen) {
-      setSelectedSkills([]);
-      setTrainings([{ name: '', date: '', institution: '' }]);
-      setAdditionalNotes('');
+      if (prefilledData) {
+        setSelectedSkills(prefilledData.skills);
+        setTrainings([prefilledData.training]);
+        setAdditionalNotes(`Habilidades identificadas via IA a partir do treinamento "${prefilledData.training.name}".`);
+      } else {
+        setSelectedSkills([]);
+        setTrainings([{ name: '', date: '', institution: '' }]);
+        setAdditionalNotes('');
+      }
       setSkillSearch('');
     }
-  }, [isOpen]);
+  }, [isOpen, prefilledData]);
 
   const filteredSkills = availableSkills.filter(skill =>
     skill.name.toLowerCase().includes(skillSearch.toLowerCase()) &&
