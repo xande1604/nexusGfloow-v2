@@ -48,6 +48,11 @@ const Index = () => {
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
   const [showAccessRequest, setShowAccessRequest] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [prefilledRoadmapData, setPrefilledRoadmapData] = useState<{
+    employeeId: string;
+    skills: string[];
+    training: { name: string; date: string; institution?: string };
+  } | undefined>(undefined);
 
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { hasAccess, loading: roleLoading } = useUserRole();
@@ -150,6 +155,19 @@ const Index = () => {
     );
   };
 
+  const handleNavigateToRoadmapFromTraining = (data: {
+    skills: { name: string }[];
+    training: { name: string; date: string; institution?: string };
+    employeeId: string;
+  }) => {
+    setPrefilledRoadmapData({
+      employeeId: data.employeeId,
+      skills: data.skills.map(s => s.name),
+      training: data.training
+    });
+    setActiveView(AppView.ROADMAP);
+  };
+
   // Show loading while checking auth or role
   if (authLoading || roleLoading) {
     return (
@@ -205,11 +223,27 @@ const Index = () => {
       case AppView.EMPLOYEES:
         return <EmployeesView employees={displayEmployees} roles={displayRoles} onUpdateEmail={isDemoMode ? demoNoOp : updateEmployeeEmail} onUpdateGestor={isDemoMode ? demoNoOp : updateEmployeeGestor} />;
       case AppView.ROADMAP:
-        return <RoadmapView roles={displayRoles} employees={displayEmployees} roadmaps={isDemoMode ? demoRoadmaps : roadmaps} skills={displaySkills} onGenerateRoadmap={handleGenerateRoadmap} onUpdateProgress={handleUpdateRoadmapProgress} />;
+        return (
+          <RoadmapView 
+            roles={displayRoles} 
+            employees={displayEmployees} 
+            roadmaps={isDemoMode ? demoRoadmaps : roadmaps} 
+            skills={displaySkills} 
+            onGenerateRoadmap={handleGenerateRoadmap} 
+            onUpdateProgress={handleUpdateRoadmapProgress}
+            prefilledUpdateData={prefilledRoadmapData}
+            onClearPrefilledData={() => setPrefilledRoadmapData(undefined)}
+          />
+        );
       case AppView.PERFORMANCE:
         return <PerformanceView employees={displayEmployees} roles={displayRoles} />;
       case AppView.TRAININGS:
-        return <TreinamentosView isDemoMode={isDemoMode} />;
+        return (
+          <TreinamentosView 
+            isDemoMode={isDemoMode} 
+            onNavigateToRoadmap={handleNavigateToRoadmapFromTraining}
+          />
+        );
       case AppView.COST_CENTERS:
         return <CostCentersView />;
       case AppView.TUTORIALS:

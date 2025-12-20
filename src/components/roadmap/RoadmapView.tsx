@@ -1,9 +1,9 @@
-import { useState, useRef, useCallback } from 'react';
+import { useState, useRef, useCallback, useEffect } from 'react';
 import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image, FileText, Map, Play } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { JobRole, Employee, CareerRoadmap, Skill } from '@/types';
 import { cn } from '@/lib/utils';
-import { RoadmapUpdateModal, RoadmapProgressData } from './RoadmapUpdateModal';
+import { RoadmapUpdateModal, RoadmapProgressData, PrefilledTrainingData } from './RoadmapUpdateModal';
 import { RoadmapProgressChart } from './RoadmapProgressChart';
 import { RoadmapInfographic } from './RoadmapInfographic';
 import { RoadmapJourneyMap } from './RoadmapJourneyMap';
@@ -17,9 +17,15 @@ interface RoadmapViewProps {
   skills: Skill[];
   onGenerateRoadmap: (sourceRole: string, targetRole: string, employeeName?: string) => void;
   onUpdateProgress: (roadmapId: string, employeeId: string | undefined, data: RoadmapProgressData, roadmap: CareerRoadmap) => Promise<void>;
+  prefilledUpdateData?: {
+    employeeId: string;
+    skills: string[];
+    training: { name: string; date: string; institution?: string };
+  };
+  onClearPrefilledData?: () => void;
 }
 
-export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoadmap, onUpdateProgress }: RoadmapViewProps) => {
+export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoadmap, onUpdateProgress, prefilledUpdateData, onClearPrefilledData }: RoadmapViewProps) => {
   const [sourceRole, setSourceRole] = useState('');
   const [targetRole, setTargetRole] = useState('');
   const [employeeName, setEmployeeName] = useState('');
@@ -30,9 +36,38 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
   const [isExporting, setIsExporting] = useState(false);
   const [showJourneyMap, setShowJourneyMap] = useState(false);
   const [journeyMapKey, setJourneyMapKey] = useState(0);
+  const [prefilledModalData, setPrefilledModalData] = useState<PrefilledTrainingData | undefined>(undefined);
   const infographicRef = useRef<HTMLDivElement>(null);
   const journeyMapRef = useRef<HTMLDivElement>(null);
   const { toast } = useToast();
+
+  // Handle prefilled data from training skills suggestion
+  useEffect(() => {
+    if (prefilledUpdateData) {
+      // Find roadmap for this employee
+      const employeeRoadmap = roadmaps.find(r => r.employeeId === prefilledUpdateData.employeeId);
+      if (employeeRoadmap) {
+        setSelectedRoadmap(employeeRoadmap);
+        setPrefilledModalData({
+          skills: prefilledUpdateData.skills,
+          training: prefilledUpdateData.training
+        });
+        setIsUpdateModalOpen(true);
+        setActiveTab('history');
+        toast({
+          title: 'Roadmap encontrado',
+          description: `Atualizando roadmap com as habilidades do treinamento "${prefilledUpdateData.training.name}".`
+        });
+      } else {
+        toast({
+          title: 'Roadmap não encontrado',
+          description: 'Este colaborador não possui um roadmap de carreira. Crie um primeiro.',
+          variant: 'destructive'
+        });
+      }
+      onClearPrefilledData?.();
+    }
+  }, [prefilledUpdateData, roadmaps, onClearPrefilledData, toast]);
 
   const handleReplayAnimation = useCallback(() => {
     setJourneyMapKey(prev => prev + 1);
@@ -436,10 +471,14 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
         {/* Update Modal */}
         <RoadmapUpdateModal
           isOpen={isUpdateModalOpen}
-          onClose={() => setIsUpdateModalOpen(false)}
+          onClose={() => {
+            setIsUpdateModalOpen(false);
+            setPrefilledModalData(undefined);
+          }}
           roadmap={selectedRoadmap}
           availableSkills={skills}
           onUpdate={handleUpdateProgress}
+          prefilledData={prefilledModalData}
         />
       </div>
     );

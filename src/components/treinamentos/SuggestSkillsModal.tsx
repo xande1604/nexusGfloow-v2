@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, X, CheckCircle2, Award, Plus, ArrowRight } from 'lucide-react';
+import { Sparkles, Loader2, X, CheckCircle2, Award, Plus, ArrowRight, Route } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,7 +8,7 @@ import { Treinamento } from '@/hooks/useTreinamentos';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-interface SuggestedSkill {
+export interface SuggestedSkill {
   name: string;
   category: 'Technical' | 'Soft Skill' | 'Leadership' | 'Language';
   description: string;
@@ -20,7 +20,8 @@ interface SuggestSkillsModalProps {
   onClose: () => void;
   treinamento: Treinamento | null;
   existingSkills: string[];
-  onSkillsSelected: (skills: SuggestedSkill[]) => void;
+  onSkillsSelected: (skills: SuggestedSkill[], treinamento: Treinamento) => void;
+  onNavigateToRoadmap?: (employeeId: string, skills: SuggestedSkill[], treinamento: Treinamento) => void;
 }
 
 export const SuggestSkillsModal = ({
@@ -28,7 +29,8 @@ export const SuggestSkillsModal = ({
   onClose,
   treinamento,
   existingSkills,
-  onSkillsSelected
+  onSkillsSelected,
+  onNavigateToRoadmap
 }: SuggestSkillsModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
   const [suggestedSkills, setSuggestedSkills] = useState<SuggestedSkill[]>([]);
@@ -95,8 +97,16 @@ export const SuggestSkillsModal = ({
   };
 
   const handleConfirm = () => {
+    if (!treinamento) return;
     const selected = suggestedSkills.filter(s => selectedSkills.has(s.name));
-    onSkillsSelected(selected);
+    onSkillsSelected(selected, treinamento);
+    handleClose();
+  };
+
+  const handleNavigateToRoadmap = () => {
+    if (!treinamento?.employee_id || !onNavigateToRoadmap) return;
+    const selected = suggestedSkills.filter(s => selectedSkills.has(s.name));
+    onNavigateToRoadmap(treinamento.employee_id, selected, treinamento);
     handleClose();
   };
 
@@ -252,19 +262,34 @@ export const SuggestSkillsModal = ({
 
         {/* Footer */}
         {hasAnalyzed && suggestedSkills.length > 0 && (
-          <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-            <Button variant="outline" onClick={handleClose}>
-              Cancelar
-            </Button>
-            <Button
-              onClick={handleConfirm}
-              disabled={selectedSkills.size === 0}
-              className="gap-2"
-            >
-              <Plus className="w-4 h-4" />
-              Usar {selectedSkills.size} Habilidade{selectedSkills.size !== 1 ? 's' : ''}
-              <ArrowRight className="w-4 h-4" />
-            </Button>
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-4 border-t border-border">
+            <div className="text-sm text-muted-foreground">
+              {selectedSkills.size} habilidade{selectedSkills.size !== 1 ? 's' : ''} selecionada{selectedSkills.size !== 1 ? 's' : ''}
+            </div>
+            <div className="flex items-center gap-3">
+              <Button variant="outline" onClick={handleClose}>
+                Cancelar
+              </Button>
+              {treinamento?.employee_id && onNavigateToRoadmap && (
+                <Button
+                  onClick={handleNavigateToRoadmap}
+                  disabled={selectedSkills.size === 0}
+                  variant="secondary"
+                  className="gap-2"
+                >
+                  <Route className="w-4 h-4" />
+                  Atualizar Roadmap
+                </Button>
+              )}
+              <Button
+                onClick={handleConfirm}
+                disabled={selectedSkills.size === 0}
+                className="gap-2"
+              >
+                <Plus className="w-4 h-4" />
+                Usar Habilidades
+              </Button>
+            </div>
           </div>
         )}
       </DialogContent>
