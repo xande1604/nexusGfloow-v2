@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image, FileText, Map, Play } from 'lucide-react';
+import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image, FileText, Map, Play, BarChart3 } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { JobRole, Employee, CareerRoadmap, Skill } from '@/types';
 import { cn } from '@/lib/utils';
@@ -8,6 +8,7 @@ import { RoadmapProgressChart } from './RoadmapProgressChart';
 import { RoadmapInfographic } from './RoadmapInfographic';
 import { RoadmapJourneyMap } from './RoadmapJourneyMap';
 import { RoadmapUpdateHistory } from './RoadmapUpdateHistory';
+import { CareerProgressDashboard } from './CareerProgressDashboard';
 import { useToast } from '@/hooks/use-toast';
 import { generateRoadmapPDF } from '@/lib/generateRoadmapPDF';
 
@@ -31,7 +32,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
   const [targetRole, setTargetRole] = useState('');
   const [employeeName, setEmployeeName] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [activeTab, setActiveTab] = useState<'create' | 'history'>('create');
+  const [activeTab, setActiveTab] = useState<'create' | 'history' | 'dashboard'>('create');
   const [selectedRoadmap, setSelectedRoadmap] = useState<CareerRoadmap | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -493,7 +494,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Tabs */}
-      <div className="flex gap-2">
+      <div className="flex gap-2 flex-wrap">
         <button
           onClick={() => setActiveTab('create')}
           className={cn(
@@ -517,6 +518,18 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
         >
           <History className="w-4 h-4" />
           Histórico ({roadmaps.length})
+        </button>
+        <button
+          onClick={() => setActiveTab('dashboard')}
+          className={cn(
+            "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all",
+            activeTab === 'dashboard'
+              ? "bg-brand-600 text-primary-foreground shadow-soft"
+              : "bg-card text-muted-foreground hover:text-foreground"
+          )}
+        >
+          <BarChart3 className="w-4 h-4" />
+          Dashboard
         </button>
       </div>
 
@@ -693,6 +706,10 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
             </div>
           )}
         </div>
+      )}
+
+      {activeTab === 'dashboard' && (
+        <CareerProgressDashboard roadmaps={roadmaps} roles={roles} />
       )}
     </div>
   );
