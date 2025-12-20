@@ -1,13 +1,16 @@
 import { useState, useMemo } from 'react';
-import { Plus, Search, BookOpen, Calendar, Clock, Building2, Trash2, Edit2, Filter, GraduationCap, CheckCircle2, XCircle, Loader2 } from 'lucide-react';
+import { Plus, Search, BookOpen, Calendar, Clock, Building2, Trash2, Edit2, Filter, GraduationCap, CheckCircle2, XCircle, Loader2, BarChart3 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useTreinamentos, Treinamento } from '@/hooks/useTreinamentos';
 import { useEmployees } from '@/hooks/useEmployees';
+import { useCostCenters } from '@/hooks/useCostCenters';
 import { TreinamentoFormModal } from './TreinamentoFormModal';
+import { TreinamentosReportsView } from './TreinamentosReportsView';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import {
@@ -31,9 +34,11 @@ export const TreinamentosView = ({ isDemoMode = false }: TreinamentosViewProps) 
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingTreinamento, setEditingTreinamento] = useState<Treinamento | null>(null);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState('list');
 
   const { treinamentos, loading, saveTreinamento, updateTreinamento, deleteTreinamento } = useTreinamentos();
   const { employees } = useEmployees();
+  const { costCenters } = useCostCenters();
 
   const filteredTreinamentos = useMemo(() => {
     return treinamentos.filter(t => {
@@ -102,8 +107,22 @@ export const TreinamentosView = ({ isDemoMode = false }: TreinamentosViewProps) 
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Header Stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* Tabs Navigation */}
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full max-w-md grid-cols-2">
+          <TabsTrigger value="list" className="flex items-center gap-2">
+            <BookOpen className="w-4 h-4" />
+            Registros
+          </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            Relatórios
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="list" className="mt-6 space-y-6">
+          {/* Header Stats */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="bg-card border-border">
           <CardContent className="pt-6">
             <div className="flex items-center gap-4">
@@ -299,6 +318,18 @@ export const TreinamentosView = ({ isDemoMode = false }: TreinamentosViewProps) 
         editingTreinamento={editingTreinamento}
         employees={employees}
       />
+
+      {/* Delete Confirmation */}
+        </TabsContent>
+
+        <TabsContent value="reports" className="mt-6">
+          <TreinamentosReportsView 
+            treinamentos={treinamentos}
+            employees={employees}
+            costCenters={costCenters}
+          />
+        </TabsContent>
+      </Tabs>
 
       {/* Delete Confirmation */}
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
