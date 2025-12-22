@@ -115,6 +115,34 @@ export const useRoadmaps = () => {
     }
   };
 
+  const updateRoadmapEmployee = async (roadmapId: string, employeeId: string | null) => {
+    try {
+      const { error } = await supabase
+        .from('career_roadmaps')
+        .update({ employee_id: employeeId })
+        .eq('id', roadmapId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Roadmap atualizado',
+        description: employeeId 
+          ? 'Colaborador vinculado com sucesso.' 
+          : 'Colaborador desvinculado do roadmap.',
+      });
+
+      await fetchRoadmaps();
+      return true;
+    } catch (error: any) {
+      toast({
+        title: 'Erro ao atualizar roadmap',
+        description: error.message,
+        variant: 'destructive',
+      });
+      return false;
+    }
+  };
+
   const deleteRoadmap = async (id: string) => {
     try {
       const { error } = await supabase
@@ -143,5 +171,5 @@ export const useRoadmaps = () => {
     fetchRoadmaps();
   }, []);
 
-  return { roadmaps, loading, saveRoadmap, deleteRoadmap, updateRoadmapProgress, refetch: fetchRoadmaps };
+  return { roadmaps, loading, saveRoadmap, deleteRoadmap, updateRoadmapProgress, updateRoadmapEmployee, refetch: fetchRoadmaps };
 };

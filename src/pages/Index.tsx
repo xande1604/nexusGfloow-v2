@@ -80,7 +80,7 @@ const Index = () => {
   // Supabase hooks
   const { roles, loading: rolesLoading, saveRole, deleteRole } = useJobRoles();
   const { skills, loading: skillsLoading, saveSkill, deleteSkill } = useSkills();
-  const { roadmaps, loading: roadmapsLoading, saveRoadmap, updateRoadmapProgress } = useRoadmaps();
+  const { roadmaps, loading: roadmapsLoading, saveRoadmap, updateRoadmapProgress, updateRoadmapEmployee } = useRoadmaps();
   const { employees, loading: employeesLoading, updateEmployeeEmail, updateEmployeeGestor } = useEmployees();
 
   const handleGenerateRoadmap = async (sourceRole: string, targetRole: string, employeeName?: string) => {
@@ -241,6 +241,7 @@ const Index = () => {
             skills={displaySkills} 
             onGenerateRoadmap={handleGenerateRoadmap} 
             onUpdateProgress={handleUpdateRoadmapProgress}
+            onUpdateEmployee={isDemoMode ? undefined : updateRoadmapEmployee}
             prefilledUpdateData={prefilledRoadmapData}
             onClearPrefilledData={() => setPrefilledRoadmapData(undefined)}
           />

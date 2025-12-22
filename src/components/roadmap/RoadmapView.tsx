@@ -1,9 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from 'react';
-import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image, FileText, Map, Play, BarChart3 } from 'lucide-react';
+import { Route, Sparkles, ArrowRight, Clock, Target, ChevronRight, Plus, History, ArrowLeft, RefreshCw, Award, AlertTriangle, CheckCircle2, TrendingUp, Download, Image, FileText, Map, Play, BarChart3, Edit3, User } from 'lucide-react';
 import html2canvas from 'html2canvas';
 import { JobRole, Employee, CareerRoadmap, Skill } from '@/types';
 import { cn } from '@/lib/utils';
 import { RoadmapUpdateModal, RoadmapProgressData, PrefilledTrainingData } from './RoadmapUpdateModal';
+import { RoadmapEditModal } from './RoadmapEditModal';
 import { RoadmapProgressChart } from './RoadmapProgressChart';
 import { RoadmapInfographic } from './RoadmapInfographic';
 import { RoadmapJourneyMap } from './RoadmapJourneyMap';
@@ -19,6 +20,7 @@ interface RoadmapViewProps {
   skills: Skill[];
   onGenerateRoadmap: (sourceRole: string, targetRole: string, employeeName?: string) => void;
   onUpdateProgress: (roadmapId: string, employeeId: string | undefined, data: RoadmapProgressData, roadmap: CareerRoadmap) => Promise<void>;
+  onUpdateEmployee?: (roadmapId: string, employeeId: string | null) => Promise<boolean>;
   prefilledUpdateData?: {
     employeeId: string;
     skills: string[];
@@ -27,7 +29,7 @@ interface RoadmapViewProps {
   onClearPrefilledData?: () => void;
 }
 
-export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoadmap, onUpdateProgress, prefilledUpdateData, onClearPrefilledData }: RoadmapViewProps) => {
+export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoadmap, onUpdateProgress, onUpdateEmployee, prefilledUpdateData, onClearPrefilledData }: RoadmapViewProps) => {
   const [sourceRole, setSourceRole] = useState('');
   const [targetRole, setTargetRole] = useState('');
   const [employeeName, setEmployeeName] = useState('');
@@ -35,6 +37,8 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
   const [activeTab, setActiveTab] = useState<'create' | 'history' | 'dashboard'>('create');
   const [selectedRoadmap, setSelectedRoadmap] = useState<CareerRoadmap | null>(null);
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [editingRoadmap, setEditingRoadmap] = useState<CareerRoadmap | null>(null);
   const [isExporting, setIsExporting] = useState(false);
   const [showJourneyMap, setShowJourneyMap] = useState(false);
   const [journeyMapKey, setJourneyMapKey] = useState(0);
@@ -179,6 +183,29 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
 
   const handleBackToHistory = () => {
     setSelectedRoadmap(null);
+  };
+
+  const handleEditEmployee = (roadmap: CareerRoadmap, e: React.MouseEvent) => {
+    e.stopPropagation();
+    setEditingRoadmap(roadmap);
+    setIsEditModalOpen(true);
+  };
+
+  const handleUpdateEmployee = async (roadmapId: string, employeeId: string | null): Promise<boolean> => {
+    if (onUpdateEmployee) {
+      const success = await onUpdateEmployee(roadmapId, employeeId);
+      if (success) {
+        // Update selected roadmap if it's the one being edited
+        if (selectedRoadmap?.id === roadmapId) {
+          const updatedRoadmap = roadmaps.find(r => r.id === roadmapId);
+          if (updatedRoadmap) {
+            setSelectedRoadmap({ ...updatedRoadmap, employeeId: employeeId || undefined });
+          }
+        }
+      }
+      return success;
+    }
+    return false;
   };
 
   const handleUpdateProgress = async (data: RoadmapProgressData) => {
@@ -679,30 +706,56 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
             </div>
           ) : (
             <div className="space-y-3">
-              {roadmaps.map((roadmap, index) => (
-                <div
-                  key={roadmap.id}
-                  onClick={() => handleSelectRoadmap(roadmap)}
-                  className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors cursor-pointer animate-slide-up"
-                  style={{ animationDelay: `${index * 50}ms` }}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-lg bg-brand-100 flex items-center justify-center">
-                      <Route className="w-5 h-5 text-brand-600" />
+              {roadmaps.map((roadmap, index) => {
+                const linkedEmployee = employees.find(e => e.id === roadmap.employeeId);
+                return (
+                  <div
+                    key={roadmap.id}
+                    onClick={() => handleSelectRoadmap(roadmap)}
+                    className="flex items-center justify-between p-4 bg-secondary/50 rounded-lg hover:bg-secondary transition-colors cursor-pointer animate-slide-up"
+                    style={{ animationDelay: `${index * 50}ms` }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-brand-100 flex items-center justify-center">
+                        <Route className="w-5 h-5 text-brand-600" />
+                      </div>
+                      <div>
+                        <p className="font-medium text-foreground">
+                          {roadmap.sourceRoleTitle} → {roadmap.targetRoleTitle}
+                        </p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          {linkedEmployee ? (
+                            <span className="flex items-center gap-1 text-brand-600">
+                              <User className="w-3 h-3" />
+                              {linkedEmployee.name}
+                            </span>
+                          ) : roadmap.employeeName ? (
+                            <span>{roadmap.employeeName}</span>
+                          ) : (
+                            <span className="text-amber-600">Sem colaborador vinculado</span>
+                          )}
+                          <span>•</span>
+                          <span>{roadmap.steps?.length || 0} etapas</span>
+                          <span>•</span>
+                          <span>{new Date(roadmap.createdAt).toLocaleDateString('pt-BR')}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <p className="font-medium text-foreground">
-                        {roadmap.sourceRoleTitle} → {roadmap.targetRoleTitle}
-                      </p>
-                      <p className="text-xs text-muted-foreground">
-                        {roadmap.employeeName && `${roadmap.employeeName} • `}
-                        {roadmap.steps?.length || 0} etapas • {new Date(roadmap.createdAt).toLocaleDateString('pt-BR')}
-                      </p>
+                    <div className="flex items-center gap-2">
+                      {onUpdateEmployee && (
+                        <button
+                          onClick={(e) => handleEditEmployee(roadmap, e)}
+                          className="p-2 hover:bg-card rounded-lg transition-colors"
+                          title="Vincular colaborador"
+                        >
+                          <Edit3 className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                        </button>
+                      )}
+                      <ChevronRight className="w-5 h-5 text-muted-foreground" />
                     </div>
                   </div>
-                  <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -711,6 +764,18 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
       {activeTab === 'dashboard' && (
         <CareerProgressDashboard roadmaps={roadmaps} roles={roles} />
       )}
+
+      {/* Edit Employee Modal */}
+      <RoadmapEditModal
+        isOpen={isEditModalOpen}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingRoadmap(null);
+        }}
+        roadmap={editingRoadmap}
+        employees={employees}
+        onUpdateEmployee={handleUpdateEmployee}
+      />
     </div>
   );
 };
