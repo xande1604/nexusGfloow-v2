@@ -1,9 +1,12 @@
 import { useState } from 'react';
-import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck } from 'lucide-react';
+import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck, Eye } from 'lucide-react';
 import { Employee, JobRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { EmployeeDetailsModal } from './EmployeeDetailsModal';
 
 interface EmployeesViewProps {
   employees: Employee[];
@@ -18,6 +21,8 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
   const [editingEmail, setEditingEmail] = useState('');
   const [editingGestorId, setEditingGestorId] = useState<string | null>(null);
   const [selectedGestor, setSelectedGestor] = useState<string>('');
+  const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
+  const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const { toast } = useToast();
 
   const filteredEmployees = employees.filter(emp =>
@@ -94,6 +99,16 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
         variant: 'destructive',
       });
     }
+  };
+
+  const handleViewDetails = (employee: Employee) => {
+    setSelectedEmployee(employee);
+    setIsDetailsModalOpen(true);
+  };
+
+  const handleCloseDetailsModal = () => {
+    setIsDetailsModalOpen(false);
+    setSelectedEmployee(null);
   };
 
   const formatDate = (dateStr: string) => {
@@ -281,34 +296,57 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
                     )}
                   </td>
                   <td className="px-3 md:px-4 py-3">
-                    <div className="flex items-center justify-center gap-1">
-                      {editingId === employee.id ? (
-                        <>
-                          <button
-                            onClick={() => handleEditSave(employee.id)}
-                            className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors"
-                            title="Salvar"
-                          >
-                            <Check className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={handleEditCancel}
-                            className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
-                            title="Cancelar"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </>
-                      ) : (
-                        <button
-                          onClick={() => handleEditStart(employee)}
-                          className="p-1.5 rounded-lg text-muted-foreground hover:text-brand-600 hover:bg-brand-100 transition-colors"
-                          title="Editar email"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                        </button>
-                      )}
-                    </div>
+                    <TooltipProvider>
+                      <div className="flex items-center justify-center gap-1">
+                        {editingId === employee.id ? (
+                          <>
+                            <button
+                              onClick={() => handleEditSave(employee.id)}
+                              className="p-1.5 rounded-lg text-emerald-600 hover:bg-emerald-100 transition-colors"
+                              title="Salvar"
+                            >
+                              <Check className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={handleEditCancel}
+                              className="p-1.5 rounded-lg text-destructive hover:bg-destructive/10 transition-colors"
+                              title="Cancelar"
+                            >
+                              <X className="w-4 h-4" />
+                            </button>
+                          </>
+                        ) : (
+                          <>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => handleViewDetails(employee)}
+                                  className="p-1.5 rounded-lg text-muted-foreground hover:text-primary hover:bg-primary/10 transition-colors"
+                                >
+                                  <Eye className="w-4 h-4" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Ver perfil e habilidades</p>
+                              </TooltipContent>
+                            </Tooltip>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <button
+                                  onClick={() => handleEditStart(employee)}
+                                  className="p-1.5 rounded-lg text-muted-foreground hover:text-brand-600 hover:bg-brand-100 transition-colors"
+                                >
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>Editar email</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </>
+                        )}
+                      </div>
+                    </TooltipProvider>
                   </td>
                 </tr>
               ))}
@@ -323,6 +361,15 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
           </table>
         </div>
       </div>
+
+      {/* Employee Details Modal */}
+      <EmployeeDetailsModal
+        isOpen={isDetailsModalOpen}
+        onClose={handleCloseDetailsModal}
+        employee={selectedEmployee}
+        roles={roles}
+        employees={employees}
+      />
     </div>
   );
 };
