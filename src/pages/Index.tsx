@@ -105,10 +105,20 @@ const Index = () => {
         throw new Error(data.error);
       }
 
+      // Find the employee ID from the name
+      let employeeId: string | undefined = undefined;
+      if (employeeName && employees.length > 0) {
+        const matchedEmployee = employees.find(emp => 
+          emp.name?.toLowerCase().trim() === employeeName.toLowerCase().trim()
+        );
+        employeeId = matchedEmployee?.id;
+      }
+
       await saveRoadmap({
         sourceRoleTitle: sourceRole,
         targetRoleTitle: targetRole,
         employeeName,
+        employeeId,
         steps: data.steps,
       });
 
