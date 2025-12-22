@@ -519,6 +519,60 @@ export type Database = {
           },
         ]
       }
+      employee_skills: {
+        Row: {
+          acquired_at: string
+          created_at: string
+          employee_id: string
+          id: string
+          owner_admin_id: string | null
+          skill_category: string | null
+          skill_name: string
+          source_id: string | null
+          source_name: string | null
+          source_type: string | null
+        }
+        Insert: {
+          acquired_at?: string
+          created_at?: string
+          employee_id: string
+          id?: string
+          owner_admin_id?: string | null
+          skill_category?: string | null
+          skill_name: string
+          source_id?: string | null
+          source_name?: string | null
+          source_type?: string | null
+        }
+        Update: {
+          acquired_at?: string
+          created_at?: string
+          employee_id?: string
+          id?: string
+          owner_admin_id?: string | null
+          skill_category?: string | null
+          skill_name?: string
+          source_id?: string | null
+          source_name?: string | null
+          source_type?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "employee_skills_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employee_skills_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       employees: {
         Row: {
           causademissao: string | null

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Sparkles, Loader2, X, CheckCircle2, Award, Plus, ArrowRight, Route } from 'lucide-react';
+import { Sparkles, Loader2, X, CheckCircle2, Award, Plus, ArrowRight, Route, Save } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,7 @@ export const SuggestSkillsModal = ({
   onNavigateToRoadmap
 }: SuggestSkillsModalProps) => {
   const [isLoading, setIsLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
   const [suggestedSkills, setSuggestedSkills] = useState<SuggestedSkill[]>([]);
   const [summary, setSummary] = useState<string>('');
   const [selectedSkills, setSelectedSkills] = useState<Set<string>>(new Set());
@@ -94,6 +95,69 @@ export const SuggestSkillsModal = ({
       }
       return next;
     });
+  };
+
+  const handleSaveSkillsAndUpdateRoadmap = async () => {
+    if (!treinamento || !treinamento.employee_id) {
+      toast({
+        title: 'Erro',
+        description: 'Este treinamento não está vinculado a um colaborador',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    const selected = suggestedSkills.filter(s => selectedSkills.has(s.name));
+    if (selected.length === 0) {
+      toast({
+        title: 'Nenhuma habilidade selecionada',
+        description: 'Selecione pelo menos uma habilidade para salvar',
+        variant: 'destructive'
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('save-training-skills', {
+        body: {
+          employeeId: treinamento.employee_id,
+          skills: selected,
+          training: {
+            id: treinamento.id,
+            name: treinamento.nome_treinamento,
+            date: treinamento.data_conclusao,
+            institution: treinamento.instituicao
+          },
+          updateRoadmap: true
+        }
+      });
+
+      if (error) throw error;
+
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      toast({
+        title: 'Habilidades salvas!',
+        description: data.message || `${selected.length} habilidade(s) adicionada(s) ao perfil do colaborador`,
+      });
+
+      // Also notify parent component
+      onSkillsSelected(selected, treinamento);
+      handleClose();
+
+    } catch (error: any) {
+      console.error('Error saving skills:', error);
+      toast({
+        title: 'Erro ao salvar habilidades',
+        description: error.message || 'Tente novamente mais tarde',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsSaving(false);
+    }
   };
 
   const handleConfirm = () => {
@@ -266,29 +330,39 @@ export const SuggestSkillsModal = ({
             <div className="text-sm text-muted-foreground">
               {selectedSkills.size} habilidade{selectedSkills.size !== 1 ? 's' : ''} selecionada{selectedSkills.size !== 1 ? 's' : ''}
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" onClick={handleClose}>
+            <div className="flex items-center gap-3 flex-wrap">
+              <Button variant="outline" onClick={handleClose} disabled={isSaving}>
                 Cancelar
               </Button>
-              {treinamento?.employee_id && onNavigateToRoadmap && (
+              {treinamento?.employee_id && (
                 <Button
-                  onClick={handleNavigateToRoadmap}
-                  disabled={selectedSkills.size === 0}
-                  variant="secondary"
+                  onClick={handleSaveSkillsAndUpdateRoadmap}
+                  disabled={selectedSkills.size === 0 || isSaving}
                   className="gap-2"
                 >
-                  <Route className="w-4 h-4" />
-                  Atualizar Roadmap
+                  {isSaving ? (
+                    <>
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    <>
+                      <Save className="w-4 h-4" />
+                      Salvar e Atualizar Roadmap
+                    </>
+                  )}
                 </Button>
               )}
-              <Button
-                onClick={handleConfirm}
-                disabled={selectedSkills.size === 0}
-                className="gap-2"
-              >
-                <Plus className="w-4 h-4" />
-                Usar Habilidades
-              </Button>
+              {!treinamento?.employee_id && (
+                <Button
+                  onClick={handleConfirm}
+                  disabled={selectedSkills.size === 0}
+                  className="gap-2"
+                >
+                  <Plus className="w-4 h-4" />
+                  Usar Habilidades
+                </Button>
+              )}
             </div>
           </div>
         )}
