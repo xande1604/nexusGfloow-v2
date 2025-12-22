@@ -415,7 +415,9 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
             )}
 
             {/* Progress Evolution Chart */}
-            <RoadmapProgressChart progress={progress} />
+            <div className="lg:col-span-2">
+              <RoadmapProgressChart progress={progress} />
+            </div>
 
             {/* Update History */}
             <div className="lg:col-span-2">
