@@ -14,6 +14,7 @@ import { useSkills } from '@/hooks/useSkills';
 import { TreinamentoFormModal } from './TreinamentoFormModal';
 import { TreinamentosReportsView } from './TreinamentosReportsView';
 import { SuggestSkillsModal } from './SuggestSkillsModal';
+import { TreinamentoDetailsModal } from './TreinamentoDetailsModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { useToast } from '@/hooks/use-toast';
@@ -54,6 +55,8 @@ export const TreinamentosView = ({ isDemoMode = false, onNavigateToRoadmap }: Tr
   const [activeTab, setActiveTab] = useState('list');
   const [suggestSkillsOpen, setSuggestSkillsOpen] = useState(false);
   const [selectedTreinamentoForSkills, setSelectedTreinamentoForSkills] = useState<Treinamento | null>(null);
+  const [detailsModalOpen, setDetailsModalOpen] = useState(false);
+  const [selectedTreinamentoForDetails, setSelectedTreinamentoForDetails] = useState<Treinamento | null>(null);
 
   const { treinamentos, loading, saveTreinamento, updateTreinamento, deleteTreinamento } = useTreinamentos();
   const { employees } = useEmployees();
@@ -109,9 +112,15 @@ export const TreinamentosView = ({ isDemoMode = false, onNavigateToRoadmap }: Tr
     }
   };
 
-  const handleOpenSuggestSkills = (treinamento: Treinamento) => {
+  const handleOpenSuggestSkills = (treinamento: Treinamento, e?: React.MouseEvent) => {
+    e?.stopPropagation();
     setSelectedTreinamentoForSkills(treinamento);
     setSuggestSkillsOpen(true);
+  };
+
+  const handleViewDetails = (treinamento: Treinamento) => {
+    setSelectedTreinamentoForDetails(treinamento);
+    setDetailsModalOpen(true);
   };
 
   const handleSkillsSelected = (selectedSkills: SuggestedSkill[], treinamento: Treinamento) => {
@@ -295,7 +304,8 @@ export const TreinamentosView = ({ isDemoMode = false, onNavigateToRoadmap }: Tr
               {filteredTreinamentos.map((treinamento) => (
                 <div 
                   key={treinamento.id}
-                  className="p-4 rounded-lg border border-border bg-background hover:bg-secondary/50 transition-colors"
+                  onClick={() => handleViewDetails(treinamento)}
+                  className="p-4 rounded-lg border border-border bg-background hover:bg-secondary/50 hover:border-primary/30 transition-colors cursor-pointer"
                 >
                   <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
                     <div className="flex-1 space-y-2">
@@ -340,7 +350,7 @@ export const TreinamentosView = ({ isDemoMode = false, onNavigateToRoadmap }: Tr
                               <Button 
                                 variant="ghost" 
                                 size="sm"
-                                onClick={() => handleOpenSuggestSkills(treinamento)}
+                                onClick={(e) => handleOpenSuggestSkills(treinamento, e)}
                                 disabled={isDemoMode}
                                 className="text-primary hover:text-primary hover:bg-primary/10"
                               >
@@ -356,7 +366,7 @@ export const TreinamentosView = ({ isDemoMode = false, onNavigateToRoadmap }: Tr
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => handleEdit(treinamento)}
+                        onClick={(e) => { e.stopPropagation(); handleEdit(treinamento); }}
                         disabled={isDemoMode}
                       >
                         <Edit2 className="w-4 h-4" />
@@ -364,7 +374,7 @@ export const TreinamentosView = ({ isDemoMode = false, onNavigateToRoadmap }: Tr
                       <Button 
                         variant="ghost" 
                         size="sm"
-                        onClick={() => setDeleteId(treinamento.id)}
+                        onClick={(e) => { e.stopPropagation(); setDeleteId(treinamento.id); }}
                         className="text-destructive hover:text-destructive hover:bg-destructive/10"
                         disabled={isDemoMode}
                       >
@@ -397,6 +407,14 @@ export const TreinamentosView = ({ isDemoMode = false, onNavigateToRoadmap }: Tr
         existingSkills={existingSkillNames}
         onSkillsSelected={handleSkillsSelected}
         onNavigateToRoadmap={onNavigateToRoadmap ? handleNavigateToRoadmapWithSkills : undefined}
+      />
+
+      {/* Details Modal */}
+      <TreinamentoDetailsModal
+        isOpen={detailsModalOpen}
+        onClose={() => setDetailsModalOpen(false)}
+        treinamento={selectedTreinamentoForDetails}
+        employeeName={getEmployeeName(selectedTreinamentoForDetails?.employee_id || null)}
       />
         </TabsContent>
 
