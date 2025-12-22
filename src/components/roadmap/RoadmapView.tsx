@@ -266,6 +266,16 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
               </div>
             </div>
             <div className="flex items-center gap-2">
+              {onUpdateEmployee && (
+                <button
+                  onClick={(e) => handleEditEmployee(selectedRoadmap, e)}
+                  className="flex items-center gap-2 px-3 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
+                  title="Vincular colaborador"
+                >
+                  <User className="w-4 h-4" />
+                  {selectedRoadmap.employeeId ? 'Alterar' : 'Vincular'}
+                </button>
+              )}
               <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-lg">
                 <Clock className="w-4 h-4" />
                 {calculateTotalDuration(selectedRoadmap)}
