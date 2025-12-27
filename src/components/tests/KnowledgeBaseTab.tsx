@@ -200,14 +200,14 @@ export const KnowledgeBaseTab = ({ isDemoMode = false }: KnowledgeBaseTabProps) 
                 <div>
                   <Label htmlFor="cargo">Cargo Relacionado</Label>
                   <Select
-                    value={formData.cargoId}
-                    onValueChange={value => setFormData(prev => ({ ...prev, cargoId: value }))}
+                    value={formData.cargoId || "none"}
+                    onValueChange={value => setFormData(prev => ({ ...prev, cargoId: value === "none" ? "" : value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um cargo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {roles.map(role => (
                         <SelectItem key={role.id} value={role.id}>
                           {role.title}
@@ -220,14 +220,14 @@ export const KnowledgeBaseTab = ({ isDemoMode = false }: KnowledgeBaseTabProps) 
                 <div>
                   <Label htmlFor="costCenter">Centro de Custo</Label>
                   <Select
-                    value={formData.costCenterId}
-                    onValueChange={value => setFormData(prev => ({ ...prev, costCenterId: value }))}
+                    value={formData.costCenterId || "none"}
+                    onValueChange={value => setFormData(prev => ({ ...prev, costCenterId: value === "none" ? "" : value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um centro" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {costCenters.map(cc => (
                         <SelectItem key={cc.id} value={cc.id}>
                           {cc.nomecentrodecustos}
