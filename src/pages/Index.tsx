@@ -259,9 +259,6 @@ const Index = () => {
       case AppView.TESTS:
         return <TestsView isDemoMode={isDemoMode} />;
       case AppView.COST_CENTERS:
-          />
-        );
-      case AppView.COST_CENTERS:
         return <CostCentersView />;
       case AppView.TUTORIALS:
         return <TutorialsView />;
