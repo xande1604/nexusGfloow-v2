@@ -28,6 +28,7 @@ const CostCentersView = lazy(() => import('@/components/cost-centers/CostCenters
 const EmployeesView = lazy(() => import('@/components/employees/EmployeesView').then(m => ({ default: m.EmployeesView })));
 const TutorialsView = lazy(() => import('@/components/tutorials/TutorialsView').then(m => ({ default: m.TutorialsView })));
 const TreinamentosView = lazy(() => import('@/components/treinamentos/TreinamentosView').then(m => ({ default: m.TreinamentosView })));
+const TestsView = lazy(() => import('@/components/tests/TestsView').then(m => ({ default: m.TestsView })));
 const DemoLeadForm = lazy(() => import('@/components/demo/DemoLeadForm').then(m => ({ default: m.DemoLeadForm })));
 
 const ViewLoader = () => (
@@ -253,6 +254,11 @@ const Index = () => {
           <TreinamentosView 
             isDemoMode={isDemoMode} 
             onNavigateToRoadmap={handleNavigateToRoadmapFromTraining}
+          />
+        );
+      case AppView.TESTS:
+        return <TestsView isDemoMode={isDemoMode} />;
+      case AppView.COST_CENTERS:
           />
         );
       case AppView.COST_CENTERS:
