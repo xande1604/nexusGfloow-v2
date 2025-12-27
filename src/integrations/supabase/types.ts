@@ -272,6 +272,68 @@ export type Database = {
         }
         Relationships: []
       }
+      certifications: {
+        Row: {
+          attempt_id: string
+          certificate_code: string
+          employee_id: string
+          id: string
+          issued_at: string
+          owner_admin_id: string | null
+          test_id: string
+          valid_until: string | null
+        }
+        Insert: {
+          attempt_id: string
+          certificate_code: string
+          employee_id: string
+          id?: string
+          issued_at?: string
+          owner_admin_id?: string | null
+          test_id: string
+          valid_until?: string | null
+        }
+        Update: {
+          attempt_id?: string
+          certificate_code?: string
+          employee_id?: string
+          id?: string
+          issued_at?: string
+          owner_admin_id?: string | null
+          test_id?: string
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "certifications_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "test_attempts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certifications_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certifications_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "certifications_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       company_settings: {
         Row: {
           id: string
@@ -1073,6 +1135,66 @@ export type Database = {
         }
         Relationships: []
       }
+      knowledge_base: {
+        Row: {
+          cargo_id: string | null
+          content: string | null
+          cost_center_id: string | null
+          created_at: string
+          description: string | null
+          file_type: string | null
+          file_url: string | null
+          id: string
+          owner_admin_id: string | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cargo_id?: string | null
+          content?: string | null
+          cost_center_id?: string | null
+          created_at?: string
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          owner_admin_id?: string | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cargo_id?: string | null
+          content?: string | null
+          cost_center_id?: string | null
+          created_at?: string
+          description?: string | null
+          file_type?: string | null
+          file_url?: string | null
+          id?: string
+          owner_admin_id?: string | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "knowledge_base_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "cargos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "knowledge_base_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "centrodecustos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       locais: {
         Row: {
           codlocal: string
@@ -1306,6 +1428,284 @@ export type Database = {
           owner_admin_id?: string | null
         }
         Relationships: []
+      }
+      test_attempts: {
+        Row: {
+          auto_score: number | null
+          completed_at: string | null
+          employee_id: string
+          feedback: string | null
+          final_score: number | null
+          id: string
+          manual_score: number | null
+          owner_admin_id: string | null
+          responses: Json
+          reviewed_at: string | null
+          reviewed_by: string | null
+          started_at: string
+          status: string
+          test_id: string
+        }
+        Insert: {
+          auto_score?: number | null
+          completed_at?: string | null
+          employee_id: string
+          feedback?: string | null
+          final_score?: number | null
+          id?: string
+          manual_score?: number | null
+          owner_admin_id?: string | null
+          responses?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          started_at?: string
+          status?: string
+          test_id: string
+        }
+        Update: {
+          auto_score?: number | null
+          completed_at?: string | null
+          employee_id?: string
+          feedback?: string | null
+          final_score?: number | null
+          id?: string
+          manual_score?: number | null
+          owner_admin_id?: string | null
+          responses?: Json
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          started_at?: string
+          status?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_attempts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_attempts_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_attempts_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_enrollments: {
+        Row: {
+          employee_id: string
+          enrolled_at: string
+          id: string
+          test_id: string
+        }
+        Insert: {
+          employee_id: string
+          enrolled_at?: string
+          id?: string
+          test_id: string
+        }
+        Update: {
+          employee_id?: string
+          enrolled_at?: string
+          id?: string
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_enrollments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_enrollments_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_enrollments_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_participants: {
+        Row: {
+          employee_id: string
+          id: string
+          invited_at: string
+          invited_by: string | null
+          test_id: string
+        }
+        Insert: {
+          employee_id: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          test_id: string
+        }
+        Update: {
+          employee_id?: string
+          id?: string
+          invited_at?: string
+          invited_by?: string | null
+          test_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_participants_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_participants_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "test_participants_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      test_questions: {
+        Row: {
+          category: string | null
+          correct_answer: string | null
+          created_at: string
+          id: string
+          options: Json | null
+          owner_admin_id: string | null
+          points: number
+          question_text: string
+          question_type: string
+          test_id: string | null
+        }
+        Insert: {
+          category?: string | null
+          correct_answer?: string | null
+          created_at?: string
+          id?: string
+          options?: Json | null
+          owner_admin_id?: string | null
+          points?: number
+          question_text: string
+          question_type: string
+          test_id?: string | null
+        }
+        Update: {
+          category?: string | null
+          correct_answer?: string | null
+          created_at?: string
+          id?: string
+          options?: Json | null
+          owner_admin_id?: string | null
+          points?: number
+          question_text?: string
+          question_type?: string
+          test_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "test_questions_test_id_fkey"
+            columns: ["test_id"]
+            isOneToOne: false
+            referencedRelation: "tests"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tests: {
+        Row: {
+          cargo_id: string | null
+          cost_center_id: string | null
+          created_at: string
+          description: string | null
+          id: string
+          is_active: boolean
+          owner_admin_id: string | null
+          participation_mode: string
+          passing_score: number
+          questions: Json
+          time_limit_minutes: number | null
+          title: string
+          updated_at: string
+          valid_from: string | null
+          valid_until: string | null
+        }
+        Insert: {
+          cargo_id?: string | null
+          cost_center_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          owner_admin_id?: string | null
+          participation_mode?: string
+          passing_score?: number
+          questions?: Json
+          time_limit_minutes?: number | null
+          title: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Update: {
+          cargo_id?: string | null
+          cost_center_id?: string | null
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_active?: boolean
+          owner_admin_id?: string | null
+          participation_mode?: string
+          passing_score?: number
+          questions?: Json
+          time_limit_minutes?: number | null
+          title?: string
+          updated_at?: string
+          valid_from?: string | null
+          valid_until?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tests_cargo_id_fkey"
+            columns: ["cargo_id"]
+            isOneToOne: false
+            referencedRelation: "cargos"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "tests_cost_center_id_fkey"
+            columns: ["cost_center_id"]
+            isOneToOne: false
+            referencedRelation: "centrodecustos"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       treinamentos: {
         Row: {
