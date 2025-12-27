@@ -12,8 +12,10 @@ import { useTests } from '@/hooks/useTests';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useCostCenters } from '@/hooks/useCostCenters';
 import { supabase } from '@/integrations/supabase/client';
-import { Plus, Sparkles, Search, Trash2, Users, Clock, Loader2, FileCheck, Eye, Settings } from 'lucide-react';
+import { Plus, Sparkles, Search, Trash2, Users, Clock, Loader2, FileCheck, Eye, Settings, Play } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { TestSimulationModal } from './TestSimulationModal';
+import { Test } from '@/types/tests';
 
 interface TestsTabProps {
   isDemoMode?: boolean;
@@ -28,6 +30,7 @@ export const TestsTab = ({ isDemoMode = false }: TestsTabProps) => {
   const [isOpen, setIsOpen] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [simulationTest, setSimulationTest] = useState<Test | null>(null);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -432,6 +435,15 @@ export const TestsTab = ({ isDemoMode = false }: TestsTabProps) => {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8"
+                      onClick={() => setSimulationTest(test)}
+                      title="Simular teste"
+                    >
+                      <Play className="w-4 h-4 text-primary" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
                       onClick={() => handleDelete(test.id)}
                     >
                       <Trash2 className="w-4 h-4 text-destructive" />
@@ -473,6 +485,13 @@ export const TestsTab = ({ isDemoMode = false }: TestsTabProps) => {
           ))}
         </div>
       )}
+
+      {/* Simulation Modal */}
+      <TestSimulationModal
+        isOpen={!!simulationTest}
+        onClose={() => setSimulationTest(null)}
+        test={simulationTest}
+      />
     </div>
   );
 };
