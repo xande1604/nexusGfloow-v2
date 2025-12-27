@@ -194,14 +194,14 @@ export const TestsTab = ({ isDemoMode = false }: TestsTabProps) => {
                 <div>
                   <Label htmlFor="cargo">Cargo Base</Label>
                   <Select
-                    value={formData.cargoId}
-                    onValueChange={value => setFormData(prev => ({ ...prev, cargoId: value }))}
+                    value={formData.cargoId || "none"}
+                    onValueChange={value => setFormData(prev => ({ ...prev, cargoId: value === "none" ? "" : value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione um cargo" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Geral (sem cargo específico)</SelectItem>
+                      <SelectItem value="none">Geral (sem cargo específico)</SelectItem>
                       {roles.map(role => (
                         <SelectItem key={role.id} value={role.id}>
                           {role.title}
@@ -214,14 +214,14 @@ export const TestsTab = ({ isDemoMode = false }: TestsTabProps) => {
                 <div>
                   <Label htmlFor="costCenter">Centro de Custo</Label>
                   <Select
-                    value={formData.costCenterId}
-                    onValueChange={value => setFormData(prev => ({ ...prev, costCenterId: value }))}
+                    value={formData.costCenterId || "none"}
+                    onValueChange={value => setFormData(prev => ({ ...prev, costCenterId: value === "none" ? "" : value }))}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione (opcional)" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Nenhum</SelectItem>
+                      <SelectItem value="none">Nenhum</SelectItem>
                       {costCenters.map(cc => (
                         <SelectItem key={cc.id} value={cc.id}>
                           {cc.nomecentrodecustos}
