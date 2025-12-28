@@ -3,7 +3,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { KnowledgeBaseTab } from './KnowledgeBaseTab';
 import { TestsTab } from './TestsTab';
 import { CertificationsTab } from './CertificationsTab';
-import { BookOpen, FileCheck, Award } from 'lucide-react';
+import { TestReportsTab } from './TestReportsTab';
+import { BookOpen, FileCheck, Award, BarChart3 } from 'lucide-react';
 
 interface TestsViewProps {
   isDemoMode?: boolean;
@@ -22,7 +23,7 @@ export const TestsView = ({ isDemoMode = false }: TestsViewProps) => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 lg:w-auto lg:inline-grid">
+        <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-grid">
           <TabsTrigger value="knowledge" className="flex items-center gap-2">
             <BookOpen className="w-4 h-4" />
             <span className="hidden sm:inline">Base de Conhecimento</span>
@@ -38,6 +39,11 @@ export const TestsView = ({ isDemoMode = false }: TestsViewProps) => {
             <span className="hidden sm:inline">Certificações</span>
             <span className="sm:hidden">Cert.</span>
           </TabsTrigger>
+          <TabsTrigger value="reports" className="flex items-center gap-2">
+            <BarChart3 className="w-4 h-4" />
+            <span className="hidden sm:inline">Relatórios</span>
+            <span className="sm:hidden">Rel.</span>
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="knowledge" className="mt-6">
@@ -50,6 +56,10 @@ export const TestsView = ({ isDemoMode = false }: TestsViewProps) => {
 
         <TabsContent value="certifications" className="mt-6">
           <CertificationsTab isDemoMode={isDemoMode} />
+        </TabsContent>
+
+        <TabsContent value="reports" className="mt-6">
+          <TestReportsTab isDemoMode={isDemoMode} />
         </TabsContent>
       </Tabs>
     </div>
