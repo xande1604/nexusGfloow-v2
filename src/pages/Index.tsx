@@ -226,7 +226,7 @@ const Index = () => {
 
     switch (activeView) {
       case AppView.DASHBOARD:
-        return <DashboardView roles={displayRoles} skills={displaySkills} employees={displayEmployees} />;
+        return <DashboardView roles={displayRoles} skills={displaySkills} employees={displayEmployees} onNavigate={(view) => setActiveView(view as AppView)} />;
       case AppView.ROLES:
         return <RolesView roles={displayRoles} skills={displaySkills} onSaveRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveRole} onDeleteRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteRole} />;
       case AppView.SKILLS:
@@ -265,7 +265,7 @@ const Index = () => {
       case AppView.SETTINGS:
         return <SettingsView companyContext={companyContext} onSaveContext={setCompanyContext} />;
       default:
-        return <DashboardView roles={displayRoles} skills={displaySkills} employees={displayEmployees} />;
+        return <DashboardView roles={displayRoles} skills={displaySkills} employees={displayEmployees} onNavigate={(view) => setActiveView(view as AppView)} />;
     }
   };
 
