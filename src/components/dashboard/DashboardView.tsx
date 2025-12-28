@@ -1,4 +1,4 @@
-import { Briefcase, Users, Sparkles, Route, TrendingUp, Award } from 'lucide-react';
+import { Briefcase, Users, Sparkles, Route, TrendingUp, Award, ClipboardCheck } from 'lucide-react';
 import { StatsCard } from './StatsCard';
 import { JobRole, Skill, Employee } from '@/types';
 
@@ -6,9 +6,10 @@ interface DashboardViewProps {
   roles: JobRole[];
   skills: Skill[];
   employees: Employee[];
+  onNavigate?: (view: string) => void;
 }
 
-export const DashboardView = ({ roles, skills, employees }: DashboardViewProps) => {
+export const DashboardView = ({ roles, skills, employees, onNavigate }: DashboardViewProps) => {
   const avgSalary = roles.length > 0 
     ? Math.round(roles.reduce((acc, r) => acc + (r.salaryRange.min + r.salaryRange.max) / 2, 0) / roles.length)
     : 0;
@@ -137,6 +138,30 @@ export const DashboardView = ({ roles, skills, employees }: DashboardViewProps) 
               <p className="text-base md:text-lg font-bold text-emerald-700">0</p>
               <p className="text-[10px] md:text-xs text-muted-foreground">Roadmaps criados</p>
             </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Quick Access Card - Tests */}
+      <div 
+        onClick={() => onNavigate?.('tests')}
+        className="bg-gradient-to-r from-violet-500 to-purple-600 rounded-xl p-4 md:p-6 shadow-medium cursor-pointer hover:shadow-lg transition-all hover:scale-[1.01] group"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3 md:gap-4">
+            <div className="w-12 h-12 md:w-14 md:h-14 rounded-xl bg-white/20 flex items-center justify-center backdrop-blur-sm group-hover:bg-white/30 transition-colors">
+              <ClipboardCheck className="w-6 h-6 md:w-7 md:h-7 text-white" />
+            </div>
+            <div>
+              <h3 className="text-lg md:text-xl font-bold text-white">Testes e Certificações</h3>
+              <p className="text-sm md:text-base text-white/80">Gerencie provas, simulações e certificados</p>
+            </div>
+          </div>
+          <div className="hidden sm:flex items-center gap-2 text-white/80 group-hover:text-white transition-colors">
+            <span className="text-sm font-medium">Acessar</span>
+            <svg className="w-5 h-5 group-hover:translate-x-1 transition-transform" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </div>
         </div>
       </div>
