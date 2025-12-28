@@ -1,6 +1,7 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
 import { useTests, useTestAttempts, useCertifications } from '@/hooks/useTests';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useCostCenters } from '@/hooks/useCostCenters';
@@ -9,9 +10,12 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend, LineChart, Line 
 } from 'recharts';
-import { TrendingUp, Users, Award, Target, CheckCircle, XCircle } from 'lucide-react';
+import { TrendingUp, Users, Award, Target, CheckCircle, XCircle, FileDown, Loader2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
+import { toast } from 'sonner';
 
 interface TestReportsTabProps {
   isDemoMode?: boolean;
@@ -26,6 +30,101 @@ export const TestReportsTab = ({ isDemoMode = false }: TestReportsTabProps) => {
   const { employees } = useEmployees();
   const { certifications } = useCertifications();
   const [selectedTestId, setSelectedTestId] = useState<string>('all');
+  const [isExporting, setIsExporting] = useState(false);
+  const reportRef = useRef<HTMLDivElement>(null);
+
+  const handleExportPDF = async () => {
+    if (!reportRef.current) return;
+    
+    setIsExporting(true);
+    toast.info('Gerando PDF, aguarde...');
+
+    try {
+      const pdf = new jsPDF('p', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
+      const pageHeight = pdf.internal.pageSize.getHeight();
+      const margin = 10;
+      
+      // Add header
+      pdf.setFontSize(20);
+      pdf.setTextColor(33, 33, 33);
+      pdf.text('Relatório de Testes e Certificações', margin, 20);
+      
+      pdf.setFontSize(10);
+      pdf.setTextColor(100, 100, 100);
+      pdf.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, margin, 28);
+      
+      if (selectedTestId !== 'all') {
+        const selectedTest = tests.find(t => t.id === selectedTestId);
+        if (selectedTest) {
+          pdf.text(`Filtro: ${selectedTest.title}`, margin, 34);
+        }
+      }
+
+      // Capture the report content
+      const canvas = await html2canvas(reportRef.current, {
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        backgroundColor: '#ffffff'
+      });
+
+      const imgData = canvas.toDataURL('image/png');
+      const imgWidth = pageWidth - (margin * 2);
+      const imgHeight = (canvas.height * imgWidth) / canvas.width;
+      
+      let yPosition = 40;
+      let remainingHeight = imgHeight;
+      let sourceY = 0;
+      
+      // Split image across pages if needed
+      while (remainingHeight > 0) {
+        const availableHeight = pageHeight - yPosition - margin;
+        const sliceHeight = Math.min(availableHeight, remainingHeight);
+        const sourceHeight = (sliceHeight / imgHeight) * canvas.height;
+        
+        // Create a temporary canvas for the slice
+        const tempCanvas = document.createElement('canvas');
+        tempCanvas.width = canvas.width;
+        tempCanvas.height = sourceHeight;
+        const tempCtx = tempCanvas.getContext('2d');
+        
+        if (tempCtx) {
+          tempCtx.drawImage(
+            canvas,
+            0, sourceY,
+            canvas.width, sourceHeight,
+            0, 0,
+            canvas.width, sourceHeight
+          );
+          
+          const sliceData = tempCanvas.toDataURL('image/png');
+          pdf.addImage(sliceData, 'PNG', margin, yPosition, imgWidth, sliceHeight);
+        }
+        
+        remainingHeight -= sliceHeight;
+        sourceY += sourceHeight;
+        
+        if (remainingHeight > 0) {
+          pdf.addPage();
+          yPosition = margin;
+        }
+      }
+
+      // Add footer to last page
+      pdf.setFontSize(8);
+      pdf.setTextColor(150, 150, 150);
+      pdf.text('Relatório gerado automaticamente pelo sistema', margin, pageHeight - 5);
+
+      pdf.save(`relatorio-testes-${format(new Date(), 'yyyy-MM-dd')}.pdf`);
+      toast.success('PDF exportado com sucesso!');
+    } catch (error) {
+      console.error('Erro ao exportar PDF:', error);
+      toast.error('Erro ao gerar o PDF. Tente novamente.');
+    } finally {
+      setIsExporting(false);
+    }
+  };
 
   // Fetch attempts for all tests or selected test
   const { attempts } = useTestAttempts(selectedTestId !== 'all' ? selectedTestId : tests[0]?.id);
@@ -197,8 +296,8 @@ export const TestReportsTab = ({ isDemoMode = false }: TestReportsTabProps) => {
 
   return (
     <div className="space-y-6">
-      {/* Filter */}
-      <div className="flex flex-wrap gap-4 items-center">
+      {/* Filter and Export */}
+      <div className="flex flex-wrap gap-4 items-center justify-between">
         <div className="w-full sm:w-64">
           <Select value={selectedTestId} onValueChange={setSelectedTestId}>
             <SelectTrigger>
@@ -212,7 +311,26 @@ export const TestReportsTab = ({ isDemoMode = false }: TestReportsTabProps) => {
             </SelectContent>
           </Select>
         </div>
+        <Button 
+          onClick={handleExportPDF} 
+          disabled={isExporting}
+          className="gap-2"
+        >
+          {isExporting ? (
+            <>
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Gerando PDF...
+            </>
+          ) : (
+            <>
+              <FileDown className="w-4 h-4" />
+              Exportar PDF
+            </>
+          )}
+        </Button>
       </div>
+
+      <div ref={reportRef}>
 
       {/* Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -496,6 +614,7 @@ export const TestReportsTab = ({ isDemoMode = false }: TestReportsTabProps) => {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 };
