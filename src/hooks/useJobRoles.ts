@@ -21,7 +21,8 @@ export const useJobRoles = () => {
         id: row.id,
         title: row.tituloreduzido,
         level: 'Pleno' as JobRole['level'],
-        department: row.cbo2002 ? `CBO: ${row.cbo2002}` : 'Geral',
+        department: 'Geral',
+        cbo: row.cbo2002 || undefined,
         description: [
           row.technical_knowledge,
           row.hard_skills,

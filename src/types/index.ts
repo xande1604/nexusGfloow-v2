@@ -12,6 +12,7 @@ export interface JobRole {
   salaryRange: { min: number; max: number };
   description: string;
   department: string;
+  cbo?: string;
   requiredSkillIds: string[];
   technicalKnowledge?: string;
   hardSkills?: string;

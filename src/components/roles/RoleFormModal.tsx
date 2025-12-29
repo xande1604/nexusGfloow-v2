@@ -23,6 +23,7 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
     title: '',
     level: 'Pleno',
     department: 'Tecnologia',
+    cbo: '',
     salaryRange: { min: 0, max: 0 },
     description: '',
     requiredSkillIds: [],
@@ -43,6 +44,7 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
         title: '',
         level: 'Pleno',
         department: 'Tecnologia',
+        cbo: '',
         salaryRange: { min: 0, max: 0 },
         description: '',
         requiredSkillIds: [],
@@ -120,6 +122,7 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
       title: form.title || '',
       level: form.level || 'Pleno',
       department: form.department || 'Tecnologia',
+      cbo: form.cbo,
       salaryRange: form.salaryRange || { min: 0, max: 0 },
       description: form.description || '',
       requiredSkillIds: form.requiredSkillIds || [],
@@ -178,7 +181,7 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
             </div>
           </div>
 
-          {/* Department & Salary Range */}
+          {/* Department & CBO */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">Departamento</label>
@@ -191,30 +194,42 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Faixa Salarial Estimada (R$)</label>
-              <div className="flex items-center gap-2">
-                <input
-                  type="number"
-                  value={form.salaryRange?.min || ''}
-                  onChange={(e) => setForm(prev => ({ 
-                    ...prev, 
-                    salaryRange: { ...prev.salaryRange!, min: Number(e.target.value) } 
-                  }))}
-                  className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                  placeholder="0"
-                />
-                <span className="text-muted-foreground">-</span>
-                <input
-                  type="number"
-                  value={form.salaryRange?.max || ''}
-                  onChange={(e) => setForm(prev => ({ 
-                    ...prev, 
-                    salaryRange: { ...prev.salaryRange!, max: Number(e.target.value) } 
-                  }))}
-                  className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
-                  placeholder="0"
-                />
-              </div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">CBO (Código Brasileiro de Ocupações)</label>
+              <input
+                type="text"
+                value={form.cbo || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, cbo: e.target.value }))}
+                className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                placeholder="Ex: 252210"
+              />
+            </div>
+          </div>
+
+          {/* Salary Range */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Faixa Salarial Estimada (R$)</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="number"
+                value={form.salaryRange?.min || ''}
+                onChange={(e) => setForm(prev => ({ 
+                  ...prev, 
+                  salaryRange: { ...prev.salaryRange!, min: Number(e.target.value) } 
+                }))}
+                className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                placeholder="0"
+              />
+              <span className="text-muted-foreground">-</span>
+              <input
+                type="number"
+                value={form.salaryRange?.max || ''}
+                onChange={(e) => setForm(prev => ({ 
+                  ...prev, 
+                  salaryRange: { ...prev.salaryRange!, max: Number(e.target.value) } 
+                }))}
+                className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                placeholder="0"
+              />
             </div>
           </div>
 
