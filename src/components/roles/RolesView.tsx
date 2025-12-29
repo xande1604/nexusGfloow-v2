@@ -1,23 +1,35 @@
-import { useState } from 'react';
-import { Plus, Search, Edit2, Trash2, Briefcase, DollarSign, Filter } from 'lucide-react';
-import { JobRole, Skill } from '@/types';
+import { useState, useMemo } from 'react';
+import { Plus, Search, Edit2, Trash2, Briefcase, DollarSign, Filter, Users } from 'lucide-react';
+import { JobRole, Skill, Employee } from '@/types';
 import { cn } from '@/lib/utils';
 import { RoleFormModal } from './RoleFormModal';
 
 interface RolesViewProps {
   roles: JobRole[];
   skills: Skill[];
+  employees?: Employee[];
   onSaveRole: (role: JobRole) => void;
   onDeleteRole: (id: string) => void;
 }
 
 const levels = ['Estagiário', 'Trainee', 'Júnior', 'Pleno', 'Sênior', 'Master', 'Especialista', 'Tech Lead', 'Coordenador', 'Gerente', 'Diretor', 'C-Level'];
 
-export const RolesView = ({ roles, skills, onSaveRole, onDeleteRole }: RolesViewProps) => {
+export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteRole }: RolesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<JobRole | null>(null);
+
+  // Calculate employee count per role
+  const employeeCountByRole = useMemo(() => {
+    const countMap = new Map<string, number>();
+    employees.forEach(emp => {
+      if (emp.roleId) {
+        countMap.set(emp.roleId, (countMap.get(emp.roleId) || 0) + 1);
+      }
+    });
+    return countMap;
+  }, [employees]);
 
   const departments = [...new Set(roles.map(r => r.department))];
   
@@ -152,9 +164,17 @@ export const RolesView = ({ roles, skills, onSaveRole, onDeleteRole }: RolesView
                   {role.salaryRange.min.toLocaleString('pt-BR')} - {role.salaryRange.max.toLocaleString('pt-BR')}
                 </span>
               </div>
-              <span className="text-xs text-muted-foreground">
-                {role.requiredSkillIds.length} skills
-              </span>
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Users className="w-4 h-4" />
+                  <span className="text-xs font-medium">
+                    {employeeCountByRole.get(role.id) || 0}
+                  </span>
+                </div>
+                <span className="text-xs text-muted-foreground">
+                  {role.requiredSkillIds.length} skills
+                </span>
+              </div>
             </div>
           </div>
         ))}
