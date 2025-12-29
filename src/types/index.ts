@@ -7,6 +7,7 @@ export interface ProgressHistoryEntry {
 
 export interface JobRole {
   id: string;
+  codigocargo?: string;
   title: string;
   level: 'Estagiário' | 'Trainee' | 'Júnior' | 'Pleno' | 'Sênior' | 'Master' | 'Especialista' | 'Tech Lead' | 'Coordenador' | 'Gerente' | 'Diretor' | 'C-Level';
   salaryRange: { min: number; max: number };
