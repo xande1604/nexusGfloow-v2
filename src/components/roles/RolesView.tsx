@@ -20,7 +20,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<JobRole | null>(null);
 
-  // Calculate employee count per role
+  // Calculate employee count per role using codigocargo
   const employeeCountByRole = useMemo(() => {
     const countMap = new Map<string, number>();
     employees.forEach(emp => {
@@ -30,6 +30,11 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
     });
     return countMap;
   }, [employees]);
+
+  // Helper to get employee count for a role
+  const getEmployeeCount = (role: JobRole) => {
+    return employeeCountByRole.get(role.codigocargo || '') || 0;
+  };
 
   const departments = [...new Set(roles.map(r => r.department))];
   
@@ -168,7 +173,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
                 <div className="flex items-center gap-1 text-muted-foreground">
                   <Users className="w-4 h-4" />
                   <span className="text-xs font-medium">
-                    {employeeCountByRole.get(role.id) || 0}
+                    {getEmployeeCount(role)}
                   </span>
                 </div>
                 <span className="text-xs text-muted-foreground">

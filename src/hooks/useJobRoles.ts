@@ -19,6 +19,7 @@ export const useJobRoles = () => {
 
       const mappedRoles: JobRole[] = (data || []).map(row => ({
         id: row.id,
+        codigocargo: row.codigocargo,
         title: row.tituloreduzido,
         level: 'Pleno' as JobRole['level'],
         department: 'Geral',
