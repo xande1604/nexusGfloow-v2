@@ -10,19 +10,21 @@ export const useEmployees = () => {
     try {
       const { data, error } = await supabase
         .from('employees')
-        .select('id, nome, codigocargo, matricula, dataadmissao, email, gestor_id')
+        .select('id, nome, codigocargo, matricula, dataadmissao, email, gestor_id, codcentrodecustos, codempresa')
         .not('nome', 'is', null)
         .order('nome');
 
       if (error) throw error;
 
-      const mappedEmployees: (Employee & { gestorId?: string })[] = (data || []).map(emp => ({
+      const mappedEmployees: (Employee & { gestorId?: string; codcentrodecustos?: string; codempresa?: string })[] = (data || []).map(emp => ({
         id: emp.id,
         name: emp.nome || '',
         roleId: emp.codigocargo || '',
         email: emp.email || '',
         admissionDate: emp.dataadmissao || '',
         gestorId: emp.gestor_id || undefined,
+        codcentrodecustos: emp.codcentrodecustos || undefined,
+        codempresa: emp.codempresa || undefined,
       }));
 
       setEmployees(mappedEmployees);
