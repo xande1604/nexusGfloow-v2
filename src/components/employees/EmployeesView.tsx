@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck, Eye, BarChart3 } from 'lucide-react';
+import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck, Eye, BarChart3, Building2, Layers } from 'lucide-react';
 import { Employee, JobRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -10,6 +10,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmployeeDetailsModal } from './EmployeeDetailsModal';
 import { SkillGapReport } from './SkillGapReport';
 import { useEmployeeSkills } from '@/hooks/useEmployeeSkills';
+import { useCostCenters } from '@/hooks/useCostCenters';
+import { useEmpresas } from '@/hooks/useEmpresas';
+
 interface EmployeesViewProps {
   employees: Employee[];
   roles: JobRole[];
@@ -28,6 +31,8 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
   const [activeTab, setActiveTab] = useState('list');
   const { toast } = useToast();
   const { skills: allEmployeeSkills } = useEmployeeSkills();
+  const { costCenters } = useCostCenters();
+  const { empresas } = useEmpresas();
 
   const filteredEmployees = employees.filter(emp =>
     emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -37,6 +42,18 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
   const getRoleName = (roleId: string) => {
     const role = roles.find(r => r.id === roleId);
     return role?.title || roleId || 'Não definido';
+  };
+
+  const getCostCenterName = (codcentrodecustos?: string) => {
+    if (!codcentrodecustos) return null;
+    const cc = costCenters.find(c => c.codcentrodecustos === codcentrodecustos);
+    return cc?.nomecentrodecustos || codcentrodecustos;
+  };
+
+  const getEmpresaName = (codempresa?: string) => {
+    if (!codempresa) return null;
+    const empresa = empresas.find(e => e.codempresa === codempresa);
+    return empresa?.nomeempresa || codempresa;
   };
 
   const getGestorName = (gestorId?: string) => {
@@ -217,6 +234,12 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
                     <th className="px-3 md:px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden md:table-cell">
                       Cargo
                     </th>
+                    <th className="px-3 md:px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden xl:table-cell">
+                      Empresa
+                    </th>
+                    <th className="px-3 md:px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden xl:table-cell">
+                      Centro de Custos
+                    </th>
                     <th className="px-3 md:px-4 py-3 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider hidden lg:table-cell">
                       Gestor/Avaliador
                     </th>
@@ -246,6 +269,26 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Briefcase className="w-4 h-4 flex-shrink-0" />
                           <span className="truncate">{getRoleName(employee.roleId)}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 md:px-4 py-3 hidden xl:table-cell">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Building2 className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate max-w-[150px]">
+                            {getEmpresaName((employee as any).codempresa) || (
+                              <span className="italic">-</span>
+                            )}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-3 md:px-4 py-3 hidden xl:table-cell">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Layers className="w-4 h-4 flex-shrink-0" />
+                          <span className="truncate max-w-[150px]">
+                            {getCostCenterName((employee as any).codcentrodecustos) || (
+                              <span className="italic">-</span>
+                            )}
+                          </span>
                         </div>
                       </td>
                       <td className="px-3 md:px-4 py-3 hidden lg:table-cell">
@@ -371,7 +414,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
                   ))}
                   {filteredEmployees.length === 0 && (
                     <tr>
-                      <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                      <td colSpan={7} className="px-4 py-8 text-center text-muted-foreground">
                         Nenhum colaborador encontrado
                       </td>
                     </tr>
