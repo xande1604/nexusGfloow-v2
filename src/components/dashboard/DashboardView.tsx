@@ -1,6 +1,8 @@
 import { Briefcase, Users, Sparkles, Route, TrendingUp, Award, ClipboardCheck } from 'lucide-react';
 import { StatsCard } from './StatsCard';
+import { DemoDashboardBanner } from './DemoDashboardBanner';
 import { JobRole, Skill, Employee } from '@/types';
+import { useDemo } from '@/contexts/DemoContext';
 
 interface DashboardViewProps {
   roles: JobRole[];
@@ -10,6 +12,8 @@ interface DashboardViewProps {
 }
 
 export const DashboardView = ({ roles, skills, employees, onNavigate }: DashboardViewProps) => {
+  const { hasOwnData, isCheckingData } = useDemo();
+  
   const avgSalary = roles.length > 0 
     ? Math.round(roles.reduce((acc, r) => acc + (r.salaryRange.min + r.salaryRange.max) / 2, 0) / roles.length)
     : 0;
@@ -22,8 +26,15 @@ export const DashboardView = ({ roles, skills, employees, onNavigate }: Dashboar
     leadership: skills.filter(s => s.category === 'Leadership').length,
   };
 
+  // Show demo banner if user doesn't have their own data (viewing demo data from DB)
+  const showDemoBanner = !isCheckingData && !hasOwnData;
+
   return (
     <div className="space-y-6 animate-fade-in">
+      {/* Demo Mode Banner */}
+      {showDemoBanner && (
+        <DemoDashboardBanner onNavigateToSettings={() => onNavigate?.('settings')} />
+      )}
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard
