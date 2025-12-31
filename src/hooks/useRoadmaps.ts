@@ -3,6 +3,30 @@ import { supabase } from '@/integrations/supabase/client';
 import { CareerRoadmap, RoadmapStep, RoadmapProgress } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 
+const normalizeProgress = (progress: any): RoadmapProgress | undefined => {
+  if (!progress || typeof progress !== 'object') return undefined;
+
+  return {
+    currentStepIndex: Number(progress.currentStepIndex) || 0,
+    progressPercentage: Number(progress.progressPercentage) || 0,
+    completedSteps: Array.isArray(progress.completedSteps) ? progress.completedSteps : [],
+    achievements: Array.isArray(progress.achievements) ? progress.achievements : [],
+    gaps: Array.isArray(progress.gaps) ? progress.gaps : [],
+    nextActions: Array.isArray(progress.nextActions) ? progress.nextActions : [],
+    summary: typeof progress.summary === 'string' ? progress.summary : '',
+    lastUpdated: typeof progress.lastUpdated === 'string' ? progress.lastUpdated : new Date().toISOString(),
+    updateHistory: Array.isArray(progress.updateHistory)
+      ? progress.updateHistory.map((entry: any) => ({
+          date: typeof entry?.date === 'string' ? entry.date : new Date().toISOString(),
+          acquiredSkills: Array.isArray(entry?.acquiredSkills) ? entry.acquiredSkills : [],
+          completedTrainings: Array.isArray(entry?.completedTrainings) ? entry.completedTrainings : [],
+          additionalNotes: typeof entry?.additionalNotes === 'string' ? entry.additionalNotes : undefined,
+        }))
+      : [],
+    history: Array.isArray(progress.history) ? progress.history : undefined,
+  };
+};
+
 export const useRoadmaps = () => {
   const [roadmaps, setRoadmaps] = useState<CareerRoadmap[]>([]);
   const [loading, setLoading] = useState(true);
@@ -24,7 +48,7 @@ export const useRoadmaps = () => {
         targetRoleTitle: row.target_role_title,
         steps: (row.steps as unknown as RoadmapStep[]) || [],
         createdAt: row.created_at || new Date().toISOString(),
-        progress: row.progress as unknown as RoadmapProgress | undefined,
+        progress: normalizeProgress(row.progress),
       }));
 
       setRoadmaps(mappedRoadmaps);
