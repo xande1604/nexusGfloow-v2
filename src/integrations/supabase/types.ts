@@ -1999,6 +1999,7 @@ export type Database = {
       }
     }
     Functions: {
+      admin_has_own_employees: { Args: { _user_id: string }; Returns: boolean }
       get_owner_admin_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
