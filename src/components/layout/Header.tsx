@@ -47,15 +47,16 @@ export const Header = ({ activeView, onMenuClick }: HeaderProps) => {
 
   const handleSignOut = async () => {
     const { error } = await signOut();
-    if (error) {
+    // Ignore "Auth session missing" error - user is already logged out
+    if (error && !error.message?.includes('Auth session missing')) {
       toast({
         title: 'Erro ao sair',
         description: error.message,
         variant: 'destructive',
       });
-    } else {
-      navigate('/auth');
     }
+    // Always redirect to auth page
+    navigate('/auth');
   };
 
   const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário';
