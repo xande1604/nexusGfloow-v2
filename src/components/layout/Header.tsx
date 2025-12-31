@@ -26,7 +26,7 @@ const viewTitles: Record<AppView, { title: string; subtitle: string }> = {
 };
 
 export const Header = ({ activeView, onMenuClick }: HeaderProps) => {
-  const { title, subtitle } = viewTitles[activeView];
+  const { title, subtitle } = viewTitles[activeView] || { title: 'Carregando...', subtitle: '' };
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
