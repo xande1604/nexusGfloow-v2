@@ -95,15 +95,15 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
         <TabsList className="grid w-full grid-cols-3 mb-4">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
-            Usuários ({users.length})
+            Usuários ({users?.length || 0})
           </TabsTrigger>
           <TabsTrigger value="keys" className="flex items-center gap-2">
             <Key className="w-4 h-4" />
-            Chaves ({accessKeys.length})
+            Chaves ({accessKeys?.length || 0})
           </TabsTrigger>
           <TabsTrigger value="environments" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
-            Ambientes ({environments.length})
+            Ambientes ({environments?.length || 0})
           </TabsTrigger>
         </TabsList>
 
@@ -120,7 +120,7 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {users.map((user) => (
+                {(users || []).map((user) => (
                   <tr key={user.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 text-sm text-foreground font-medium">{user.name}</td>
                     <td className="px-4 py-3 text-sm text-muted-foreground">{user.email}</td>
@@ -130,7 +130,7 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
                     <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(user.created_at)}</td>
                   </tr>
                 ))}
-                {users.length === 0 && (
+                {(!users || users.length === 0) && (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                       Nenhum usuário encontrado
@@ -156,7 +156,7 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {accessKeys.map((key) => (
+                {(accessKeys || []).map((key) => (
                   <tr key={key.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
@@ -189,7 +189,7 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
                     <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(key.created_at)}</td>
                   </tr>
                 ))}
-                {accessKeys.length === 0 && (
+                {(!accessKeys || accessKeys.length === 0) && (
                   <tr>
                     <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                       Nenhuma chave de acesso encontrada
@@ -214,7 +214,7 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {environments.map((env) => (
+                {(environments || []).map((env) => (
                   <tr key={env.id} className="hover:bg-muted/30 transition-colors">
                     <td className="px-4 py-3 text-sm text-foreground font-medium">{env.nomeempresa}</td>
                     <td className="px-4 py-3">
@@ -226,7 +226,7 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
                     <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(env.created_at)}</td>
                   </tr>
                 ))}
-                {environments.length === 0 && (
+                {(!environments || environments.length === 0) && (
                   <tr>
                     <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
                       Nenhum ambiente encontrado
