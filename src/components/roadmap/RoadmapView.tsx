@@ -51,7 +51,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
   useEffect(() => {
     if (prefilledUpdateData) {
       // Find roadmap for this employee
-      const employeeRoadmap = roadmaps.find(r => r.employeeId === prefilledUpdateData.employeeId);
+      const employeeRoadmap = roadmaps?.find(r => r.employeeId === prefilledUpdateData.employeeId);
       if (employeeRoadmap) {
         setSelectedRoadmap(employeeRoadmap);
         setPrefilledModalData({
@@ -197,7 +197,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
       if (success) {
         // Update selected roadmap if it's the one being edited
         if (selectedRoadmap?.id === roadmapId) {
-          const updatedRoadmap = roadmaps.find(r => r.id === roadmapId);
+          const updatedRoadmap = roadmaps?.find(r => r.id === roadmapId);
           if (updatedRoadmap) {
             setSelectedRoadmap({ ...updatedRoadmap, employeeId: employeeId || undefined });
           }
@@ -212,7 +212,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
     if (selectedRoadmap) {
       await onUpdateProgress(selectedRoadmap.id, selectedRoadmap.employeeId, data, selectedRoadmap);
       // Refresh the selected roadmap
-      const updatedRoadmap = roadmaps.find(r => r.id === selectedRoadmap.id);
+      const updatedRoadmap = roadmaps?.find(r => r.id === selectedRoadmap.id);
       if (updatedRoadmap) {
         setSelectedRoadmap(updatedRoadmap);
       }
@@ -556,7 +556,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
           )}
         >
           <History className="w-4 h-4" />
-          Histórico ({roadmaps.length})
+          Histórico ({roadmaps?.length || 0})
         </button>
         <button
           onClick={() => setActiveTab('dashboard')}
@@ -663,7 +663,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
           </div>
 
           {/* Recent Roadmaps Preview */}
-          {roadmaps.length > 0 && (
+          {roadmaps?.length > 0 && (
             <div className="bg-card rounded-xl p-6 shadow-soft">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold text-foreground">Roadmaps Recentes</h3>
@@ -675,7 +675,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
                 </button>
               </div>
               <div className="space-y-2">
-                {roadmaps.slice(0, 3).map(roadmap => (
+                {roadmaps?.slice(0, 3).map(roadmap => (
                   <div
                     key={roadmap.id}
                     onClick={() => handleSelectRoadmap(roadmap)}
@@ -705,7 +705,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
 
       {activeTab === 'history' && (
         <div className="bg-card rounded-xl p-6 shadow-medium">
-          {roadmaps.length === 0 ? (
+          {(!roadmaps || roadmaps.length === 0) ? (
             <div className="text-center py-12">
               <Route className="w-12 h-12 text-muted-foreground/50 mx-auto mb-3" />
               <p className="text-muted-foreground">Nenhum roadmap criado ainda</p>
@@ -718,7 +718,7 @@ export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoad
             </div>
           ) : (
             <div className="space-y-3">
-              {roadmaps.map((roadmap, index) => {
+              {(roadmaps || []).map((roadmap, index) => {
                 const linkedEmployee = employees.find(e => e.id === roadmap.employeeId);
                 return (
                   <div
