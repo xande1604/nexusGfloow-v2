@@ -29,7 +29,7 @@ interface RoadmapViewProps {
   onClearPrefilledData?: () => void;
 }
 
-export const RoadmapView = ({ roles, employees, roadmaps, skills, onGenerateRoadmap, onUpdateProgress, onUpdateEmployee, prefilledUpdateData, onClearPrefilledData }: RoadmapViewProps) => {
+export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerateRoadmap, onUpdateProgress, onUpdateEmployee, prefilledUpdateData, onClearPrefilledData }: RoadmapViewProps) => {
   const [sourceRole, setSourceRole] = useState('');
   const [targetRole, setTargetRole] = useState('');
   const [employeeName, setEmployeeName] = useState('');
