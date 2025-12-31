@@ -101,7 +101,7 @@ export const CareerProgressDashboard = ({ roadmaps, roles }: CareerProgressDashb
 
   // Filter roadmaps based on selections
   const filteredRoadmaps = useMemo(() => {
-    return roadmaps.filter(roadmap => {
+    return (roadmaps || []).filter(roadmap => {
       if (!roadmap.employeeId) return false;
       
       const employee = employees.find(e => e.id === roadmap.employeeId);
