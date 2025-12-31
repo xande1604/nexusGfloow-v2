@@ -2008,6 +2008,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_master_admin: { Args: { _user_id: string }; Returns: boolean }
       mask_cpf: { Args: { cpf: string }; Returns: string }
       mask_email: { Args: { email: string }; Returns: string }
       mask_phone: { Args: { phone: string }; Returns: string }
