@@ -21,6 +21,7 @@ const viewTitles: Record<AppView, { title: string; subtitle: string }> = {
   [AppView.PERFORMANCE]: { title: 'Avaliações de Desempenho', subtitle: 'Ciclos de feedback e reviews' },
   [AppView.TRAININGS]: { title: 'Treinamentos', subtitle: 'Registre e acompanhe treinamentos dos colaboradores' },
   [AppView.TESTS]: { title: 'Testes e Certificações', subtitle: 'Avaliações geradas por IA e certificações' },
+  [AppView.RECRUITMENT]: { title: 'Recrutamento e Seleção', subtitle: 'Gerencie vagas, candidatos e processo seletivo com IA' },
   [AppView.TUTORIALS]: { title: 'Tutoriais', subtitle: 'Aprenda a usar todas as funcionalidades' },
   [AppView.SETTINGS]: { title: 'Configurações', subtitle: 'Contexto da empresa e preferências' },
 };

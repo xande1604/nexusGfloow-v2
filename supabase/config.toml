@@ -38,3 +38,6 @@ verify_jwt = true
 
 [functions.generate-test]
 verify_jwt = true
+
+[functions.match-candidato]
+verify_jwt = true
