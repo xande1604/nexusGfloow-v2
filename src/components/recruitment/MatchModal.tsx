@@ -14,6 +14,67 @@ import { useToast } from '@/hooks/use-toast';
 import type { Candidato, Vaga, Candidatura } from '@/types/recruitment';
 import { cn } from '@/lib/utils';
 
+import { getDocument, GlobalWorkerOptions } from 'pdfjs-dist';
+import workerSrc from 'pdfjs-dist/build/pdf.worker.min.mjs?url';
+
+GlobalWorkerOptions.workerSrc = workerSrc;
+
+function parseSupabaseStorageUrl(urlStr: string): { bucket: string; path: string } | null {
+  try {
+    const u = new URL(urlStr);
+    const parts = u.pathname.split('/').filter(Boolean);
+    // /storage/v1/object/public/<bucket>/<path>
+    const objectIdx = parts.indexOf('object');
+    if (objectIdx === -1) return null;
+
+    const access = parts[objectIdx + 1];
+    if (access !== 'public' && access !== 'sign') return null;
+
+    const bucket = parts[objectIdx + 2];
+    const path = parts.slice(objectIdx + 3).join('/');
+    if (!bucket || !path) return null;
+
+    return { bucket, path: decodeURIComponent(path) };
+  } catch {
+    return null;
+  }
+}
+
+async function extractPdfTextFromUrl(pdfUrl: string): Promise<string> {
+  // Preferência: baixar via Supabase Storage (funciona também quando não há CORS para fetch direto)
+  const parsed = parseSupabaseStorageUrl(pdfUrl);
+  let pdfBytes: Uint8Array;
+
+  if (parsed) {
+    const { data, error } = await supabase.storage.from(parsed.bucket).download(parsed.path);
+    if (error || !data) throw new Error('Falha ao baixar currículo via Storage');
+    pdfBytes = new Uint8Array(await data.arrayBuffer());
+  } else {
+    const resp = await fetch(pdfUrl);
+    if (!resp.ok) throw new Error(`Falha ao baixar currículo (${resp.status})`);
+    pdfBytes = new Uint8Array(await resp.arrayBuffer());
+  }
+
+  const loadingTask = getDocument({ data: pdfBytes });
+  const pdf = await loadingTask.promise;
+
+  const maxPages = Math.min(pdf.numPages || 0, 10);
+  let text = '';
+
+  for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+    const page = await pdf.getPage(pageNum);
+    const content = await page.getTextContent();
+    const pageText = (content.items || [])
+      .map((it: any) => (typeof it?.str === 'string' ? it.str : ''))
+      .filter(Boolean)
+      .join(' ');
+    if (pageText.trim()) text += pageText + '\n';
+  }
+
+  text = text.replace(/\s+/g, ' ').trim();
+  return text.length >= 80 ? text : '';
+}
+
 interface MatchModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -40,6 +101,17 @@ export const MatchModal = ({
 
     setIsLoading(true);
     try {
+      let curriculo_texto: string | undefined;
+
+      if (candidato.curriculo_url) {
+        try {
+          const extracted = await extractPdfTextFromUrl(candidato.curriculo_url);
+          if (extracted) curriculo_texto = extracted.substring(0, 12000);
+        } catch (e) {
+          console.warn('Falha ao ler currículo no navegador:', e);
+        }
+      }
+
       const { data, error } = await supabase.functions.invoke('match-candidato', {
         body: {
           candidato: {
@@ -47,6 +119,7 @@ export const MatchModal = ({
             resumo_profissional: candidato.resumo_profissional,
             pretensao_salarial: candidato.pretensao_salarial,
             curriculo_url: candidato.curriculo_url,
+            curriculo_texto,
             skills: candidato.skills || [],
             experiencias: candidato.experiencias || [],
             formacoes: candidato.formacoes || [],
