@@ -2,10 +2,16 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as pdfjsLib from "https://esm.sh/pdfjs-dist@4.4.168/legacy/build/pdf.mjs";
 
-// pdfjs precisa do workerSrc mesmo quando rodando sem worker em alguns runtimes.
-// Mantemos disableWorker=true e configuramos workerSrc para evitar erros de inicialização.
-(pdfjsLib as any).GlobalWorkerOptions = (pdfjsLib as any).GlobalWorkerOptions || {};
-(pdfjsLib as any).GlobalWorkerOptions.workerSrc = "https://esm.sh/pdfjs-dist@4.4.168/legacy/build/pdf.worker.mjs";
+// pdfjs pode tentar acessar workerSrc mesmo com disableWorker=true em alguns runtimes.
+// NÃO podemos reatribuir GlobalWorkerOptions (export do módulo é read-only). Apenas setamos workerSrc se existir.
+try {
+  const gwo = (pdfjsLib as any).GlobalWorkerOptions;
+  if (gwo && typeof gwo === "object") {
+    gwo.workerSrc = "https://esm.sh/pdfjs-dist@4.4.168/legacy/build/pdf.worker.mjs";
+  }
+} catch (e) {
+  console.warn("Could not set pdfjs workerSrc:", e);
+}
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -329,6 +335,8 @@ Retorne APENAS este formato JSON:
         gaps: vagaSkillNames.filter(vs => !candidatoSkillNames.some(cs => cs.includes(vs) || vs.includes(cs))),
         resumo_ia: `Análise básica: ${basicScore}% de compatibilidade baseado em skills, experiência e formação.`,
         recomendacao: basicScore >= 70 ? 'aprovar' : basicScore >= 50 ? 'reavaliar' : 'reprovar',
+        curriculo_analisado: curriculoContent.length > 0,
+        curriculo_preview: curriculoContent.length > 0 ? curriculoContent.substring(0, 500) + '...' : 'Currículo não disponível ou não foi possível extrair texto.',
       }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
