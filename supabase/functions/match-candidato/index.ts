@@ -3,12 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as pdfjsLib from "https://esm.sh/pdfjs-dist@4.4.168/legacy/build/pdf.mjs";
 
 // pdfjs pode tentar acessar workerSrc mesmo com disableWorker=true em alguns runtimes.
-// NÃO podemos reatribuir GlobalWorkerOptions (export do módulo é read-only). Apenas setamos workerSrc se existir.
+// Não reatribua GlobalWorkerOptions (export do módulo é read-only). Apenas setamos workerSrc.
 try {
-  const gwo = (pdfjsLib as any).GlobalWorkerOptions;
-  if (gwo && typeof gwo === "object") {
-    gwo.workerSrc = "https://esm.sh/pdfjs-dist@4.4.168/legacy/build/pdf.worker.mjs";
-  }
+  (pdfjsLib as any).GlobalWorkerOptions.workerSrc = "https://esm.sh/pdfjs-dist@4.4.168/legacy/build/pdf.worker.mjs";
+  console.log("pdfjs workerSrc configured");
 } catch (e) {
   console.warn("Could not set pdfjs workerSrc:", e);
 }
@@ -155,6 +153,8 @@ async function extractPdfText(pdfUrl: string): Promise<string> {
       data: pdfBytes,
       disableWorker: true,
       useSystemFonts: true,
+      // redundante, mas alguns runtimes ainda exigem workerSrc configurado
+      workerSrc: "https://esm.sh/pdfjs-dist@4.4.168/legacy/build/pdf.worker.mjs",
     });
 
     const pdf = await loadingTask.promise;
