@@ -18,7 +18,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Sparkles, Loader2 } from 'lucide-react';
+import { useJobRoles } from '@/hooks/useJobRoles';
 import type { Vaga, VagaSkill } from '@/types/recruitment';
 
 interface VagaFormModalProps {
@@ -34,8 +35,11 @@ export const VagaFormModal = ({
   vaga,
   onSave,
 }: VagaFormModalProps) => {
+  const { roles, loading: loadingRoles } = useJobRoles();
+  
   const [formData, setFormData] = useState<Partial<Vaga>>({
     titulo: '',
+    cargo_id: '',
     descricao: '',
     requisitos: '',
     beneficios: '',
@@ -59,6 +63,7 @@ export const VagaFormModal = ({
       setFormData({
         id: vaga.id,
         titulo: vaga.titulo,
+        cargo_id: vaga.cargo_id || '',
         descricao: vaga.descricao || '',
         requisitos: vaga.requisitos || '',
         beneficios: vaga.beneficios || '',
@@ -76,6 +81,7 @@ export const VagaFormModal = ({
     } else {
       setFormData({
         titulo: '',
+        cargo_id: '',
         descricao: '',
         requisitos: '',
         beneficios: '',
@@ -92,6 +98,60 @@ export const VagaFormModal = ({
       setSkills([]);
     }
   }, [vaga, open]);
+
+  // Quando seleciona um cargo, preenche automaticamente os campos
+  const handleCargoSelect = (cargoId: string) => {
+    const selectedCargo = roles.find(r => r.id === cargoId);
+    if (selectedCargo) {
+      // Monta os requisitos a partir das skills do cargo
+      const requisitosArr: string[] = [];
+      if (selectedCargo.technicalKnowledge) {
+        requisitosArr.push(`**Conhecimentos Técnicos:**\n${selectedCargo.technicalKnowledge}`);
+      }
+      if (selectedCargo.hardSkills) {
+        requisitosArr.push(`**Hard Skills:**\n${selectedCargo.hardSkills}`);
+      }
+      if (selectedCargo.softSkills) {
+        requisitosArr.push(`**Soft Skills:**\n${selectedCargo.softSkills}`);
+      }
+
+      // Extrai skills do cargo para adicionar automaticamente
+      const cargoSkills: Partial<VagaSkill>[] = [];
+      if (selectedCargo.hardSkills) {
+        selectedCargo.hardSkills.split(',').forEach(skill => {
+          const trimmed = skill.trim();
+          if (trimmed) {
+            cargoSkills.push({ skill_name: trimmed, skill_category: 'hard_skill', nivel_minimo: 'intermediario', obrigatoria: true });
+          }
+        });
+      }
+      if (selectedCargo.softSkills) {
+        selectedCargo.softSkills.split(',').forEach(skill => {
+          const trimmed = skill.trim();
+          if (trimmed) {
+            cargoSkills.push({ skill_name: trimmed, skill_category: 'soft_skill', nivel_minimo: 'intermediario', obrigatoria: false });
+          }
+        });
+      }
+
+      setFormData(prev => ({
+        ...prev,
+        cargo_id: cargoId,
+        titulo: prev.titulo || selectedCargo.title,
+        descricao: prev.descricao || `Vaga para ${selectedCargo.title}`,
+        requisitos: requisitosArr.join('\n\n') || prev.requisitos,
+        salario_min: prev.salario_min || selectedCargo.salaryRange?.min || undefined,
+        salario_max: prev.salario_max || selectedCargo.salaryRange?.max || undefined,
+      }));
+
+      // Adiciona skills do cargo se ainda não houver skills
+      if (skills.length === 0 && cargoSkills.length > 0) {
+        setSkills(cargoSkills);
+      }
+    } else {
+      setFormData(prev => ({ ...prev, cargo_id: '' }));
+    }
+  };
 
   const handleAddSkill = () => {
     if (newSkill.name.trim()) {
@@ -130,6 +190,45 @@ export const VagaFormModal = ({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
+            {/* Seletor de Cargo da Base */}
+            <div className="col-span-2">
+            <Label htmlFor="cargo">Cargo Base (opcional)</Label>
+            <Select
+              value={formData.cargo_id || 'none'}
+              onValueChange={(v) => handleCargoSelect(v === 'none' ? '' : v)}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Selecione um cargo para preencher automaticamente" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Nenhum (preencher manualmente)</SelectItem>
+                {loadingRoles ? (
+                  <SelectItem value="loading" disabled>
+                    <Loader2 className="w-4 h-4 animate-spin inline mr-2" />
+                    Carregando...
+                  </SelectItem>
+                ) : (
+                  roles.map((cargo) => (
+                    <SelectItem key={cargo.id} value={cargo.id}>
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-3 h-3 text-amber-500" />
+                        {cargo.title}
+                        {cargo.salaryRange?.min > 0 && (
+                          <span className="text-xs text-muted-foreground">
+                            (R$ {cargo.salaryRange.min.toLocaleString()} - {cargo.salaryRange.max.toLocaleString()})
+                          </span>
+                        )}
+                      </div>
+                    </SelectItem>
+                  ))
+                )}
+              </SelectContent>
+            </Select>
+            <p className="text-xs text-muted-foreground mt-1">
+              Selecione um cargo existente para preencher automaticamente título, requisitos e faixa salarial
+            </p>
+          </div>
+
             <div className="col-span-2">
               <Label htmlFor="titulo">Título da Vaga *</Label>
               <Input
