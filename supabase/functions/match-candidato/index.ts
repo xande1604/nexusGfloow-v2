@@ -89,63 +89,99 @@ async function getPdfBytes(pdfUrl: string): Promise<Uint8Array | null> {
     const parsed = parseSupabaseStorageUrl(pdfUrl, SUPABASE_URL);
     if (parsed) {
       console.log('Downloading PDF via Supabase Storage:', parsed.bucket, parsed.path);
-      const { data, error } = await supabaseAdmin.storage
-        .from(parsed.bucket)
-        .download(parsed.path);
+      try {
+        const { data, error } = await supabaseAdmin.storage
+          .from(parsed.bucket)
+          .download(parsed.path);
 
-      if (error || !data) {
-        console.error('Storage download failed:', error);
+        if (error) {
+          console.error('Storage download error:', JSON.stringify(error));
+          return null;
+        }
+        
+        if (!data) {
+          console.error('Storage download returned no data');
+          return null;
+        }
+
+        const bytes = new Uint8Array(await data.arrayBuffer());
+        console.log('PDF downloaded successfully, size:', bytes.length, 'bytes');
+        return bytes;
+      } catch (downloadError) {
+        console.error('Storage download exception:', downloadError);
         return null;
       }
-
-      return new Uint8Array(await data.arrayBuffer());
     }
   }
 
   // Fallback: HTTP fetch (apenas para URLs que não sejam do nosso Storage)
   console.log('Fetching PDF via HTTP:', pdfUrl);
-  const resp = await fetch(pdfUrl);
-  if (!resp.ok) {
-    console.error('Failed to fetch PDF:', resp.status);
+  try {
+    const resp = await fetch(pdfUrl);
+    if (!resp.ok) {
+      console.error('Failed to fetch PDF:', resp.status, resp.statusText);
+      return null;
+    }
+    const bytes = new Uint8Array(await resp.arrayBuffer());
+    console.log('PDF fetched via HTTP, size:', bytes.length, 'bytes');
+    return bytes;
+  } catch (fetchError) {
+    console.error('HTTP fetch exception:', fetchError);
     return null;
   }
-  return new Uint8Array(await resp.arrayBuffer());
 }
 
 // Extract text from a PDF (text layer) using pdfjs-dist.
 // Note: For scanned PDFs (image-only), this may return an empty string.
 async function extractPdfText(pdfUrl: string): Promise<string> {
   try {
+    console.log('Starting PDF extraction for:', pdfUrl);
+    
     const pdfBytes = await getPdfBytes(pdfUrl);
-    if (!pdfBytes) return '';
+    if (!pdfBytes) {
+      console.error('getPdfBytes returned null');
+      return '';
+    }
+    
+    console.log('PDF bytes received, attempting to parse with pdfjs...');
 
     const loadingTask = (pdfjsLib as any).getDocument({
       data: pdfBytes,
       disableWorker: true,
+      useSystemFonts: true,
     });
 
     const pdf = await loadingTask.promise;
+    console.log('PDF loaded, numPages:', pdf.numPages);
 
     const maxPages = Math.min(pdf.numPages || 0, 10);
     let text = '';
 
     for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
-      const page = await pdf.getPage(pageNum);
-      const content = await page.getTextContent();
-      const pageText = (content.items || [])
-        .map((it: any) => (typeof it?.str === 'string' ? it.str : ''))
-        .filter(Boolean)
-        .join(' ');
-      if (pageText.trim()) text += pageText + '\n';
+      try {
+        const page = await pdf.getPage(pageNum);
+        const content = await page.getTextContent();
+        const pageText = (content.items || [])
+          .map((it: any) => (typeof it?.str === 'string' ? it.str : ''))
+          .filter(Boolean)
+          .join(' ');
+        console.log(`Page ${pageNum} text length:`, pageText.length);
+        if (pageText.trim()) text += pageText + '\n';
+      } catch (pageError) {
+        console.error(`Error extracting page ${pageNum}:`, pageError);
+      }
     }
 
     text = text.replace(/\s+/g, ' ').trim();
 
-    console.log('Extracted PDF text length:', text.length);
-    console.log('PDF text preview:', text.substring(0, 500));
+    console.log('Total extracted PDF text length:', text.length);
+    console.log('PDF text preview (first 1000 chars):', text.substring(0, 1000));
 
     // Ignore garbage / image-only PDFs
-    if (text.length < 80) return '';
+    if (text.length < 80) {
+      console.warn('PDF text too short, likely image-only PDF');
+      return '';
+    }
 
     return text;
   } catch (error) {
@@ -356,6 +392,7 @@ Retorne APENAS este formato JSON:
       recomendacao: aiAnalysis.recomendacao || (finalScore >= 70 ? 'aprovar' : finalScore >= 50 ? 'reavaliar' : 'reprovar'),
       justificativa: aiAnalysis.justificativa || '',
       curriculo_analisado: curriculoContent.length > 0,
+      curriculo_preview: curriculoContent.length > 0 ? curriculoContent.substring(0, 500) + '...' : 'Currículo não disponível ou não foi possível extrair texto.',
     };
 
     console.log('Match result:', result);
