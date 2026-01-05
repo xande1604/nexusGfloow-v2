@@ -3,23 +3,23 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 // Import via CDN (jsDelivr) para manter compatibilidade com o workerSrc.
 import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/legacy/build/pdf.mjs";
 
-const PDFJS_VERSION = "4.4.168";
-// esm.sh nem sempre expõe o worker como módulo; jsDelivr costuma ser mais estável.
-const PDF_WORKER_SRC = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/legacy/build/pdf.worker.mjs`;
-
+// Worker local (vendorizado) para evitar falhas de import remoto em runtime.
 // pdfjs pode tentar acessar workerSrc mesmo com disableWorker=true em alguns runtimes.
+const PDF_WORKER_SRC = new URL("./pdf.worker.mjs", import.meta.url).toString();
+
 // Não reatribua GlobalWorkerOptions (export do módulo é read-only). Apenas setamos workerSrc.
 try {
   const gwo = (pdfjsLib as any)?.GlobalWorkerOptions;
   if (gwo && typeof gwo === "object") {
     gwo.workerSrc = PDF_WORKER_SRC;
-    console.log("pdfjs workerSrc configured:", PDF_WORKER_SRC);
+    console.log("pdfjs workerSrc configured (local):", PDF_WORKER_SRC);
   } else {
     console.warn("pdfjs GlobalWorkerOptions not available");
   }
 } catch (e) {
   console.warn("Could not set pdfjs workerSrc:", e);
 }
+
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
