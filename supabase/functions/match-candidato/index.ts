@@ -23,6 +23,7 @@ interface CandidatoData {
   nome: string;
   resumo_profissional?: string;
   pretensao_salarial?: number;
+  curriculo_url?: string;
   skills: CandidatoSkill[];
   experiencias: { empresa: string; cargo: string; descricao?: string }[];
   formacoes: { instituicao: string; curso: string; nivel?: string }[];
@@ -35,6 +36,63 @@ interface VagaData {
   salario_min?: number;
   salario_max?: number;
   skills: VagaSkill[];
+}
+
+// Extract text from PDF using pdf-parse via external service or basic extraction
+async function extractPdfText(pdfUrl: string): Promise<string> {
+  try {
+    console.log('Fetching PDF from:', pdfUrl);
+    
+    const pdfResponse = await fetch(pdfUrl);
+    if (!pdfResponse.ok) {
+      console.error('Failed to fetch PDF:', pdfResponse.status);
+      return '';
+    }
+    
+    const pdfBuffer = await pdfResponse.arrayBuffer();
+    const pdfBytes = new Uint8Array(pdfBuffer);
+    
+    // Basic text extraction from PDF binary
+    // This is a simplified approach that extracts readable text strings
+    let text = '';
+    const decoder = new TextDecoder('utf-8', { fatal: false });
+    
+    // Convert to string and find text patterns
+    const rawString = decoder.decode(pdfBytes);
+    
+    // Extract text between stream markers (simplified PDF text extraction)
+    const streamMatches = rawString.matchAll(/stream\s*([\s\S]*?)\s*endstream/g);
+    for (const match of streamMatches) {
+      const streamContent = match[1];
+      // Extract text from Tj and TJ operators
+      const textMatches = streamContent.matchAll(/\(([^)]+)\)\s*Tj/g);
+      for (const textMatch of textMatches) {
+        text += textMatch[1] + ' ';
+      }
+      // Also try to find readable ASCII text
+      const asciiText = streamContent.replace(/[^\x20-\x7E\n\r]/g, ' ').trim();
+      if (asciiText.length > 50) {
+        text += asciiText + ' ';
+      }
+    }
+    
+    // Also extract text that appears in readable form
+    const readableMatches = rawString.matchAll(/\/Contents\s*\(([^)]+)\)/g);
+    for (const match of readableMatches) {
+      text += match[1] + ' ';
+    }
+    
+    // Clean up the extracted text
+    text = text.replace(/\s+/g, ' ').trim();
+    
+    console.log('Extracted PDF text length:', text.length);
+    console.log('PDF text preview:', text.substring(0, 500));
+    
+    return text;
+  } catch (error) {
+    console.error('Error extracting PDF text:', error);
+    return '';
+  }
 }
 
 serve(async (req) => {
@@ -52,6 +110,13 @@ serve(async (req) => {
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
       throw new Error('LOVABLE_API_KEY não configurada');
+    }
+
+    // Extract PDF content if available
+    let curriculoContent = '';
+    if (candidato.curriculo_url) {
+      console.log('Candidate has CV URL, extracting content...');
+      curriculoContent = await extractPdfText(candidato.curriculo_url);
     }
 
     // Calculate basic skill match
@@ -86,16 +151,21 @@ serve(async (req) => {
     // Education score
     const educationScore = candidato.formacoes?.length > 0 ? 80 : 50;
 
-    // Create AI prompt for detailed analysis
-    const prompt = `Analise a compatibilidade entre este candidato e vaga. Retorne APENAS um JSON válido.
+    // Create AI prompt for detailed analysis including CV content
+    const curriculoSection = curriculoContent 
+      ? `\n\nCONTEÚDO DO CURRÍCULO (PDF):\n${curriculoContent.substring(0, 4000)}`
+      : '\n\nCurrículo: Não disponível';
+
+    const prompt = `Analise a compatibilidade entre este candidato e vaga. IMPORTANTE: Considere TODO o conteúdo do currículo PDF se disponível para extrair skills, experiências e formação.
 
 CANDIDATO:
 Nome: ${candidato.nome}
 Resumo: ${candidato.resumo_profissional || 'Não informado'}
 Pretensão salarial: ${candidato.pretensao_salarial ? `R$ ${candidato.pretensao_salarial}` : 'Não informada'}
-Skills: ${candidato.skills.map(s => `${s.skill_name} (${s.nivel || 'N/A'})`).join(', ') || 'Nenhuma'}
-Experiências: ${candidato.experiencias?.map(e => `${e.cargo} na ${e.empresa}`).join('; ') || 'Nenhuma'}
-Formações: ${candidato.formacoes?.map(f => `${f.curso} - ${f.instituicao}`).join('; ') || 'Nenhuma'}
+Skills cadastradas: ${candidato.skills.map(s => `${s.skill_name} (${s.nivel || 'N/A'})`).join(', ') || 'Nenhuma'}
+Experiências cadastradas: ${candidato.experiencias?.map(e => `${e.cargo} na ${e.empresa}`).join('; ') || 'Nenhuma'}
+Formações cadastradas: ${candidato.formacoes?.map(f => `${f.curso} - ${f.instituicao}`).join('; ') || 'Nenhuma'}
+${curriculoSection}
 
 VAGA:
 Título: ${vaga.titulo}
@@ -104,14 +174,28 @@ Requisitos: ${vaga.requisitos || 'Não informados'}
 Faixa salarial: ${vaga.salario_min && vaga.salario_max ? `R$ ${vaga.salario_min} - R$ ${vaga.salario_max}` : 'Não informada'}
 Skills requeridas: ${vaga.skills.map(s => `${s.skill_name} (${s.obrigatoria ? 'obrigatória' : 'desejável'})`).join(', ') || 'Nenhuma'}
 
-Retorne exatamente este formato JSON:
+INSTRUÇÕES:
+1. Analise o currículo PDF para identificar skills, experiências e formações que o candidato possui
+2. Compare com os requisitos da vaga
+3. Considere sinônimos e habilidades relacionadas
+4. Dê scores de 0 a 100 para cada categoria
+
+Retorne APENAS este formato JSON:
 {
-  "resumo": "Análise resumida em 2-3 frases",
+  "score_skills": 75,
+  "score_experiencia": 80,
+  "score_formacao": 70,
+  "skills_encontradas_cv": ["skill1", "skill2"],
+  "experiencias_encontradas_cv": ["Cargo em Empresa"],
+  "formacoes_encontradas_cv": ["Curso em Instituição"],
+  "resumo": "Análise resumida em 2-3 frases sobre a compatibilidade",
   "pontos_fortes": ["ponto 1", "ponto 2", "ponto 3"],
   "gaps": ["gap 1", "gap 2"],
   "recomendacao": "aprovar|reprovar|reavaliar",
-  "justificativa": "Justificativa da recomendação em 1-2 frases"
+  "justificativa": "Justificativa da recomendação"
 }`;
+
+    console.log('Sending prompt to AI with CV content:', curriculoContent.length > 0);
 
     const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
       method: 'POST',
@@ -122,7 +206,7 @@ Retorne exatamente este formato JSON:
       body: JSON.stringify({
         model: 'google/gemini-2.5-flash',
         messages: [
-          { role: 'system', content: 'Você é um especialista em recrutamento e seleção. Analise candidatos de forma objetiva e retorne apenas JSON válido.' },
+          { role: 'system', content: 'Você é um especialista em recrutamento e seleção. Analise candidatos de forma objetiva, extraindo informações do currículo PDF quando disponível. Retorne apenas JSON válido.' },
           { role: 'user', content: prompt }
         ],
       }),
@@ -155,42 +239,63 @@ Retorne exatamente este formato JSON:
     }
 
     const aiData = await aiResponse.json();
-    let aiAnalysis = { resumo: '', pontos_fortes: [], gaps: [], recomendacao: 'reavaliar', justificativa: '' };
+    let aiAnalysis: any = { 
+      resumo: '', 
+      pontos_fortes: [], 
+      gaps: [], 
+      recomendacao: 'reavaliar', 
+      justificativa: '',
+      score_skills: skillMatchPercent,
+      score_experiencia: experienceScore,
+      score_formacao: educationScore,
+    };
     
     try {
       const content = aiData.choices?.[0]?.message?.content || '';
+      console.log('AI raw response:', content.substring(0, 500));
       // Clean markdown if present
       const jsonStr = content.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim();
-      aiAnalysis = JSON.parse(jsonStr);
+      aiAnalysis = { ...aiAnalysis, ...JSON.parse(jsonStr) };
+      console.log('Parsed AI analysis:', aiAnalysis);
     } catch (parseError) {
       console.error('Error parsing AI response:', parseError);
     }
 
-    // Calculate final score
+    // Use AI scores if available, otherwise use calculated ones
+    const finalSkillScore = typeof aiAnalysis.score_skills === 'number' ? aiAnalysis.score_skills : Math.round(skillMatchPercent);
+    const finalExpScore = typeof aiAnalysis.score_experiencia === 'number' ? aiAnalysis.score_experiencia : experienceScore;
+    const finalEduScore = typeof aiAnalysis.score_formacao === 'number' ? aiAnalysis.score_formacao : educationScore;
+
+    // Calculate final score using AI scores
     const finalScore = Math.round(
-      (skillMatchPercent * 0.4) + 
-      (experienceScore * 0.25) + 
-      (educationScore * 0.15) + 
+      (finalSkillScore * 0.4) + 
+      (finalExpScore * 0.25) + 
+      (finalEduScore * 0.15) + 
       (salaryScore * 0.2)
     );
 
     const result = {
       match_score: finalScore,
-      score_skills: Math.round(skillMatchPercent),
-      score_experiencia: experienceScore,
-      score_formacao: educationScore,
+      score_skills: finalSkillScore,
+      score_experiencia: finalExpScore,
+      score_formacao: finalEduScore,
       score_salario: salaryScore,
       skills_match: vagaSkillNames.map(vs => ({
         skill: vs,
         candidato_nivel: candidato.skills.find(cs => cs.skill_name.toLowerCase().includes(vs))?.nivel,
         vaga_nivel: vaga.skills.find(s => s.skill_name.toLowerCase() === vs)?.nivel_minimo,
-        match: candidatoSkillNames.some(cs => cs.includes(vs) || vs.includes(cs))
+        match: candidatoSkillNames.some(cs => cs.includes(vs) || vs.includes(cs)) ||
+               (aiAnalysis.skills_encontradas_cv || []).some((s: string) => s.toLowerCase().includes(vs))
       })),
+      skills_encontradas_cv: aiAnalysis.skills_encontradas_cv || [],
+      experiencias_encontradas_cv: aiAnalysis.experiencias_encontradas_cv || [],
+      formacoes_encontradas_cv: aiAnalysis.formacoes_encontradas_cv || [],
       pontos_fortes: aiAnalysis.pontos_fortes || [],
       gaps: aiAnalysis.gaps || [],
       resumo_ia: aiAnalysis.resumo || `${finalScore}% de compatibilidade com a vaga.`,
       recomendacao: aiAnalysis.recomendacao || (finalScore >= 70 ? 'aprovar' : finalScore >= 50 ? 'reavaliar' : 'reprovar'),
       justificativa: aiAnalysis.justificativa || '',
+      curriculo_analisado: curriculoContent.length > 0,
     };
 
     console.log('Match result:', result);
