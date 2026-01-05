@@ -224,9 +224,11 @@ serve(async (req) => {
       throw new Error('LOVABLE_API_KEY não configurada');
     }
 
-    // Extract PDF content if available
-    let curriculoContent = '';
-    if (candidato.curriculo_url) {
+    // Extract PDF content if available (prefer texto extraído no navegador)
+    const incomingCurriculoTexto = (candidato as any)?.curriculo_texto;
+    let curriculoContent = typeof incomingCurriculoTexto === 'string' ? incomingCurriculoTexto : '';
+
+    if (!curriculoContent && candidato.curriculo_url) {
       console.log('Candidate has CV URL, extracting content...');
       curriculoContent = await extractPdfText(candidato.curriculo_url);
     }
