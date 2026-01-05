@@ -1,4 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import * as pdfjsLib from "https://esm.sh/pdfjs-dist@4.4.168/legacy/build/pdf.mjs?bundle";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -38,56 +39,48 @@ interface VagaData {
   skills: VagaSkill[];
 }
 
-// Extract text from PDF using pdf-parse via external service or basic extraction
+// Extract text from a PDF (text layer) using pdfjs-dist.
+// Note: For scanned PDFs (image-only), this may return an empty string.
 async function extractPdfText(pdfUrl: string): Promise<string> {
   try {
     console.log('Fetching PDF from:', pdfUrl);
-    
+
     const pdfResponse = await fetch(pdfUrl);
     if (!pdfResponse.ok) {
       console.error('Failed to fetch PDF:', pdfResponse.status);
       return '';
     }
-    
-    const pdfBuffer = await pdfResponse.arrayBuffer();
-    const pdfBytes = new Uint8Array(pdfBuffer);
-    
-    // Basic text extraction from PDF binary
-    // This is a simplified approach that extracts readable text strings
+
+    const pdfBytes = new Uint8Array(await pdfResponse.arrayBuffer());
+
+    const loadingTask = (pdfjsLib as any).getDocument({
+      data: pdfBytes,
+      disableWorker: true,
+    });
+
+    const pdf = await loadingTask.promise;
+
+    const maxPages = Math.min(pdf.numPages || 0, 10);
     let text = '';
-    const decoder = new TextDecoder('utf-8', { fatal: false });
-    
-    // Convert to string and find text patterns
-    const rawString = decoder.decode(pdfBytes);
-    
-    // Extract text between stream markers (simplified PDF text extraction)
-    const streamMatches = rawString.matchAll(/stream\s*([\s\S]*?)\s*endstream/g);
-    for (const match of streamMatches) {
-      const streamContent = match[1];
-      // Extract text from Tj and TJ operators
-      const textMatches = streamContent.matchAll(/\(([^)]+)\)\s*Tj/g);
-      for (const textMatch of textMatches) {
-        text += textMatch[1] + ' ';
-      }
-      // Also try to find readable ASCII text
-      const asciiText = streamContent.replace(/[^\x20-\x7E\n\r]/g, ' ').trim();
-      if (asciiText.length > 50) {
-        text += asciiText + ' ';
-      }
+
+    for (let pageNum = 1; pageNum <= maxPages; pageNum++) {
+      const page = await pdf.getPage(pageNum);
+      const content = await page.getTextContent();
+      const pageText = (content.items || [])
+        .map((it: any) => (typeof it?.str === 'string' ? it.str : ''))
+        .filter(Boolean)
+        .join(' ');
+      if (pageText.trim()) text += pageText + '\n';
     }
-    
-    // Also extract text that appears in readable form
-    const readableMatches = rawString.matchAll(/\/Contents\s*\(([^)]+)\)/g);
-    for (const match of readableMatches) {
-      text += match[1] + ' ';
-    }
-    
-    // Clean up the extracted text
+
     text = text.replace(/\s+/g, ' ').trim();
-    
+
     console.log('Extracted PDF text length:', text.length);
     console.log('PDF text preview:', text.substring(0, 500));
-    
+
+    // Ignore garbage / image-only PDFs
+    if (text.length < 80) return '';
+
     return text;
   } catch (error) {
     console.error('Error extracting PDF text:', error);
