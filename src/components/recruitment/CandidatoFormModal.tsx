@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -17,7 +17,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Plus, X } from 'lucide-react';
+import { Plus, X, Upload, FileText, Loader2 } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import type { Candidato, CandidatoSkill } from '@/types/recruitment';
 
 interface CandidatoFormModalProps {
@@ -33,6 +35,9 @@ export const CandidatoFormModal = ({
   candidato,
   onSave,
 }: CandidatoFormModalProps) => {
+  const { toast } = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [formData, setFormData] = useState<Partial<Candidato>>({
     nome: '',
     email: '',
@@ -40,6 +45,7 @@ export const CandidatoFormModal = ({
     cidade: '',
     estado: '',
     linkedin_url: '',
+    curriculo_url: '',
     resumo_profissional: '',
     pretensao_salarial: undefined,
     disponibilidade: '',
@@ -50,6 +56,7 @@ export const CandidatoFormModal = ({
   const [skills, setSkills] = useState<Partial<CandidatoSkill>[]>([]);
   const [newSkill, setNewSkill] = useState({ name: '', nivel: 'intermediario' });
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isUploadingFile, setIsUploadingFile] = useState(false);
 
   useEffect(() => {
     if (candidato) {
@@ -61,6 +68,7 @@ export const CandidatoFormModal = ({
         cidade: candidato.cidade || '',
         estado: candidato.estado || '',
         linkedin_url: candidato.linkedin_url || '',
+        curriculo_url: candidato.curriculo_url || '',
         resumo_profissional: candidato.resumo_profissional || '',
         pretensao_salarial: candidato.pretensao_salarial,
         disponibilidade: candidato.disponibilidade || '',
@@ -76,6 +84,7 @@ export const CandidatoFormModal = ({
         cidade: '',
         estado: '',
         linkedin_url: '',
+        curriculo_url: '',
         resumo_profissional: '',
         pretensao_salarial: undefined,
         disponibilidade: '',
@@ -85,6 +94,62 @@ export const CandidatoFormModal = ({
       setSkills([]);
     }
   }, [candidato, open]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (file.type !== 'application/pdf') {
+      toast({
+        title: 'Arquivo inválido',
+        description: 'Por favor, envie um arquivo PDF.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    if (file.size > 10 * 1024 * 1024) {
+      toast({
+        title: 'Arquivo muito grande',
+        description: 'O arquivo deve ter no máximo 10MB.',
+        variant: 'destructive',
+      });
+      return;
+    }
+
+    setIsUploadingFile(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+      const filePath = `curriculos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('curriculos')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('curriculos')
+        .getPublicUrl(filePath);
+
+      setFormData({ ...formData, curriculo_url: publicUrl });
+      
+      toast({
+        title: 'Currículo enviado',
+        description: 'O arquivo foi carregado com sucesso.',
+      });
+    } catch (error: any) {
+      console.error('Error uploading file:', error);
+      toast({
+        title: 'Erro ao enviar arquivo',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsUploadingFile(false);
+    }
+  };
 
   const handleAddSkill = () => {
     if (newSkill.name.trim()) {
@@ -204,6 +269,49 @@ export const CandidatoFormModal = ({
                 onChange={(e) => setFormData({ ...formData, linkedin_url: e.target.value })}
                 placeholder="https://linkedin.com/in/..."
               />
+            </div>
+
+            {/* Currículo Upload */}
+            <div className="col-span-2">
+              <Label>Currículo (PDF)</Label>
+              <div className="mt-2 flex items-center gap-3">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".pdf"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploadingFile}
+                >
+                  {isUploadingFile ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Enviando...
+                    </>
+                  ) : (
+                    <>
+                      <Upload className="w-4 h-4 mr-2" />
+                      Enviar PDF
+                    </>
+                  )}
+                </Button>
+                {formData.curriculo_url && (
+                  <a
+                    href={formData.curriculo_url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center gap-1 text-sm text-primary hover:underline"
+                  >
+                    <FileText className="w-4 h-4" />
+                    Ver currículo
+                  </a>
+                )}
+              </div>
             </div>
 
             <div className="col-span-2">
