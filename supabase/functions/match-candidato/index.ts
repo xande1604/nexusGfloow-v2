@@ -1,10 +1,20 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import * as pdfjsLib from "https://esm.sh/pdfjs-dist@4.4.168/legacy/build/pdf.mjs";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+const SUPABASE_URL = Deno.env.get('SUPABASE_URL') ?? '';
+const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? '';
+
+// Usamos SERVICE_ROLE_KEY para conseguir baixar currículos em buckets privados.
+// Importante: só permitimos baixar arquivos do Storage do próprio projeto (evita SSRF).
+const supabaseAdmin = SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY
+  ? createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)
+  : null;
 
 interface CandidatoSkill {
   skill_name: string;
@@ -39,19 +49,70 @@ interface VagaData {
   skills: VagaSkill[];
 }
 
+function parseSupabaseStorageUrl(
+  urlStr: string,
+  supabaseUrl: string,
+): { bucket: string; path: string } | null {
+  try {
+    const u = new URL(urlStr);
+    const base = new URL(supabaseUrl);
+
+    if (u.origin !== base.origin) return null;
+
+    const parts = u.pathname.split('/').filter(Boolean);
+    // Ex.: /storage/v1/object/public/<bucket>/<path>
+    const objectIdx = parts.indexOf('object');
+    if (objectIdx === -1) return null;
+
+    const access = parts[objectIdx + 1];
+    if (access !== 'public' && access !== 'sign') return null;
+
+    const bucket = parts[objectIdx + 2];
+    const path = parts.slice(objectIdx + 3).join('/');
+
+    if (!bucket || !path) return null;
+
+    return { bucket, path: decodeURIComponent(path) };
+  } catch {
+    return null;
+  }
+}
+
+async function getPdfBytes(pdfUrl: string): Promise<Uint8Array | null> {
+  // Preferência: baixar via Storage (funciona para buckets privados também)
+  if (supabaseAdmin) {
+    const parsed = parseSupabaseStorageUrl(pdfUrl, SUPABASE_URL);
+    if (parsed) {
+      console.log('Downloading PDF via Supabase Storage:', parsed.bucket, parsed.path);
+      const { data, error } = await supabaseAdmin.storage
+        .from(parsed.bucket)
+        .download(parsed.path);
+
+      if (error || !data) {
+        console.error('Storage download failed:', error);
+        return null;
+      }
+
+      return new Uint8Array(await data.arrayBuffer());
+    }
+  }
+
+  // Fallback: HTTP fetch (apenas para URLs que não sejam do nosso Storage)
+  console.log('Fetching PDF via HTTP:', pdfUrl);
+  const resp = await fetch(pdfUrl);
+  if (!resp.ok) {
+    console.error('Failed to fetch PDF:', resp.status);
+    return null;
+  }
+  return new Uint8Array(await resp.arrayBuffer());
+}
+
 // Extract text from a PDF (text layer) using pdfjs-dist.
 // Note: For scanned PDFs (image-only), this may return an empty string.
 async function extractPdfText(pdfUrl: string): Promise<string> {
   try {
-    console.log('Fetching PDF from:', pdfUrl);
-
-    const pdfResponse = await fetch(pdfUrl);
-    if (!pdfResponse.ok) {
-      console.error('Failed to fetch PDF:', pdfResponse.status);
-      return '';
-    }
-
-    const pdfBytes = new Uint8Array(await pdfResponse.arrayBuffer());
+    const pdfBytes = await getPdfBytes(pdfUrl);
+    if (!pdfBytes) return '';
 
     const loadingTask = (pdfjsLib as any).getDocument({
       data: pdfBytes,
@@ -87,6 +148,7 @@ async function extractPdfText(pdfUrl: string): Promise<string> {
     return '';
   }
 }
+
 
 serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -146,7 +208,7 @@ serve(async (req) => {
 
     // Create AI prompt for detailed analysis including CV content
     const curriculoSection = curriculoContent 
-      ? `\n\nCONTEÚDO DO CURRÍCULO (PDF):\n${curriculoContent.substring(0, 4000)}`
+      ? `\n\nCONTEÚDO DO CURRÍCULO (PDF):\n${curriculoContent.substring(0, 12000)}`
       : '\n\nCurrículo: Não disponível';
 
     const prompt = `Analise a compatibilidade entre este candidato e vaga. IMPORTANTE: Considere TODO o conteúdo do currículo PDF se disponível para extrair skills, experiências e formação.
