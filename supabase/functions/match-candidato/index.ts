@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import * as pdfjsLib from "https://esm.sh/pdfjs-dist@4.4.168/legacy/build/pdf.mjs";
+// Import via CDN (jsDelivr) para manter compatibilidade com o workerSrc.
+import * as pdfjsLib from "https://cdn.jsdelivr.net/npm/pdfjs-dist@4.4.168/legacy/build/pdf.mjs";
 
 const PDFJS_VERSION = "4.4.168";
 // esm.sh nem sempre expõe o worker como módulo; jsDelivr costuma ser mais estável.
