@@ -46,6 +46,7 @@ export const MatchModal = ({
             nome: candidato.nome,
             resumo_profissional: candidato.resumo_profissional,
             pretensao_salarial: candidato.pretensao_salarial,
+            curriculo_url: candidato.curriculo_url,
             skills: candidato.skills || [],
             experiencias: candidato.experiencias || [],
             formacoes: candidato.formacoes || [],
