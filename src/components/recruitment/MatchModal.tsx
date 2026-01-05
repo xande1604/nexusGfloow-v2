@@ -234,6 +234,19 @@ export const MatchModal = ({
                 </div>
               )}
 
+              {/* CV Preview - Debug */}
+              <div className="border rounded-lg p-3">
+                <h4 className="font-medium text-sm mb-2 flex items-center gap-2">
+                  📄 Currículo
+                  <Badge variant={displayResult.curriculo_analisado ? 'default' : 'destructive'} className="text-xs">
+                    {displayResult.curriculo_analisado ? 'Lido com sucesso' : 'Não lido'}
+                  </Badge>
+                </h4>
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap max-h-32 overflow-y-auto bg-muted/50 p-2 rounded">
+                  {displayResult.curriculo_preview || 'Sem preview disponível'}
+                </p>
+              </div>
+
               {/* AI Summary */}
               {displayResult.resumo_ia && (
                 <div className="p-3 bg-brand-50 dark:bg-brand-900/20 rounded-lg">
