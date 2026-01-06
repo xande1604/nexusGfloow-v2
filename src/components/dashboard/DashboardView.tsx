@@ -32,9 +32,7 @@ export const DashboardView = ({ roles, skills, employees, onNavigate }: Dashboar
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Demo Mode Banner */}
-      {showDemoBanner && (
-        <DemoDashboardBanner onNavigateToSettings={() => onNavigate?.('settings')} />
-      )}
+      {showDemoBanner && <DemoDashboardBanner />}
       {/* Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <StatsCard

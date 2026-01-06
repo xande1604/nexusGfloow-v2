@@ -741,7 +741,13 @@ export type Database = {
       }
       diagnosticos: {
         Row: {
+          action_plan: string | null
+          app_type: string | null
           cargo: string | null
+          company_name: string | null
+          company_segment: string | null
+          contact_email: string | null
+          contact_name: string | null
           created_at: string
           diagnostico_ia: string | null
           email: string
@@ -756,11 +762,20 @@ export type Database = {
           score_ia: number
           score_people_analytics: number
           score_total: number
+          scores: Json | null
           telefone: string | null
+          total_score: number | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
+          action_plan?: string | null
+          app_type?: string | null
           cargo?: string | null
+          company_name?: string | null
+          company_segment?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
           created_at?: string
           diagnostico_ia?: string | null
           email: string
@@ -775,11 +790,20 @@ export type Database = {
           score_ia: number
           score_people_analytics: number
           score_total: number
+          scores?: Json | null
           telefone?: string | null
+          total_score?: number | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
+          action_plan?: string | null
+          app_type?: string | null
           cargo?: string | null
+          company_name?: string | null
+          company_segment?: string | null
+          contact_email?: string | null
+          contact_name?: string | null
           created_at?: string
           diagnostico_ia?: string | null
           email?: string
@@ -794,8 +818,11 @@ export type Database = {
           score_ia?: number
           score_people_analytics?: number
           score_total?: number
+          scores?: Json | null
           telefone?: string | null
+          total_score?: number | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -1338,6 +1365,125 @@ export type Database = {
           owner_admin_id?: string | null
           tipoevento?: string | null
           updated_at?: string | null
+        }
+        Relationships: []
+      }
+      ferias_concessoes: {
+        Row: {
+          codempresa: string
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          dias_abono: number | null
+          dias_gozados: number
+          id: string
+          matricula: string
+          observacoes: string | null
+          owner_admin_id: string | null
+          periodo_id: string | null
+          status: string | null
+          tipo: string | null
+          updated_at: string
+        }
+        Insert: {
+          codempresa: string
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          dias_abono?: number | null
+          dias_gozados: number
+          id?: string
+          matricula: string
+          observacoes?: string | null
+          owner_admin_id?: string | null
+          periodo_id?: string | null
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codempresa?: string
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          dias_abono?: number | null
+          dias_gozados?: number
+          id?: string
+          matricula?: string
+          observacoes?: string | null
+          owner_admin_id?: string | null
+          periodo_id?: string | null
+          status?: string | null
+          tipo?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ferias_concessoes_periodo_id_fkey"
+            columns: ["periodo_id"]
+            isOneToOne: false
+            referencedRelation: "ferias_periodos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ferias_periodos: {
+        Row: {
+          codempresa: string
+          created_at: string
+          data_admissao: string | null
+          data_limite_concessao: string | null
+          dias_direito: number | null
+          dias_gozados: number | null
+          dias_vendidos: number | null
+          fim_periodo_aquisitivo: string
+          id: string
+          inicio_periodo_aquisitivo: string
+          matricula: string
+          nome_colaborador: string | null
+          observacoes: string | null
+          owner_admin_id: string | null
+          saldo_dias: number | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          codempresa: string
+          created_at?: string
+          data_admissao?: string | null
+          data_limite_concessao?: string | null
+          dias_direito?: number | null
+          dias_gozados?: number | null
+          dias_vendidos?: number | null
+          fim_periodo_aquisitivo: string
+          id?: string
+          inicio_periodo_aquisitivo: string
+          matricula: string
+          nome_colaborador?: string | null
+          observacoes?: string | null
+          owner_admin_id?: string | null
+          saldo_dias?: number | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          codempresa?: string
+          created_at?: string
+          data_admissao?: string | null
+          data_limite_concessao?: string | null
+          dias_direito?: number | null
+          dias_gozados?: number | null
+          dias_vendidos?: number | null
+          fim_periodo_aquisitivo?: string
+          id?: string
+          inicio_periodo_aquisitivo?: string
+          matricula?: string
+          nome_colaborador?: string | null
+          observacoes?: string | null
+          owner_admin_id?: string | null
+          saldo_dias?: number | null
+          status?: string | null
+          updated_at?: string
         }
         Relationships: []
       }
