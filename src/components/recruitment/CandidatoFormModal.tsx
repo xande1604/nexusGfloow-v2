@@ -20,6 +20,7 @@ import {
 import { Plus, X, Upload, FileText, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { getStorageViewUrl } from '@/lib/storageUrls';
 import type { Candidato, CandidatoSkill } from '@/types/recruitment';
 
 interface CandidatoFormModalProps {
@@ -129,6 +130,8 @@ export const CandidatoFormModal = ({
 
       if (uploadError) throw uploadError;
 
+      // Bucket de currículos é privado; para persistência, salvamos a URL “pública” apenas como referência
+      // (ela nos permite extrair bucket/path depois) e geramos URL assinada na hora de visualizar.
       const { data: { publicUrl } } = supabase.storage
         .from('curriculos')
         .getPublicUrl(filePath);
@@ -150,6 +153,22 @@ export const CandidatoFormModal = ({
       setIsUploadingFile(false);
     }
   };
+
+  const handleOpenCurriculo = async () => {
+    if (!formData.curriculo_url) return;
+    try {
+      const viewUrl = await getStorageViewUrl(formData.curriculo_url);
+      window.open(viewUrl, '_blank', 'noopener,noreferrer');
+    } catch (error: any) {
+      console.error('Erro ao abrir currículo:', error);
+      toast({
+        title: 'Não foi possível abrir o currículo',
+        description: 'Tente novamente. Se persistir, verifique as permissões do bucket.',
+        variant: 'destructive',
+      });
+    }
+  };
+
 
   const handleAddSkill = () => {
     if (newSkill.name.trim()) {
@@ -301,15 +320,14 @@ export const CandidatoFormModal = ({
                   )}
                 </Button>
                 {formData.curriculo_url && (
-                  <a
-                    href={formData.curriculo_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => void handleOpenCurriculo()}
                     className="flex items-center gap-1 text-sm text-primary hover:underline"
                   >
                     <FileText className="w-4 h-4" />
                     Ver currículo
-                  </a>
+                  </button>
                 )}
               </div>
             </div>
