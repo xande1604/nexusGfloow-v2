@@ -17,6 +17,7 @@ const Blog = lazy(() => import("./pages/Blog"));
 const BlogPost = lazy(() => import("./pages/BlogPost"));
 const PitchDeck = lazy(() => import("./pages/PitchDeck"));
 const Install = lazy(() => import("./pages/Install"));
+const TrabalheConosco = lazy(() => import("./pages/TrabalheConosco"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="/blog/:slug" element={<BlogPost />} />
                 <Route path="/pitch" element={<PitchDeck />} />
                 <Route path="/install" element={<Install />} />
+                <Route path="/trabalhe-conosco" element={<TrabalheConosco />} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
             </Suspense>

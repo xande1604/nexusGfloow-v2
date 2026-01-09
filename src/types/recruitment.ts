@@ -77,6 +77,7 @@ export interface Vaga {
   data_limite?: string;
   status: 'aberta' | 'em_analise' | 'fechada' | 'cancelada' | 'pausada';
   prioridade: 'baixa' | 'normal' | 'alta' | 'urgente';
+  publicado?: boolean;
   created_at?: string;
   updated_at?: string;
   skills?: VagaSkill[];
