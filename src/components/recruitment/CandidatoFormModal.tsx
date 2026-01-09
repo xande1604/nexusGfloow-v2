@@ -122,7 +122,8 @@ export const CandidatoFormModal = ({
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
-      const filePath = `curriculos/${fileName}`;
+      // Path without subfolder - bucket is already named "curriculos"
+      const filePath = fileName;
 
       const { error: uploadError } = await supabase.storage
         .from('curriculos')
