@@ -14,7 +14,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { useToast } from '@/hooks/use-toast';
-import { getStorageViewUrl } from '@/lib/storageUrls';
+import { getStorageBlobUrl } from '@/lib/storageUrls';
 import { CandidatoFormModal } from './CandidatoFormModal';
 import { CandidatoDetailsModal } from './CandidatoDetailsModal';
 import type { Candidato, Vaga, Candidatura, CandidatoSkill } from '@/types/recruitment';
@@ -46,13 +46,16 @@ export const CandidatosTab = ({
 
   const handleOpenCurriculo = async (curriculoUrl: string) => {
     try {
-      const viewUrl = await getStorageViewUrl(curriculoUrl);
-      window.open(viewUrl, '_blank', 'noopener,noreferrer');
+      const blobUrl = await getStorageBlobUrl(curriculoUrl);
+      const w = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      if (!w) throw new Error('Pop-up bloqueado');
+      // mantém a URL viva por um tempo para o PDF carregar
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000 * 60 * 10);
     } catch (err: any) {
       console.error('Erro ao abrir currículo:', err);
       toast({
         title: 'Não foi possível abrir o currículo',
-        description: 'Tente novamente. Se persistir, verifique as permissões do bucket.',
+        description: 'Tente novamente. Se persistir, verifique bloqueadores/extensões do navegador.',
         variant: 'destructive',
       });
     }
