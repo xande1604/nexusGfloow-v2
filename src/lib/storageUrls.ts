@@ -50,18 +50,27 @@ export async function getStorageViewUrl(
 }
 
 /**
- * Baixa o arquivo via Storage API e devolve uma Blob URL (blob:...),
- * evitando bloqueios por extensões/segurança ao abrir domínios externos.
+ * Baixa o arquivo via Storage API e devolve o Blob.
  */
-export async function getStorageBlobUrl(urlStr: string): Promise<string> {
-  if (!urlStr) return urlStr;
+export async function downloadStorageBlob(urlStr: string): Promise<Blob> {
+  if (!urlStr) throw new Error('URL vazia');
 
   const parsed = parseSupabaseStorageUrl(urlStr);
-  if (!parsed) return urlStr;
+  if (!parsed) throw new Error('URL de storage inválida');
 
   const { data, error } = await supabase.storage.from(parsed.bucket).download(parsed.path);
   if (error || !data) throw error ?? new Error('Falha ao baixar arquivo');
 
-  return URL.createObjectURL(data);
+  return data;
 }
+
+/**
+ * Baixa o arquivo via Storage API e devolve uma Blob URL (blob:...).
+ * Útil para download, mas alguns ambientes bloqueiam visualização por iframe.
+ */
+export async function getStorageBlobUrl(urlStr: string): Promise<string> {
+  const blob = await downloadStorageBlob(urlStr);
+  return URL.createObjectURL(blob);
+}
+
 
