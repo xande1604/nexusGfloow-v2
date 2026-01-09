@@ -3,9 +3,9 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { 
-  Plus, Search, User, Mail, Phone, MapPin, Briefcase, 
-  MoreVertical, Edit, Trash2, FileText, ExternalLink 
+import {
+  Plus, Search, User, Mail, Phone, MapPin, Briefcase,
+  MoreVertical, Edit, Trash2, FileText, ExternalLink
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -13,8 +13,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { useToast } from '@/hooks/use-toast';
-import { getStorageBlobUrl } from '@/lib/storageUrls';
+import { CurriculoViewerModal } from './CurriculoViewerModal';
 import { CandidatoFormModal } from './CandidatoFormModal';
 import { CandidatoDetailsModal } from './CandidatoDetailsModal';
 import type { Candidato, Vaga, Candidatura, CandidatoSkill } from '@/types/recruitment';
@@ -38,27 +37,17 @@ export const CandidatosTab = ({
   onCreateCandidatura,
   isDemoMode,
 }: CandidatosTabProps) => {
-  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedCandidato, setSelectedCandidato] = useState<Candidato | null>(null);
 
-  const handleOpenCurriculo = async (curriculoUrl: string) => {
-    try {
-      const blobUrl = await getStorageBlobUrl(curriculoUrl);
-      const w = window.open(blobUrl, '_blank', 'noopener,noreferrer');
-      if (!w) throw new Error('Pop-up bloqueado');
-      // mantém a URL viva por um tempo para o PDF carregar
-      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000 * 60 * 10);
-    } catch (err: any) {
-      console.error('Erro ao abrir currículo:', err);
-      toast({
-        title: 'Não foi possível abrir o currículo',
-        description: 'Tente novamente. Se persistir, verifique bloqueadores/extensões do navegador.',
-        variant: 'destructive',
-      });
-    }
+  const [curriculoViewerOpen, setCurriculoViewerOpen] = useState(false);
+  const [curriculoViewerUrl, setCurriculoViewerUrl] = useState<string | null>(null);
+
+  const openCurriculoViewer = (url: string) => {
+    setCurriculoViewerUrl(url);
+    setCurriculoViewerOpen(true);
   };
 
   const filteredCandidatos = candidatos.filter(c =>
@@ -151,7 +140,7 @@ export const CandidatosTab = ({
                       <DropdownMenuItem
                         onClick={(e) => {
                           e.stopPropagation();
-                          void handleOpenCurriculo(candidato.curriculo_url!);
+                          openCurriculoViewer(candidato.curriculo_url!);
                         }}
                       >
                         <FileText className="w-4 h-4 mr-2" />
@@ -264,6 +253,15 @@ export const CandidatosTab = ({
           setIsDetailsOpen(false);
           setIsFormOpen(true);
         }}
+      />
+
+      <CurriculoViewerModal
+        open={curriculoViewerOpen}
+        onOpenChange={(o) => {
+          setCurriculoViewerOpen(o);
+          if (!o) setCurriculoViewerUrl(null);
+        }}
+        curriculoUrl={curriculoViewerUrl ?? undefined}
       />
     </div>
   );
