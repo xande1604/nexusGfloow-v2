@@ -20,7 +20,7 @@ import {
 import { Plus, X, Upload, FileText, Loader2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
-import { getStorageViewUrl } from '@/lib/storageUrls';
+import { getStorageBlobUrl } from '@/lib/storageUrls';
 import type { Candidato, CandidatoSkill } from '@/types/recruitment';
 
 interface CandidatoFormModalProps {
@@ -158,13 +158,15 @@ export const CandidatoFormModal = ({
   const handleOpenCurriculo = async () => {
     if (!formData.curriculo_url) return;
     try {
-      const viewUrl = await getStorageViewUrl(formData.curriculo_url);
-      window.open(viewUrl, '_blank', 'noopener,noreferrer');
+      const blobUrl = await getStorageBlobUrl(formData.curriculo_url);
+      const w = window.open(blobUrl, '_blank', 'noopener,noreferrer');
+      if (!w) throw new Error('Pop-up bloqueado');
+      window.setTimeout(() => URL.revokeObjectURL(blobUrl), 1000 * 60 * 10);
     } catch (error: any) {
       console.error('Erro ao abrir currículo:', error);
       toast({
         title: 'Não foi possível abrir o currículo',
-        description: 'Tente novamente. Se persistir, verifique as permissões do bucket.',
+        description: 'Tente novamente. Se persistir, verifique bloqueadores/extensões do navegador.',
         variant: 'destructive',
       });
     }
