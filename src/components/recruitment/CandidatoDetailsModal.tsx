@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { useState } from 'react';
+import { useToast } from '@/hooks/use-toast';
+import { getStorageViewUrl } from '@/lib/storageUrls';
 import type { Candidato, Vaga, Candidatura } from '@/types/recruitment';
 
 interface CandidatoDetailsModalProps {
@@ -42,6 +44,21 @@ export const CandidatoDetailsModal = ({
 }: CandidatoDetailsModalProps) => {
   const [selectedVagaId, setSelectedVagaId] = useState<string>('');
   const [isApplying, setIsApplying] = useState(false);
+  const { toast } = useToast();
+
+  const handleOpenCurriculo = async (curriculoUrl: string) => {
+    try {
+      const viewUrl = await getStorageViewUrl(curriculoUrl);
+      window.open(viewUrl, '_blank', 'noopener,noreferrer');
+    } catch (err: any) {
+      console.error('Erro ao abrir currículo:', err);
+      toast({
+        title: 'Não foi possível abrir o currículo',
+        description: 'Tente novamente. Se persistir, verifique as permissões do bucket.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   if (!candidato) return null;
 
@@ -132,11 +149,13 @@ export const CandidatoDetailsModal = ({
               </Button>
             )}
             {candidato.curriculo_url && (
-              <Button variant="outline" size="sm" asChild>
-                <a href={candidato.curriculo_url} target="_blank" rel="noopener noreferrer">
-                  <FileText className="w-4 h-4 mr-2" />
-                  Currículo
-                </a>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => void handleOpenCurriculo(candidato.curriculo_url!)}
+              >
+                <FileText className="w-4 h-4 mr-2" />
+                Currículo
               </Button>
             )}
           </div>

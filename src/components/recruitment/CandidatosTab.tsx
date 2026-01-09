@@ -13,6 +13,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { useToast } from '@/hooks/use-toast';
+import { getStorageViewUrl } from '@/lib/storageUrls';
 import { CandidatoFormModal } from './CandidatoFormModal';
 import { CandidatoDetailsModal } from './CandidatoDetailsModal';
 import type { Candidato, Vaga, Candidatura, CandidatoSkill } from '@/types/recruitment';
@@ -36,10 +38,25 @@ export const CandidatosTab = ({
   onCreateCandidatura,
   isDemoMode,
 }: CandidatosTabProps) => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState('');
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
   const [selectedCandidato, setSelectedCandidato] = useState<Candidato | null>(null);
+
+  const handleOpenCurriculo = async (curriculoUrl: string) => {
+    try {
+      const viewUrl = await getStorageViewUrl(curriculoUrl);
+      window.open(viewUrl, '_blank', 'noopener,noreferrer');
+    } catch (err: any) {
+      console.error('Erro ao abrir currículo:', err);
+      toast({
+        title: 'Não foi possível abrir o currículo',
+        description: 'Tente novamente. Se persistir, verifique as permissões do bucket.',
+        variant: 'destructive',
+      });
+    }
+  };
 
   const filteredCandidatos = candidatos.filter(c =>
     c.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -128,7 +145,12 @@ export const CandidatosTab = ({
                       Editar
                     </DropdownMenuItem>
                     {candidato.curriculo_url && (
-                      <DropdownMenuItem onClick={(e) => { e.stopPropagation(); window.open(candidato.curriculo_url, '_blank'); }}>
+                      <DropdownMenuItem
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          void handleOpenCurriculo(candidato.curriculo_url!);
+                        }}
+                      >
                         <FileText className="w-4 h-4 mr-2" />
                         Ver Currículo
                       </DropdownMenuItem>
