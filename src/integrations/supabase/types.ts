@@ -2418,6 +2418,7 @@ export type Database = {
           modalidade: string | null
           owner_admin_id: string | null
           prioridade: string | null
+          publicado: boolean | null
           quantidade_vagas: number | null
           requisitos: string | null
           salario_max: number | null
@@ -2441,6 +2442,7 @@ export type Database = {
           modalidade?: string | null
           owner_admin_id?: string | null
           prioridade?: string | null
+          publicado?: boolean | null
           quantidade_vagas?: number | null
           requisitos?: string | null
           salario_max?: number | null
@@ -2464,6 +2466,7 @@ export type Database = {
           modalidade?: string | null
           owner_admin_id?: string | null
           prioridade?: string | null
+          publicado?: boolean | null
           quantidade_vagas?: number | null
           requisitos?: string | null
           salario_max?: number | null

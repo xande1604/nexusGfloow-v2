@@ -5,7 +5,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { 
   Plus, Search, Briefcase, MapPin, Clock, Users, 
-  MoreVertical, Edit, Trash2, Eye, Calendar
+  MoreVertical, Edit, Trash2, Eye, Calendar, Globe
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -140,13 +140,19 @@ export const VagasTab = ({
               <CardContent className="p-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
+                    <div className="flex items-center gap-2 mb-1 flex-wrap">
                       <Badge className={prioridadeConfig.class} variant="secondary">
                         {prioridadeConfig.label}
                       </Badge>
                       <Badge className={statusConfig.class}>
                         {statusConfig.label}
                       </Badge>
+                      {vaga.publicado && (
+                        <Badge variant="outline" className="gap-1 text-green-600 border-green-300 dark:text-green-400 dark:border-green-700">
+                          <Globe className="w-3 h-3" />
+                          Portal
+                        </Badge>
+                      )}
                     </div>
                     <h3 className="font-semibold text-foreground text-lg">{vaga.titulo}</h3>
                     {vaga.cargo_titulo && (

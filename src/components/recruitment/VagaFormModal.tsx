@@ -52,6 +52,7 @@ export const VagaFormModal = ({
     data_limite: '',
     status: 'aberta',
     prioridade: 'normal',
+    publicado: false,
   });
 
   const [skills, setSkills] = useState<Partial<VagaSkill>[]>([]);
@@ -76,6 +77,7 @@ export const VagaFormModal = ({
         data_limite: vaga.data_limite || '',
         status: vaga.status,
         prioridade: vaga.prioridade,
+        publicado: vaga.publicado || false,
       });
       setSkills(vaga.skills || []);
     } else {
@@ -94,6 +96,7 @@ export const VagaFormModal = ({
         data_limite: '',
         status: 'aberta',
         prioridade: 'normal',
+        publicado: false,
       });
       setSkills([]);
     }
@@ -391,6 +394,21 @@ export const VagaFormModal = ({
                   <SelectItem value="cancelada">Cancelada</SelectItem>
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Publicar no Portal */}
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <Label htmlFor="publicado" className="cursor-pointer">Publicar no Portal</Label>
+                <p className="text-xs text-muted-foreground">
+                  Exibir esta vaga em /trabalhe-conosco
+                </p>
+              </div>
+              <Switch
+                id="publicado"
+                checked={formData.publicado}
+                onCheckedChange={(checked) => setFormData({ ...formData, publicado: checked })}
+              />
             </div>
           </div>
 
