@@ -249,80 +249,80 @@ export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerat
         </button>
 
         {/* Roadmap Header */}
-        <div className="bg-card rounded-xl p-6 shadow-medium">
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-4">
-              <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center">
-                <Route className="w-7 h-7 text-primary-foreground" />
+        <div className="bg-card rounded-xl p-4 md:p-6 shadow-medium">
+          <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+            <div className="flex items-center gap-3 md:gap-4 min-w-0">
+              <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-brand-500 to-brand-700 flex items-center justify-center flex-shrink-0">
+                <Route className="w-5 h-5 md:w-7 md:h-7 text-primary-foreground" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-foreground">
+              <div className="min-w-0">
+                <h2 className="text-base md:text-xl font-bold text-foreground truncate">
                   {selectedRoadmap.sourceRoleTitle} → {selectedRoadmap.targetRoleTitle}
                 </h2>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-xs md:text-sm text-muted-foreground truncate">
                   {selectedRoadmap.employeeName && `${selectedRoadmap.employeeName} • `}
                   Criado em {new Date(selectedRoadmap.createdAt).toLocaleDateString('pt-BR')}
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               {onUpdateEmployee && (
                 <button
                   onClick={(e) => handleEditEmployee(selectedRoadmap, e)}
-                  className="flex items-center gap-2 px-3 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
+                  className="flex items-center gap-1.5 md:gap-2 px-2.5 md:px-3 py-1.5 md:py-2 bg-secondary text-foreground rounded-lg text-xs md:text-sm font-medium hover:bg-secondary/80 transition-colors"
                   title="Vincular colaborador"
                 >
-                  <User className="w-4 h-4" />
-                  {selectedRoadmap.employeeId ? 'Alterar' : 'Vincular'}
+                  <User className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                  <span className="hidden sm:inline">{selectedRoadmap.employeeId ? 'Alterar' : 'Vincular'}</span>
                 </button>
               )}
-              <div className="flex items-center gap-2 text-sm text-muted-foreground bg-secondary px-3 py-1.5 rounded-lg">
-                <Clock className="w-4 h-4" />
-                {calculateTotalDuration(selectedRoadmap)}
+              <div className="flex items-center gap-1.5 text-xs md:text-sm text-muted-foreground bg-secondary px-2.5 md:px-3 py-1.5 rounded-lg">
+                <Clock className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">{calculateTotalDuration(selectedRoadmap)}</span>
+                <span className="sm:hidden">{selectedRoadmap.steps?.length || 0}</span>
               </div>
               <button
                 onClick={() => setShowJourneyMap(!showJourneyMap)}
                 className={cn(
-                  "flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors",
+                  "flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 rounded-lg text-xs md:text-sm font-medium transition-colors",
                   showJourneyMap 
                     ? "bg-brand-600 text-primary-foreground" 
                     : "bg-secondary text-foreground hover:bg-secondary/80"
                 )}
               >
-                <Map className="w-4 h-4" />
-                Mapa
+                <Map className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Mapa</span>
               </button>
               {showJourneyMap && (
                 <button
                   onClick={handleReplayAnimation}
-                  className="flex items-center gap-2 px-3 py-2 bg-brand-100 text-brand-700 rounded-lg text-sm font-medium hover:bg-brand-200 transition-colors"
+                  className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 bg-brand-100 text-brand-700 rounded-lg text-xs md:text-sm font-medium hover:bg-brand-200 transition-colors"
                   title="Replay animação"
                 >
-                  <Play className="w-4 h-4" />
-                  Replay
+                  <Play className="w-3.5 h-3.5 md:w-4 md:h-4" />
                 </button>
               )}
               <button
                 onClick={showJourneyMap ? handleExportJourneyMap : handleExportPNG}
                 disabled={isExporting}
-                className="flex items-center gap-2 px-3 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors disabled:opacity-50"
+                className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 bg-secondary text-foreground rounded-lg text-xs md:text-sm font-medium hover:bg-secondary/80 transition-colors disabled:opacity-50"
               >
-                <Image className="w-4 h-4" />
-                PNG
+                <Image className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">PNG</span>
               </button>
               <button
                 onClick={handleExportPDF}
-                className="flex items-center gap-2 px-3 py-2 bg-secondary text-foreground rounded-lg text-sm font-medium hover:bg-secondary/80 transition-colors"
+                className="flex items-center gap-1.5 px-2.5 md:px-3 py-1.5 md:py-2 bg-secondary text-foreground rounded-lg text-xs md:text-sm font-medium hover:bg-secondary/80 transition-colors"
               >
-                <FileText className="w-4 h-4" />
-                PDF
+                <FileText className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">PDF</span>
               </button>
               <button
                 onClick={() => setIsUpdateModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-brand-600 text-primary-foreground rounded-lg text-sm font-medium hover:bg-brand-700 transition-colors"
+                className="flex items-center gap-1.5 px-3 md:px-4 py-1.5 md:py-2 bg-brand-600 text-primary-foreground rounded-lg text-xs md:text-sm font-medium hover:bg-brand-700 transition-colors"
               >
-                <RefreshCw className="w-4 h-4" />
-                Atualizar
+                <RefreshCw className="w-3.5 h-3.5 md:w-4 md:h-4" />
+                <span className="hidden sm:inline">Atualizar</span>
               </button>
             </div>
           </div>
