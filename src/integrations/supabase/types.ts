@@ -1958,6 +1958,39 @@ export type Database = {
         }
         Relationships: []
       }
+      sso_tokens: {
+        Row: {
+          created_at: string
+          email: string
+          expires_at: string
+          id: string
+          token: string
+          used: boolean
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          expires_at: string
+          id?: string
+          token: string
+          used?: boolean
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          expires_at?: string
+          id?: string
+          token?: string
+          used?: boolean
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       test_attempts: {
         Row: {
           auto_score: number | null
@@ -2671,6 +2704,7 @@ export type Database = {
     }
     Functions: {
       admin_has_own_employees: { Args: { _user_id: string }; Returns: boolean }
+      cleanup_expired_sso_tokens: { Args: never; Returns: undefined }
       get_owner_admin_id: { Args: { _user_id: string }; Returns: string }
       has_role: {
         Args: {
