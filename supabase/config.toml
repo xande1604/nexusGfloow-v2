@@ -41,3 +41,6 @@ verify_jwt = true
 
 [functions.match-candidato]
 verify_jwt = true
+
+[functions.generate-sso-token]
+verify_jwt = false
