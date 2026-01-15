@@ -1,4 +1,4 @@
-import { Bell, Search, User, LogOut, ChevronDown, Menu } from 'lucide-react';
+import { Bell, Search, User, LogOut, ChevronDown, Menu, BarChart3, ExternalLink } from 'lucide-react';
 import { AppView } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -82,6 +82,20 @@ export const Header = ({ activeView, onMenuClick }: HeaderProps) => {
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">
+        {/* Analytics Link */}
+        <button
+          onClick={() => window.open('https://gfloow.com.br', '_blank')}
+          className="flex items-center gap-2 h-9 px-3 rounded-lg bg-brand-600 text-primary-foreground hover:bg-brand-700 transition-colors"
+        >
+          <BarChart3 className="w-4 h-4" />
+          {!isMobile && (
+            <>
+              <span className="text-sm font-medium">Analytics</span>
+              <ExternalLink className="w-3.5 h-3.5" />
+            </>
+          )}
+        </button>
+
         {/* Search - hidden on mobile */}
         <div className="relative hidden md:block">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />

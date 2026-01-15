@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Save, Building2, Target, Heart, Plus, X, CheckCircle, Loader2 } from 'lucide-react';
+import { Save, Building2, Target, Heart, Plus, X, CheckCircle, Loader2, BarChart3, ExternalLink } from 'lucide-react';
 import { CompanyContext } from '@/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -46,6 +46,27 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
 
   return (
     <div className="space-y-6 animate-fade-in max-w-4xl">
+      {/* Analytics Card */}
+      <button
+        onClick={() => window.open('https://gfloow.com.br', '_blank')}
+        className="w-full bg-gradient-to-r from-brand-600 to-brand-700 rounded-xl p-6 shadow-medium hover:from-brand-700 hover:to-brand-800 transition-all group text-left"
+      >
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+            <BarChart3 className="w-7 h-7 text-white" />
+          </div>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2">
+              <h3 className="text-lg font-semibold text-white">Analytics - People Analytics</h3>
+              <ExternalLink className="w-4 h-4 text-white/70 group-hover:text-white transition-colors" />
+            </div>
+            <p className="text-sm text-white/80 mt-0.5">
+              Dashboards, KPIs, relatórios de headcount, turnover, horas extras, absenteísmo
+            </p>
+          </div>
+        </div>
+      </button>
+
       {/* Master Admin Panel */}
       {masterLoading ? (
         <div className="bg-card rounded-xl p-6 shadow-medium flex items-center justify-center">

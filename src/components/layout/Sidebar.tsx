@@ -65,9 +65,14 @@ const SidebarContent = ({
           <Layers className="w-5 h-5 text-primary-foreground" />
         </div>
         {!collapsed && (
-          <div className="animate-fade-in">
-            <h1 className="text-lg font-bold text-foreground">GFloow</h1>
-            <p className="text-xs text-muted-foreground -mt-0.5">Nexus • Talentos</p>
+          <div className="animate-fade-in flex items-center gap-2">
+            <div>
+              <h1 className="text-lg font-bold text-foreground">GFloow</h1>
+              <p className="text-xs text-muted-foreground -mt-0.5">Talentos</p>
+            </div>
+            <span className="px-2 py-0.5 text-[10px] font-semibold bg-brand-100 text-brand-700 rounded-full uppercase tracking-wide">
+              Nexus
+            </span>
           </div>
         )}
       </div>
