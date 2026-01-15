@@ -1,11 +1,11 @@
-import { Bell, Search, User, LogOut, ChevronDown, Menu, BarChart3, ExternalLink } from 'lucide-react';
+import { Bell, Search, User, LogOut, ChevronDown, Menu, BarChart3, ExternalLink, Loader2 } from 'lucide-react';
 import { AppView } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
 import { useState, useRef, useEffect } from 'react';
 import { useToast } from '@/hooks/use-toast';
 import { useIsMobile } from '@/hooks/use-mobile';
-
+import { supabase } from '@/integrations/supabase/client';
 interface HeaderProps {
   activeView: AppView;
   onMenuClick?: () => void;
@@ -32,6 +32,7 @@ export const Header = ({ activeView, onMenuClick }: HeaderProps) => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isSsoLoading, setIsSsoLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const isMobile = useIsMobile();
 
@@ -62,6 +63,42 @@ export const Header = ({ activeView, onMenuClick }: HeaderProps) => {
 
   const userName = user?.user_metadata?.name || user?.email?.split('@')[0] || 'Usuário';
 
+  const handleAnalyticsClick = async () => {
+    if (!user) {
+      // If not logged in, just open Analytics normally
+      window.open('https://gfloow.com.br', '_blank');
+      return;
+    }
+
+    setIsSsoLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('generate-sso-token');
+      
+      if (error) {
+        console.error('SSO token generation failed:', error);
+        toast({
+          title: 'Erro ao gerar token SSO',
+          description: 'Abrindo Analytics normalmente...',
+          variant: 'destructive',
+        });
+        window.open('https://gfloow.com.br', '_blank');
+        return;
+      }
+
+      const ssoToken = data?.sso_token;
+      if (ssoToken) {
+        window.open(`https://gfloow.com.br?sso_token=${ssoToken}`, '_blank');
+      } else {
+        window.open('https://gfloow.com.br', '_blank');
+      }
+    } catch (err) {
+      console.error('SSO error:', err);
+      window.open('https://gfloow.com.br', '_blank');
+    } finally {
+      setIsSsoLoading(false);
+    }
+  };
+
   return (
     <header className="h-16 bg-card border-b border-border flex items-center justify-between px-4 md:px-6 sticky top-0 z-40">
       <div className="flex items-center gap-3">
@@ -82,12 +119,17 @@ export const Header = ({ activeView, onMenuClick }: HeaderProps) => {
       </div>
 
       <div className="flex items-center gap-2 md:gap-3">
-        {/* Analytics Link */}
+        {/* Analytics Link with SSO */}
         <button
-          onClick={() => window.open('https://gfloow.com.br', '_blank')}
-          className="flex items-center gap-2 h-9 px-3 rounded-lg bg-brand-600 text-primary-foreground hover:bg-brand-700 transition-colors"
+          onClick={handleAnalyticsClick}
+          disabled={isSsoLoading}
+          className="flex items-center gap-2 h-9 px-3 rounded-lg bg-brand-600 text-primary-foreground hover:bg-brand-700 transition-colors disabled:opacity-70"
         >
-          <BarChart3 className="w-4 h-4" />
+          {isSsoLoading ? (
+            <Loader2 className="w-4 h-4 animate-spin" />
+          ) : (
+            <BarChart3 className="w-4 h-4" />
+          )}
           {!isMobile && (
             <>
               <span className="text-sm font-medium">Analytics</span>
