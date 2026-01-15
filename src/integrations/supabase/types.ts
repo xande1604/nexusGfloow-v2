@@ -2565,8 +2565,10 @@ export type Database = {
           dataafastamento: string | null
           datainclusao: string | null
           datanascimento: string | null
+          email: string | null
           escolaridade: string | null
           estadocivil: string | null
+          gestor_id: string | null
           id: string | null
           matricula: string | null
           nome: string | null
@@ -2597,8 +2599,10 @@ export type Database = {
           dataafastamento?: string | null
           datainclusao?: string | null
           datanascimento?: string | null
+          email?: never
           escolaridade?: string | null
           estadocivil?: string | null
+          gestor_id?: string | null
           id?: string | null
           matricula?: string | null
           nome?: never
@@ -2629,8 +2633,10 @@ export type Database = {
           dataafastamento?: string | null
           datainclusao?: string | null
           datanascimento?: string | null
+          email?: never
           escolaridade?: string | null
           estadocivil?: string | null
+          gestor_id?: string | null
           id?: string | null
           matricula?: string | null
           nome?: never
@@ -2645,7 +2651,22 @@ export type Database = {
           updated_at?: string | null
           valorsalario?: never
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "employees_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "employees_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Functions: {
