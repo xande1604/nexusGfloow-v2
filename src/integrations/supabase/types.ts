@@ -714,28 +714,40 @@ export type Database = {
       }
       dashboard_insights: {
         Row: {
+          analysis_type: string | null
           created_at: string
           dashboard_type: string
           empresa_id: string
+          filters: Json | null
           id: string
           insight_text: string
+          metrics_snapshot: Json | null
           updated_at: string
+          user_id: string | null
         }
         Insert: {
+          analysis_type?: string | null
           created_at?: string
           dashboard_type: string
           empresa_id: string
+          filters?: Json | null
           id?: string
           insight_text: string
+          metrics_snapshot?: Json | null
           updated_at?: string
+          user_id?: string | null
         }
         Update: {
+          analysis_type?: string | null
           created_at?: string
           dashboard_type?: string
           empresa_id?: string
+          filters?: Json | null
           id?: string
           insight_text?: string
+          metrics_snapshot?: Json | null
           updated_at?: string
+          user_id?: string | null
         }
         Relationships: []
       }
