@@ -412,73 +412,67 @@ export const TestsTab = ({ isDemoMode = false }: TestsTabProps) => {
           </CardContent>
         </Card>
       ) : (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {filteredTests.map(test => (
             <Card key={test.id} className="group">
               <CardHeader className="pb-3">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      <CardTitle className="text-base truncate">{test.title}</CardTitle>
-                      <Badge variant={test.isActive ? 'default' : 'secondary'}>
-                        {test.isActive ? 'Ativo' : 'Inativo'}
-                      </Badge>
-                    </div>
-                    {test.description && (
-                      <CardDescription className="line-clamp-2 mt-1">
-                        {test.description}
-                      </CardDescription>
-                    )}
+                <div className="flex flex-col gap-2">
+                  <div className="flex items-start justify-between gap-2">
+                    <CardTitle className="text-base line-clamp-2">{test.title}</CardTitle>
+                    <Badge variant={test.isActive ? 'default' : 'secondary'} className="shrink-0">
+                      {test.isActive ? 'Ativo' : 'Inativo'}
+                    </Badge>
                   </div>
-                  <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => setSimulationTest(test)}
-                      title="Simular teste"
-                    >
-                      <Play className="w-4 h-4 text-primary" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      className="h-8 w-8"
-                      onClick={() => handleDelete(test.id)}
-                    >
-                      <Trash2 className="w-4 h-4 text-destructive" />
-                    </Button>
-                  </div>
+                  {test.description && (
+                    <CardDescription className="line-clamp-2">
+                      {test.description}
+                    </CardDescription>
+                  )}
                 </div>
               </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-4 text-sm text-muted-foreground">
+              <CardContent className="pt-0">
+                <div className="flex flex-wrap items-center gap-2 text-sm text-muted-foreground mb-3">
+                  <span className="flex items-center gap-1">
+                    <FileCheck className="w-3.5 h-3.5" />
+                    {test.questions.length} questões
+                  </span>
+                  {test.timeLimitMinutes && (
                     <span className="flex items-center gap-1">
-                      <FileCheck className="w-4 h-4" />
-                      {test.questions.length} questões
+                      <Clock className="w-3.5 h-3.5" />
+                      {test.timeLimitMinutes}min
                     </span>
-                    {test.timeLimitMinutes && (
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-4 h-4" />
-                        {test.timeLimitMinutes}min
-                      </span>
-                    )}
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <Badge variant="outline">
-                      <Users className="w-3 h-3 mr-1" />
-                      {getParticipationModeLabel(test.participationMode)}
-                    </Badge>
-                    <Badge variant="outline">
-                      Nota mínima: {test.passingScore}%
-                    </Badge>
-                  </div>
-
-                  <div className="text-xs text-muted-foreground">
-                    Criado em {new Date(test.createdAt).toLocaleDateString('pt-BR')}
-                  </div>
+                  )}
+                </div>
+                <div className="flex flex-wrap gap-1.5 mb-3">
+                  <Badge variant="outline" className="text-xs">
+                    <Users className="w-3 h-3 mr-1" />
+                    {getParticipationModeLabel(test.participationMode)}
+                  </Badge>
+                  <Badge variant="outline" className="text-xs">
+                    Nota mínima: {test.passingScore}%
+                  </Badge>
+                </div>
+                <p className="text-xs text-muted-foreground mb-3">
+                  Criado em {new Date(test.createdAt).toLocaleDateString('pt-BR')}
+                </p>
+                <div className="flex gap-1 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => setSimulationTest(test)}
+                    title="Simular teste"
+                  >
+                    <Play className="w-4 h-4 text-primary" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8"
+                    onClick={() => handleDelete(test.id)}
+                  >
+                    <Trash2 className="w-4 h-4 text-destructive" />
+                  </Button>
                 </div>
               </CardContent>
             </Card>

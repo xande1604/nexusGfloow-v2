@@ -298,7 +298,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
 
     return (
       <div className="space-y-6 animate-fade-in">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4">
           <div>
             <button onClick={() => setSelectedCycle(null)} className="text-sm text-muted-foreground hover:text-foreground mb-2 flex items-center gap-1">
               ← Voltar aos ciclos
@@ -306,27 +306,30 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
             <h2 className="text-xl font-bold text-foreground">{selectedCycle.title}</h2>
             {selectedCycle.description && <p className="text-muted-foreground mt-1">{selectedCycle.description}</p>}
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline" onClick={() => generateCycleReport(selectedCycle, cycleEvaluations)}>
+          <div className="flex flex-wrap gap-2">
+            <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => generateCycleReport(selectedCycle, cycleEvaluations)}>
               <Download className="w-4 h-4 mr-2" />
-              Exportar PDF
+              <span className="hidden sm:inline">Exportar PDF</span>
+              <span className="sm:hidden">PDF</span>
             </Button>
             {selectedCycle.status === 'active' && (
               <>
-                <Button variant="outline" onClick={() => setIsAddEmployeesModalOpen(true)}>
+                <Button variant="outline" size="sm" className="flex-1 sm:flex-none" onClick={() => setIsAddEmployeesModalOpen(true)}>
                   <Users className="w-4 h-4 mr-2" />
-                  Adicionar Colaboradores
+                  <span className="hidden sm:inline">Adicionar Colaboradores</span>
+                  <span className="sm:hidden">Adicionar</span>
                 </Button>
-                <Button variant="destructive" onClick={() => closeCycle(selectedCycle.id)}>
+                <Button variant="destructive" size="sm" className="flex-1 sm:flex-none" onClick={() => closeCycle(selectedCycle.id)}>
                   <Lock className="w-4 h-4 mr-2" />
-                  Fechar Ciclo
+                  <span className="hidden sm:inline">Fechar Ciclo</span>
+                  <span className="sm:hidden">Fechar</span>
                 </Button>
               </>
             )}
           </div>
         </div>
 
-        <div className="grid grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           <Card>
             <CardContent className="pt-6">
               <div className="flex items-center gap-3">
