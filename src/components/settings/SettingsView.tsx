@@ -5,6 +5,8 @@ import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { MasterAdminPanel } from './MasterAdminPanel';
 import { useMasterAdminData } from '@/hooks/useMasterAdminData';
+import { RedeemAccessKeyCard } from './RedeemAccessKeyCard';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface SettingsViewProps {
   companyContext: CompanyContext;
@@ -17,6 +19,7 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
   const [isSaving, setIsSaving] = useState(false);
   
   const { isMasterAdmin, users, accessKeys, environments, loading: masterLoading, refreshData } = useMasterAdminData();
+  const { role, loading: roleLoading } = useUserRole();
 
   const handleSave = async () => {
     setIsSaving(true);
@@ -66,6 +69,11 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
           </div>
         </div>
       </button>
+
+      {/* Redeem Access Key Card - Show for users without admin role */}
+      {!roleLoading && role !== 'admin' && (
+        <RedeemAccessKeyCard onSuccess={refreshData} />
+      )}
 
       {/* Master Admin Panel */}
       {masterLoading ? (
