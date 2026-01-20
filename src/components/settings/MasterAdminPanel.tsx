@@ -1,11 +1,13 @@
 import { useState } from 'react';
-import { Users, Key, Building2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Copy } from 'lucide-react';
+import { Users, Key, Building2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Copy, FileText, Eye, Mail, Phone, Building } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import type { PricingResponse } from '@/hooks/useMasterAdminData';
 
 interface UserWithRole {
   id: string;
@@ -38,11 +40,19 @@ interface MasterAdminPanelProps {
   users: UserWithRole[];
   accessKeys: AccessKey[];
   environments: Environment[];
+  pricingResponses: PricingResponse[];
   onRefresh: () => void;
 }
 
-export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }: MasterAdminPanelProps) => {
+const PROFILE_LABELS: Record<string, string> = {
+  empresa_isolada: 'Empresa (Implementação Completa)',
+  consultor_revenda: 'Consultor (Revenda)',
+  consultor_proprio: 'Consultor (Entrega Própria)'
+};
+
+export const MasterAdminPanel = ({ users, accessKeys, environments, pricingResponses, onRefresh }: MasterAdminPanelProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [selectedResponse, setSelectedResponse] = useState<PricingResponse | null>(null);
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -73,6 +83,15 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
     return <Badge className={colors[role] || colors.visualizador}>{role}</Badge>;
   };
 
+  const getProfileBadge = (profileType: string) => {
+    const colors: Record<string, string> = {
+      empresa_isolada: 'bg-blue-500/20 text-blue-700 border-blue-500/30',
+      consultor_revenda: 'bg-purple-500/20 text-purple-700 border-purple-500/30',
+      consultor_proprio: 'bg-emerald-500/20 text-emerald-700 border-emerald-500/30'
+    };
+    return <Badge className={colors[profileType] || 'bg-slate-500/20 text-slate-700'}>{PROFILE_LABELS[profileType] || profileType}</Badge>;
+  };
+
   return (
     <div className="bg-card rounded-xl p-6 shadow-medium">
       <div className="flex items-center justify-between mb-6">
@@ -82,7 +101,7 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
           </div>
           <div>
             <h3 className="text-lg font-semibold text-foreground">Painel Master Admin</h3>
-            <p className="text-sm text-muted-foreground">Gerencie usuários, chaves e ambientes</p>
+            <p className="text-sm text-muted-foreground">Gerencie usuários, chaves, ambientes e leads</p>
           </div>
         </div>
         <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isRefreshing}>
@@ -92,18 +111,22 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
       </div>
 
       <Tabs defaultValue="users" className="w-full">
-        <TabsList className="grid w-full grid-cols-3 mb-4">
+        <TabsList className="grid w-full grid-cols-4 mb-4">
           <TabsTrigger value="users" className="flex items-center gap-2">
             <Users className="w-4 h-4" />
-            Usuários ({users?.length || 0})
+            <span className="hidden sm:inline">Usuários</span> ({users?.length || 0})
           </TabsTrigger>
           <TabsTrigger value="keys" className="flex items-center gap-2">
             <Key className="w-4 h-4" />
-            Chaves ({accessKeys?.length || 0})
+            <span className="hidden sm:inline">Chaves</span> ({accessKeys?.length || 0})
           </TabsTrigger>
           <TabsTrigger value="environments" className="flex items-center gap-2">
             <Building2 className="w-4 h-4" />
-            Ambientes ({environments?.length || 0})
+            <span className="hidden sm:inline">Ambientes</span> ({environments?.length || 0})
+          </TabsTrigger>
+          <TabsTrigger value="pricing" className="flex items-center gap-2">
+            <FileText className="w-4 h-4" />
+            <span className="hidden sm:inline">Leads</span> ({pricingResponses?.length || 0})
           </TabsTrigger>
         </TabsList>
 
@@ -237,7 +260,121 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, onRefresh }:
             </table>
           </div>
         </TabsContent>
+
+        {/* Pricing Responses Tab */}
+        <TabsContent value="pricing">
+          <div className="border border-border rounded-lg overflow-hidden">
+            <table className="w-full">
+              <thead className="bg-muted/50">
+                <tr>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Contato</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Empresa</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Perfil</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Data</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Ações</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-border">
+                {(pricingResponses || []).map((response) => (
+                  <tr key={response.id} className="hover:bg-muted/30 transition-colors">
+                    <td className="px-4 py-3">
+                      <div className="flex flex-col gap-0.5">
+                        <span className="text-sm text-foreground font-medium">{response.contact_name}</span>
+                        <span className="text-xs text-muted-foreground">{response.contact_email}</span>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{response.company_name || '-'}</td>
+                    <td className="px-4 py-3">{getProfileBadge(response.profile_type)}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(response.created_at)}</td>
+                    <td className="px-4 py-3">
+                      <Button variant="ghost" size="sm" onClick={() => setSelectedResponse(response)}>
+                        <Eye className="w-4 h-4 mr-1" />
+                        Ver
+                      </Button>
+                    </td>
+                  </tr>
+                ))}
+                {(!pricingResponses || pricingResponses.length === 0) && (
+                  <tr>
+                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                      Nenhuma resposta de precificação encontrada
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
+        </TabsContent>
       </Tabs>
+
+      {/* Response Detail Modal */}
+      <Dialog open={!!selectedResponse} onOpenChange={(open) => !open && setSelectedResponse(null)}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Detalhes da Resposta de Precificação</DialogTitle>
+          </DialogHeader>
+          {selectedResponse && (
+            <div className="space-y-6">
+              {/* Contact Info */}
+              <div className="bg-muted/50 rounded-lg p-4 space-y-3">
+                <h4 className="font-medium text-foreground">Informações de Contato</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="flex items-center gap-2">
+                    <Users className="w-4 h-4 text-muted-foreground" />
+                    <span className="text-sm">{selectedResponse.contact_name}</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Mail className="w-4 h-4 text-muted-foreground" />
+                    <a href={`mailto:${selectedResponse.contact_email}`} className="text-sm text-primary hover:underline">
+                      {selectedResponse.contact_email}
+                    </a>
+                  </div>
+                  {selectedResponse.contact_phone && (
+                    <div className="flex items-center gap-2">
+                      <Phone className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">{selectedResponse.contact_phone}</span>
+                    </div>
+                  )}
+                  {selectedResponse.company_name && (
+                    <div className="flex items-center gap-2">
+                      <Building className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm">{selectedResponse.company_name}</span>
+                    </div>
+                  )}
+                </div>
+                <div className="pt-2">
+                  {getProfileBadge(selectedResponse.profile_type)}
+                </div>
+              </div>
+
+              {/* Responses */}
+              <div className="space-y-3">
+                <h4 className="font-medium text-foreground">Respostas do Questionário</h4>
+                <div className="border border-border rounded-lg divide-y divide-border">
+                  {Object.entries(selectedResponse.responses || {}).map(([questionId, answer]) => (
+                    <div key={questionId} className="p-3">
+                      <p className="text-xs text-muted-foreground mb-1">Pergunta #{questionId.slice(0, 8)}</p>
+                      <p className="text-sm text-foreground">
+                        {Array.isArray(answer) ? answer.join(', ') : String(answer)}
+                      </p>
+                    </div>
+                  ))}
+                  {Object.keys(selectedResponse.responses || {}).length === 0 && (
+                    <div className="p-3 text-center text-muted-foreground text-sm">
+                      Nenhuma resposta registrada
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Metadata */}
+              <div className="text-xs text-muted-foreground">
+                Enviado em: {formatDate(selectedResponse.created_at)}
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
