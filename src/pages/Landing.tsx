@@ -38,6 +38,7 @@ import {
   Menu,
   X
 } from "lucide-react";
+import { PricingQuestionnaire } from "@/components/pricing/PricingQuestionnaire";
 import { useNavigate, Link } from "react-router-dom";
 
 const contactSchema = z.object({
@@ -105,6 +106,7 @@ const Landing = () => {
     { href: "#recursos", label: "Recursos", isExternal: false },
     { href: "#beneficios", label: "Benefícios", isExternal: false },
     { href: "#ia", label: "IA", isExternal: false },
+    { href: "#precificacao", label: "Preços", isExternal: false },
     { href: "/blog", label: "Blog", isExternal: true },
     { href: "#contato", label: "Contato", isExternal: false },
   ];
@@ -780,8 +782,37 @@ const Landing = () => {
         </div>
       </section>
 
+      {/* Pricing Questionnaire Section */}
+      <section id="precificacao" className="py-20 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            className="text-center mb-12"
+            {...fadeInUp}
+          >
+            <Badge variant="outline" className="mb-4">
+              <DollarSign className="w-4 h-4 mr-2 inline" />
+              Precificação
+            </Badge>
+            <h2 className="text-3xl sm:text-4xl font-bold text-foreground mb-4">
+              Descubra o plano ideal para você
+            </h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Responda algumas perguntas rápidas e receba uma proposta personalizada para sua necessidade.
+            </p>
+          </motion.div>
+
+          <motion.div {...scaleIn}>
+            <Card className="bg-card border-border/50 shadow-xl">
+              <CardContent className="p-8">
+                <PricingQuestionnaire />
+              </CardContent>
+            </Card>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Contact Form Section */}
-      <section id="contato" className="py-20 px-4 sm:px-6 lg:px-8">
+      <section id="contato" className="py-20 px-4 sm:px-6 lg:px-8 bg-muted/30">
         <div className="max-w-7xl mx-auto">
           <div className="grid lg:grid-cols-2 gap-16 items-start">
             <motion.div {...fadeInUp}>
