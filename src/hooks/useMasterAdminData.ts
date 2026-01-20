@@ -42,6 +42,14 @@ export interface PricingResponse {
   created_at: string | null;
 }
 
+export interface PricingQuestion {
+  id: string;
+  question_text: string;
+  question_type: string;
+  profile_type: string;
+  options: any[] | null;
+}
+
 export const useMasterAdminData = () => {
   const { user } = useAuth();
   const [isMasterAdmin, setIsMasterAdmin] = useState(false);
@@ -49,6 +57,7 @@ export const useMasterAdminData = () => {
   const [accessKeys, setAccessKeys] = useState<AccessKey[]>([]);
   const [environments, setEnvironments] = useState<Environment[]>([]);
   const [pricingResponses, setPricingResponses] = useState<PricingResponse[]>([]);
+  const [pricingQuestions, setPricingQuestions] = useState<PricingQuestion[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -160,6 +169,16 @@ export const useMasterAdminData = () => {
         setPricingResponses(pricingData as PricingResponse[]);
       }
 
+      // Fetch pricing questions for context
+      const { data: questionsData, error: questionsError } = await supabase
+        .from('pricing_questions')
+        .select('id, question_text, question_type, profile_type, options')
+        .eq('is_active', true);
+
+      if (!questionsError && questionsData) {
+        setPricingQuestions(questionsData as PricingQuestion[]);
+      }
+
     } catch (err) {
       console.error('Error fetching master admin data:', err);
     }
@@ -177,6 +196,7 @@ export const useMasterAdminData = () => {
     accessKeys,
     environments,
     pricingResponses,
+    pricingQuestions,
     loading,
     refreshData
   };

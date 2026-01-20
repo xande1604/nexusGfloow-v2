@@ -1,13 +1,13 @@
 import { useState } from 'react';
-import { Users, Key, Building2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Copy, FileText, Eye, Mail, Phone, Building } from 'lucide-react';
+import { Users, Key, Building2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Copy, FileText, Eye, Mail, Phone, Building, MessageSquare } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
-import type { PricingResponse } from '@/hooks/useMasterAdminData';
+import type { PricingResponse, PricingQuestion } from '@/hooks/useMasterAdminData';
 
 interface UserWithRole {
   id: string;
@@ -41,6 +41,7 @@ interface MasterAdminPanelProps {
   accessKeys: AccessKey[];
   environments: Environment[];
   pricingResponses: PricingResponse[];
+  pricingQuestions: PricingQuestion[];
   onRefresh: () => void;
 }
 
@@ -50,9 +51,14 @@ const PROFILE_LABELS: Record<string, string> = {
   consultor_proprio: 'Consultor (Entrega Própria)'
 };
 
-export const MasterAdminPanel = ({ users, accessKeys, environments, pricingResponses, onRefresh }: MasterAdminPanelProps) => {
+export const MasterAdminPanel = ({ users, accessKeys, environments, pricingResponses, pricingQuestions, onRefresh }: MasterAdminPanelProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedResponse, setSelectedResponse] = useState<PricingResponse | null>(null);
+
+  const getQuestionText = (questionId: string): string => {
+    const question = pricingQuestions.find(q => q.id === questionId);
+    return question?.question_text || `Pergunta #${questionId.slice(0, 8)}`;
+  };
 
   const handleRefresh = async () => {
     setIsRefreshing(true);
@@ -311,56 +317,70 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
       <Dialog open={!!selectedResponse} onOpenChange={(open) => !open && setSelectedResponse(null)}>
         <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Detalhes da Resposta de Precificação</DialogTitle>
+            <DialogTitle className="flex items-center gap-2">
+              <MessageSquare className="w-5 h-5 text-primary" />
+              Lead de Precificação
+            </DialogTitle>
+            <DialogDescription>
+              Detalhes do questionário enviado pelo potencial cliente
+            </DialogDescription>
           </DialogHeader>
           {selectedResponse && (
-            <div className="space-y-6">
-              {/* Contact Info */}
-              <div className="bg-muted/50 rounded-lg p-4 space-y-3">
-                <h4 className="font-medium text-foreground">Informações de Contato</h4>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="flex items-center gap-2">
-                    <Users className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm">{selectedResponse.contact_name}</span>
+            <div className="space-y-6 mt-2">
+              {/* Contact Card */}
+              <div className="bg-gradient-to-br from-primary/5 to-primary/10 rounded-xl p-5 border border-primary/20">
+                <div className="flex items-start justify-between mb-4">
+                  <div>
+                    <h3 className="text-lg font-semibold text-foreground">{selectedResponse.contact_name}</h3>
+                    {selectedResponse.company_name && (
+                      <p className="text-sm text-muted-foreground flex items-center gap-1.5 mt-0.5">
+                        <Building className="w-3.5 h-3.5" />
+                        {selectedResponse.company_name}
+                      </p>
+                    )}
                   </div>
-                  <div className="flex items-center gap-2">
-                    <Mail className="w-4 h-4 text-muted-foreground" />
-                    <a href={`mailto:${selectedResponse.contact_email}`} className="text-sm text-primary hover:underline">
-                      {selectedResponse.contact_email}
-                    </a>
-                  </div>
-                  {selectedResponse.contact_phone && (
-                    <div className="flex items-center gap-2">
-                      <Phone className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">{selectedResponse.contact_phone}</span>
-                    </div>
-                  )}
-                  {selectedResponse.company_name && (
-                    <div className="flex items-center gap-2">
-                      <Building className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm">{selectedResponse.company_name}</span>
-                    </div>
-                  )}
-                </div>
-                <div className="pt-2">
                   {getProfileBadge(selectedResponse.profile_type)}
+                </div>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <a 
+                    href={`mailto:${selectedResponse.contact_email}`} 
+                    className="flex items-center gap-2 bg-background/80 rounded-lg px-3 py-2.5 hover:bg-background transition-colors group"
+                  >
+                    <Mail className="w-4 h-4 text-primary" />
+                    <span className="text-sm group-hover:text-primary transition-colors">{selectedResponse.contact_email}</span>
+                  </a>
+                  {selectedResponse.contact_phone && (
+                    <a 
+                      href={`tel:${selectedResponse.contact_phone}`}
+                      className="flex items-center gap-2 bg-background/80 rounded-lg px-3 py-2.5 hover:bg-background transition-colors group"
+                    >
+                      <Phone className="w-4 h-4 text-primary" />
+                      <span className="text-sm group-hover:text-primary transition-colors">{selectedResponse.contact_phone}</span>
+                    </a>
+                  )}
                 </div>
               </div>
 
               {/* Responses */}
               <div className="space-y-3">
-                <h4 className="font-medium text-foreground">Respostas do Questionário</h4>
-                <div className="border border-border rounded-lg divide-y divide-border">
-                  {Object.entries(selectedResponse.responses || {}).map(([questionId, answer]) => (
-                    <div key={questionId} className="p-3">
-                      <p className="text-xs text-muted-foreground mb-1">Pergunta #{questionId.slice(0, 8)}</p>
-                      <p className="text-sm text-foreground">
+                <h4 className="font-medium text-foreground flex items-center gap-2">
+                  <FileText className="w-4 h-4 text-muted-foreground" />
+                  Respostas do Questionário
+                </h4>
+                <div className="space-y-2">
+                  {Object.entries(selectedResponse.responses || {}).map(([questionId, answer], index) => (
+                    <div key={questionId} className="bg-muted/30 rounded-lg p-4 border border-border/50">
+                      <p className="text-sm font-medium text-foreground mb-2">
+                        {index + 1}. {getQuestionText(questionId)}
+                      </p>
+                      <p className="text-sm text-primary font-medium bg-primary/10 rounded-md px-3 py-2 inline-block">
                         {Array.isArray(answer) ? answer.join(', ') : String(answer)}
                       </p>
                     </div>
                   ))}
                   {Object.keys(selectedResponse.responses || {}).length === 0 && (
-                    <div className="p-3 text-center text-muted-foreground text-sm">
+                    <div className="p-4 text-center text-muted-foreground text-sm bg-muted/30 rounded-lg">
                       Nenhuma resposta registrada
                     </div>
                   )}
@@ -368,8 +388,21 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
               </div>
 
               {/* Metadata */}
-              <div className="text-xs text-muted-foreground">
-                Enviado em: {formatDate(selectedResponse.created_at)}
+              <div className="flex items-center justify-between text-xs text-muted-foreground pt-2 border-t border-border">
+                <span>Enviado em: {formatDate(selectedResponse.created_at)}</span>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="h-7 text-xs"
+                  onClick={() => {
+                    const text = `${selectedResponse.contact_name}\n${selectedResponse.contact_email}\n${selectedResponse.contact_phone || ''}\n${selectedResponse.company_name || ''}`;
+                    navigator.clipboard.writeText(text);
+                    toast.success('Dados copiados!');
+                  }}
+                >
+                  <Copy className="w-3 h-3 mr-1" />
+                  Copiar contato
+                </Button>
               </div>
             </div>
           )}
