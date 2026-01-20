@@ -29,12 +29,26 @@ interface Environment {
   employeeCount?: number;
 }
 
+export interface PricingResponse {
+  id: string;
+  profile_type: string;
+  contact_name: string;
+  contact_email: string;
+  contact_phone: string | null;
+  company_name: string | null;
+  responses: Record<string, any>;
+  status: string | null;
+  notes: string | null;
+  created_at: string | null;
+}
+
 export const useMasterAdminData = () => {
   const { user } = useAuth();
   const [isMasterAdmin, setIsMasterAdmin] = useState(false);
   const [users, setUsers] = useState<UserWithRole[]>([]);
   const [accessKeys, setAccessKeys] = useState<AccessKey[]>([]);
   const [environments, setEnvironments] = useState<Environment[]>([]);
+  const [pricingResponses, setPricingResponses] = useState<PricingResponse[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -136,6 +150,16 @@ export const useMasterAdminData = () => {
         setEnvironments(envWithCounts);
       }
 
+      // Fetch pricing responses
+      const { data: pricingData, error: pricingError } = await supabase
+        .from('pricing_responses')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (!pricingError && pricingData) {
+        setPricingResponses(pricingData as PricingResponse[]);
+      }
+
     } catch (err) {
       console.error('Error fetching master admin data:', err);
     }
@@ -152,6 +176,7 @@ export const useMasterAdminData = () => {
     users,
     accessKeys,
     environments,
+    pricingResponses,
     loading,
     refreshData
   };

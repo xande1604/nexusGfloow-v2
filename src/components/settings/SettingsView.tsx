@@ -18,7 +18,7 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
   const [newValue, setNewValue] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   
-  const { isMasterAdmin, users, accessKeys, environments, loading: masterLoading, refreshData } = useMasterAdminData();
+  const { isMasterAdmin, users, accessKeys, environments, pricingResponses, loading: masterLoading, refreshData } = useMasterAdminData();
   const { role, loading: roleLoading } = useUserRole();
 
   const handleSave = async () => {
@@ -85,6 +85,7 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
           users={users} 
           accessKeys={accessKeys} 
           environments={environments}
+          pricingResponses={pricingResponses}
           onRefresh={refreshData}
         />
       )}
