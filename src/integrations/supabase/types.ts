@@ -1814,6 +1814,129 @@ export type Database = {
           },
         ]
       }
+      pricing_profiles: {
+        Row: {
+          created_at: string | null
+          description: string | null
+          display_order: number | null
+          icon: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          profile_type: Database["public"]["Enums"]["pricing_profile_type"]
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          profile_type: Database["public"]["Enums"]["pricing_profile_type"]
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          description?: string | null
+          display_order?: number | null
+          icon?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          profile_type?: Database["public"]["Enums"]["pricing_profile_type"]
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      pricing_questions: {
+        Row: {
+          created_at: string | null
+          display_order: number | null
+          id: string
+          is_active: boolean | null
+          is_required: boolean | null
+          metadata: Json | null
+          options: Json | null
+          placeholder: string | null
+          profile_type: Database["public"]["Enums"]["pricing_profile_type"]
+          question_text: string
+          question_type: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          metadata?: Json | null
+          options?: Json | null
+          placeholder?: string | null
+          profile_type: Database["public"]["Enums"]["pricing_profile_type"]
+          question_text: string
+          question_type?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          display_order?: number | null
+          id?: string
+          is_active?: boolean | null
+          is_required?: boolean | null
+          metadata?: Json | null
+          options?: Json | null
+          placeholder?: string | null
+          profile_type?: Database["public"]["Enums"]["pricing_profile_type"]
+          question_text?: string
+          question_type?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      pricing_responses: {
+        Row: {
+          company_name: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone: string | null
+          created_at: string | null
+          id: string
+          notes: string | null
+          profile_type: Database["public"]["Enums"]["pricing_profile_type"]
+          responses: Json
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          company_name?: string | null
+          contact_email: string
+          contact_name: string
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          profile_type: Database["public"]["Enums"]["pricing_profile_type"]
+          responses: Json
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          company_name?: string | null
+          contact_email?: string
+          contact_name?: string
+          contact_phone?: string | null
+          created_at?: string | null
+          id?: string
+          notes?: string | null
+          profile_type?: Database["public"]["Enums"]["pricing_profile_type"]
+          responses?: Json
+          status?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string | null
@@ -2733,6 +2856,10 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "gestor" | "analista" | "visualizador"
+      pricing_profile_type:
+        | "empresa_isolada"
+        | "consultor_revenda"
+        | "consultor_proprio"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -2861,6 +2988,11 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "gestor", "analista", "visualizador"],
+      pricing_profile_type: [
+        "empresa_isolada",
+        "consultor_revenda",
+        "consultor_proprio",
+      ],
     },
   },
 } as const
