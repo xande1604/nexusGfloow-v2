@@ -25,6 +25,7 @@ const RoadmapView = lazy(() => import('@/components/roadmap/RoadmapView').then(m
 const SettingsView = lazy(() => import('@/components/settings/SettingsView').then(m => ({ default: m.SettingsView })));
 const PerformanceView = lazy(() => import('@/components/performance/PerformanceView').then(m => ({ default: m.PerformanceView })));
 const CostCentersView = lazy(() => import('@/components/cost-centers/CostCentersView').then(m => ({ default: m.CostCentersView })));
+const EmpresasView = lazy(() => import('@/components/empresas/EmpresasView').then(m => ({ default: m.EmpresasView })));
 const EmployeesView = lazy(() => import('@/components/employees/EmployeesView').then(m => ({ default: m.EmployeesView })));
 const TutorialsView = lazy(() => import('@/components/tutorials/TutorialsView').then(m => ({ default: m.TutorialsView })));
 const TreinamentosView = lazy(() => import('@/components/treinamentos/TreinamentosView').then(m => ({ default: m.TreinamentosView })));
@@ -261,6 +262,8 @@ const Index = () => {
         return <TestsView isDemoMode={isDemoMode} />;
       case AppView.RECRUITMENT:
         return <RecruitmentView isDemoMode={isDemoMode} />;
+      case AppView.EMPRESAS:
+        return <EmpresasView />;
       case AppView.COST_CENTERS:
         return <CostCentersView />;
       case AppView.TUTORIALS:
