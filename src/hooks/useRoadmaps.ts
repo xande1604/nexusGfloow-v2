@@ -103,7 +103,8 @@ export const useRoadmaps = () => {
     additionalNotes: string | undefined,
     roadmapSteps: RoadmapStep[],
     sourceRoleTitle: string,
-    targetRoleTitle: string
+    targetRoleTitle: string,
+    selectedEvaluationIds?: string[]
   ): Promise<RoadmapProgress | null> => {
     try {
       const { data, error } = await supabase.functions.invoke('update-roadmap-progress', {
@@ -115,7 +116,8 @@ export const useRoadmaps = () => {
           additionalNotes,
           roadmapSteps,
           sourceRoleTitle,
-          targetRoleTitle
+          targetRoleTitle,
+          selectedEvaluationIds
         }
       });
 
