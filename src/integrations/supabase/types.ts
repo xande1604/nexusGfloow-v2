@@ -751,6 +751,39 @@ export type Database = {
         }
         Relationships: []
       }
+      data_webhook_tokens: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean | null
+          last_used_at: string | null
+          name: string
+          owner_admin_id: string | null
+          permissions: string[] | null
+          token: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          name: string
+          owner_admin_id?: string | null
+          permissions?: string[] | null
+          token: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean | null
+          last_used_at?: string | null
+          name?: string
+          owner_admin_id?: string | null
+          permissions?: string[] | null
+          token?: string
+        }
+        Relationships: []
+      }
       diagnosticos: {
         Row: {
           action_plan: string | null
