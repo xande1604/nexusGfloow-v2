@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, Plus, Trash2, GraduationCap, Award, Sparkles, Loader2, CheckCircle2, BookOpen } from 'lucide-react';
+import { X, Plus, Trash2, GraduationCap, Award, Sparkles, Loader2, CheckCircle2, BookOpen, ClipboardCheck } from 'lucide-react';
 import { CareerRoadmap, Skill } from '@/types';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -29,6 +29,15 @@ interface EmployeeSkill {
   acquired_at: string;
 }
 
+interface EmployeeEvaluation {
+  id: string;
+  cycle_title: string;
+  status: string;
+  self_assessment_completed_at: string | null;
+  manager_evaluation_completed_at: string | null;
+  manager_feedback: string | null;
+}
+
 interface RoadmapUpdateModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -42,6 +51,7 @@ export interface RoadmapProgressData {
   acquiredSkills: string[];
   completedTrainings: { name: string; date: string; institution?: string }[];
   additionalNotes?: string;
+  selectedEvaluationIds?: string[];
 }
 
 export const RoadmapUpdateModal = ({
@@ -64,13 +74,15 @@ export const RoadmapUpdateModal = ({
   // Employee data from database
   const [employeeTrainings, setEmployeeTrainings] = useState<EmployeeTraining[]>([]);
   const [employeeSkills, setEmployeeSkills] = useState<EmployeeSkill[]>([]);
+  const [employeeEvaluations, setEmployeeEvaluations] = useState<EmployeeEvaluation[]>([]);
   const [loadingData, setLoadingData] = useState(false);
   const [selectedFromDB, setSelectedFromDB] = useState<{
     trainingIds: string[];
     skillIds: string[];
-  }>({ trainingIds: [], skillIds: [] });
+    evaluationIds: string[];
+  }>({ trainingIds: [], skillIds: [], evaluationIds: [] });
 
-  // Fetch employee trainings and skills
+  // Fetch employee trainings, skills and evaluations
   const fetchEmployeeData = async () => {
     if (!roadmap.employeeId) return;
     
@@ -96,6 +108,33 @@ export const RoadmapUpdateModal = ({
 
       if (skillsError) throw skillsError;
       setEmployeeSkills((skillsData || []) as EmployeeSkill[]);
+
+      // Fetch evaluations with cycle info
+      const { data: evaluationsData, error: evaluationsError } = await supabase
+        .from('employee_evaluations')
+        .select(`
+          id,
+          status,
+          self_assessment_completed_at,
+          manager_evaluation_completed_at,
+          manager_feedback,
+          evaluation_cycles (title)
+        `)
+        .eq('employee_id', roadmap.employeeId)
+        .in('status', ['self_assessment_completed', 'manager_completed', 'completed'])
+        .order('created_at', { ascending: false });
+
+      if (evaluationsError) throw evaluationsError;
+      
+      const mappedEvaluations: EmployeeEvaluation[] = (evaluationsData || []).map((ev: any) => ({
+        id: ev.id,
+        cycle_title: ev.evaluation_cycles?.title || 'Ciclo sem nome',
+        status: ev.status,
+        self_assessment_completed_at: ev.self_assessment_completed_at,
+        manager_evaluation_completed_at: ev.manager_evaluation_completed_at,
+        manager_feedback: ev.manager_feedback
+      }));
+      setEmployeeEvaluations(mappedEvaluations);
     } catch (error) {
       console.error('Error fetching employee data:', error);
     } finally {
@@ -118,7 +157,7 @@ export const RoadmapUpdateModal = ({
         setActiveTab('registros');
       }
       setSkillSearch('');
-      setSelectedFromDB({ trainingIds: [], skillIds: [] });
+      setSelectedFromDB({ trainingIds: [], skillIds: [], evaluationIds: [] });
       fetchEmployeeData();
     }
   }, [isOpen, prefilledData, roadmap.employeeId]);
@@ -163,6 +202,17 @@ export const RoadmapUpdateModal = ({
     });
   };
 
+  const handleToggleEvaluationFromDB = (evaluation: EmployeeEvaluation) => {
+    setSelectedFromDB(prev => {
+      const isSelected = prev.evaluationIds.includes(evaluation.id);
+      if (isSelected) {
+        return { ...prev, evaluationIds: prev.evaluationIds.filter(id => id !== evaluation.id) };
+      } else {
+        return { ...prev, evaluationIds: [...prev.evaluationIds, evaluation.id] };
+      }
+    });
+  };
+
   const handleSelectAllSkills = () => {
     const allSkillNames = employeeSkills.map(s => s.skill_name);
     const allSkillIds = employeeSkills.map(s => s.id);
@@ -179,6 +229,11 @@ export const RoadmapUpdateModal = ({
     }));
     setTrainings(newTrainings);
     setSelectedFromDB(prev => ({ ...prev, trainingIds: allTrainingIds }));
+  };
+
+  const handleSelectAllEvaluations = () => {
+    const allEvaluationIds = employeeEvaluations.map(e => e.id);
+    setSelectedFromDB(prev => ({ ...prev, evaluationIds: allEvaluationIds }));
   };
 
   const filteredSkills = availableSkills.filter(skill =>
@@ -209,10 +264,19 @@ export const RoadmapUpdateModal = ({
     ));
   };
 
+  const getEvaluationStatusLabel = (status: string) => {
+    switch (status) {
+      case 'self_assessment_completed': return 'Autoavaliação';
+      case 'manager_completed':
+      case 'completed': return 'Completa';
+      default: return status;
+    }
+  };
+
   const handleSubmit = async () => {
     const validTrainings = trainings.filter(t => t.name.trim() !== '');
     
-    if (selectedSkills.length === 0 && validTrainings.length === 0) {
+    if (selectedSkills.length === 0 && validTrainings.length === 0 && selectedFromDB.evaluationIds.length === 0) {
       return;
     }
 
@@ -221,7 +285,8 @@ export const RoadmapUpdateModal = ({
       await onUpdate({
         acquiredSkills: selectedSkills,
         completedTrainings: validTrainings,
-        additionalNotes: additionalNotes.trim() || undefined
+        additionalNotes: additionalNotes.trim() || undefined,
+        selectedEvaluationIds: selectedFromDB.evaluationIds.length > 0 ? selectedFromDB.evaluationIds : undefined
       });
       onClose();
     } finally {
@@ -399,6 +464,75 @@ export const RoadmapUpdateModal = ({
                             </div>
                             <Badge className="bg-emerald-100 text-emerald-700 border-0 text-xs">
                               Concluído
+                            </Badge>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Employee Evaluations from DB */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="flex items-center gap-2 text-sm font-medium text-foreground">
+                        <ClipboardCheck className="w-4 h-4 text-brand-600" />
+                        Avaliações de Desempenho ({employeeEvaluations.length})
+                      </label>
+                      {employeeEvaluations.length > 0 && (
+                        <button
+                          onClick={handleSelectAllEvaluations}
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Selecionar todas
+                        </button>
+                      )}
+                    </div>
+                    
+                    {employeeEvaluations.length === 0 ? (
+                      <p className="text-sm text-muted-foreground py-3">
+                        Nenhuma avaliação de desempenho concluída para este colaborador.
+                      </p>
+                    ) : (
+                      <div className="space-y-2 max-h-48 overflow-y-auto">
+                        {employeeEvaluations.map(evaluation => (
+                          <div
+                            key={evaluation.id}
+                            onClick={() => handleToggleEvaluationFromDB(evaluation)}
+                            className={cn(
+                              "flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors",
+                              selectedFromDB.evaluationIds.includes(evaluation.id)
+                                ? "bg-brand-50 border-brand-300 dark:bg-brand-950/30 dark:border-brand-700"
+                                : "bg-secondary/50 border-border hover:border-primary/30"
+                            )}
+                          >
+                            <div className="flex items-center gap-3">
+                              <div className={cn(
+                                "w-5 h-5 rounded-full border-2 flex items-center justify-center",
+                                selectedFromDB.evaluationIds.includes(evaluation.id)
+                                  ? "border-brand-600 bg-brand-600"
+                                  : "border-muted-foreground"
+                              )}>
+                                {selectedFromDB.evaluationIds.includes(evaluation.id) && (
+                                  <CheckCircle2 className="w-3 h-3 text-white" />
+                                )}
+                              </div>
+                              <div>
+                                <p className="text-sm font-medium text-foreground">{evaluation.cycle_title}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {evaluation.self_assessment_completed_at && 
+                                    `Autoavaliação: ${format(new Date(evaluation.self_assessment_completed_at), "dd/MM/yyyy", { locale: ptBR })}`}
+                                  {evaluation.manager_evaluation_completed_at && 
+                                    ` • Gestor: ${format(new Date(evaluation.manager_evaluation_completed_at), "dd/MM/yyyy", { locale: ptBR })}`}
+                                </p>
+                              </div>
+                            </div>
+                            <Badge className={cn(
+                              "border-0 text-xs",
+                              evaluation.status === 'completed' || evaluation.status === 'manager_completed'
+                                ? "bg-emerald-100 text-emerald-700"
+                                : "bg-amber-100 text-amber-700"
+                            )}>
+                              {getEvaluationStatusLabel(evaluation.status)}
                             </Badge>
                           </div>
                         ))}

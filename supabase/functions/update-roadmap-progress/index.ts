@@ -22,10 +22,11 @@ serve(async (req) => {
       additionalNotes,
       roadmapSteps,
       sourceRoleTitle,
-      targetRoleTitle
+      targetRoleTitle,
+      selectedEvaluationIds
     } = await req.json();
 
-    console.log('Updating roadmap progress:', { roadmapId, employeeId, acquiredSkills, completedTrainings });
+    console.log('Updating roadmap progress:', { roadmapId, employeeId, acquiredSkills, completedTrainings, selectedEvaluationIds });
 
     const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
     if (!LOVABLE_API_KEY) {
@@ -47,19 +48,33 @@ serve(async (req) => {
     const existingProgress = existingRoadmap?.progress as any;
     console.log('Existing progress:', existingProgress ? 'found' : 'none');
 
-    // Fetch employee's self-assessments and manager evaluations if employeeId provided
+    // Fetch employee's evaluations - prioritize selected ones, fallback to most recent
     let evaluationData = null;
     if (employeeId) {
-      const { data: evaluations } = await supabase
-        .from('employee_evaluations')
-        .select('self_assessment_responses, manager_evaluation_responses, manager_feedback, questions')
-        .eq('employee_id', employeeId)
-        .order('created_at', { ascending: false })
-        .limit(3);
+      if (selectedEvaluationIds && selectedEvaluationIds.length > 0) {
+        // Fetch specifically selected evaluations
+        const { data: evaluations } = await supabase
+          .from('employee_evaluations')
+          .select('self_assessment_responses, manager_evaluation_responses, manager_feedback, questions')
+          .in('id', selectedEvaluationIds);
 
-      if (evaluations && evaluations.length > 0) {
-        evaluationData = evaluations;
-        console.log('Found evaluation data:', evaluations.length, 'records');
+        if (evaluations && evaluations.length > 0) {
+          evaluationData = evaluations;
+          console.log('Found selected evaluation data:', evaluations.length, 'records');
+        }
+      } else {
+        // Fallback: fetch most recent evaluations
+        const { data: evaluations } = await supabase
+          .from('employee_evaluations')
+          .select('self_assessment_responses, manager_evaluation_responses, manager_feedback, questions')
+          .eq('employee_id', employeeId)
+          .order('created_at', { ascending: false })
+          .limit(3);
+
+        if (evaluations && evaluations.length > 0) {
+          evaluationData = evaluations;
+          console.log('Found recent evaluation data:', evaluations.length, 'records');
+        }
       }
     }
 

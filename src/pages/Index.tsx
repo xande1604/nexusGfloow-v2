@@ -144,7 +144,7 @@ const Index = () => {
   const handleUpdateRoadmapProgress = async (
     roadmapId: string, 
     employeeId: string | undefined, 
-    data: { acquiredSkills: string[]; completedTrainings: { name: string; date: string; institution?: string }[]; additionalNotes?: string },
+    data: { acquiredSkills: string[]; completedTrainings: { name: string; date: string; institution?: string }[]; additionalNotes?: string; selectedEvaluationIds?: string[] },
     roadmap: { steps: any[]; sourceRoleTitle: string; targetRoleTitle: string }
   ) => {
     if (isDemoMode) {
@@ -164,7 +164,8 @@ const Index = () => {
       data.additionalNotes,
       roadmap.steps,
       roadmap.sourceRoleTitle,
-      roadmap.targetRoleTitle
+      roadmap.targetRoleTitle,
+      data.selectedEvaluationIds
     );
   };
 
