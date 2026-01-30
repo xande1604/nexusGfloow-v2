@@ -49,31 +49,70 @@ serve(async (req) => {
     console.log('Existing progress:', existingProgress ? 'found' : 'none');
 
     // Fetch employee's evaluations - prioritize selected ones, fallback to most recent
-    let evaluationData = null;
+    let evaluationData: any[] = [];
     if (employeeId) {
       if (selectedEvaluationIds && selectedEvaluationIds.length > 0) {
-        // Fetch specifically selected evaluations
-        const { data: evaluations } = await supabase
+        // Fetch from employee_evaluations (cycle evaluations)
+        const { data: cycleEvaluations } = await supabase
           .from('employee_evaluations')
           .select('self_assessment_responses, manager_evaluation_responses, manager_feedback, questions')
           .in('id', selectedEvaluationIds);
 
-        if (evaluations && evaluations.length > 0) {
-          evaluationData = evaluations;
-          console.log('Found selected evaluation data:', evaluations.length, 'records');
+        if (cycleEvaluations && cycleEvaluations.length > 0) {
+          evaluationData.push(...cycleEvaluations.map(ev => ({
+            ...ev,
+            source: 'cycle'
+          })));
+          console.log('Found cycle evaluation data:', cycleEvaluations.length, 'records');
+        }
+
+        // Fetch from performance_reviews (standalone evaluations)
+        const { data: standaloneReviews } = await supabase
+          .from('performance_reviews')
+          .select('questions, responses, overall_feedback, date')
+          .in('id', selectedEvaluationIds);
+
+        if (standaloneReviews && standaloneReviews.length > 0) {
+          evaluationData.push(...standaloneReviews.map(rev => ({
+            self_assessment_responses: rev.responses,
+            manager_evaluation_responses: null,
+            manager_feedback: rev.overall_feedback,
+            questions: rev.questions,
+            source: 'standalone',
+            date: rev.date
+          })));
+          console.log('Found standalone review data:', standaloneReviews.length, 'records');
         }
       } else {
-        // Fallback: fetch most recent evaluations
-        const { data: evaluations } = await supabase
+        // Fallback: fetch most recent from both tables
+        const { data: cycleEvaluations } = await supabase
           .from('employee_evaluations')
           .select('self_assessment_responses, manager_evaluation_responses, manager_feedback, questions')
           .eq('employee_id', employeeId)
           .order('created_at', { ascending: false })
           .limit(3);
 
-        if (evaluations && evaluations.length > 0) {
-          evaluationData = evaluations;
-          console.log('Found recent evaluation data:', evaluations.length, 'records');
+        if (cycleEvaluations && cycleEvaluations.length > 0) {
+          evaluationData.push(...cycleEvaluations);
+          console.log('Found recent cycle evaluation data:', cycleEvaluations.length, 'records');
+        }
+
+        const { data: standaloneReviews } = await supabase
+          .from('performance_reviews')
+          .select('questions, responses, overall_feedback, date')
+          .eq('employee_id', employeeId)
+          .eq('status', 'Completed')
+          .order('date', { ascending: false })
+          .limit(3);
+
+        if (standaloneReviews && standaloneReviews.length > 0) {
+          evaluationData.push(...standaloneReviews.map(rev => ({
+            self_assessment_responses: rev.responses,
+            manager_evaluation_responses: null,
+            manager_feedback: rev.overall_feedback,
+            questions: rev.questions
+          })));
+          console.log('Found recent standalone review data:', standaloneReviews.length, 'records');
         }
       }
     }
@@ -92,9 +131,9 @@ PROGRESSO INFORMADO PELO COLABORADOR:
 - Treinamentos Realizados: ${completedTrainings.length > 0 ? completedTrainings.map((t: any) => `${t.name}${t.institution ? ` (${t.institution})` : ''}`).join(', ') : 'Nenhum informado'}
 ${additionalNotes ? `- Observações: ${additionalNotes}` : ''}
 
-${evaluationData ? `DADOS DE AVALIAÇÕES ANTERIORES:
+${evaluationData.length > 0 ? `DADOS DE AVALIAÇÕES ANTERIORES:
 ${evaluationData.map((ev: any, i: number) => `
-Avaliação ${i + 1}:
+Avaliação ${i + 1}${ev.source ? ` (${ev.source === 'standalone' ? 'Avulsa' : 'Ciclo'})` : ''}:
 - Autoavaliação: ${ev.self_assessment_responses ? JSON.stringify(ev.self_assessment_responses) : 'Não realizada'}
 - Avaliação do Gestor: ${ev.manager_evaluation_responses ? JSON.stringify(ev.manager_evaluation_responses) : 'Não realizada'}
 - Feedback do Gestor: ${ev.manager_feedback || 'Não informado'}
