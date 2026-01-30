@@ -36,6 +36,8 @@ interface EmployeeEvaluation {
   self_assessment_completed_at: string | null;
   manager_evaluation_completed_at: string | null;
   manager_feedback: string | null;
+  source: 'cycle' | 'standalone'; // To distinguish between the two types
+  date?: string | null;
 }
 
 interface RoadmapUpdateModalProps {
@@ -109,8 +111,8 @@ export const RoadmapUpdateModal = ({
       if (skillsError) throw skillsError;
       setEmployeeSkills((skillsData || []) as EmployeeSkill[]);
 
-      // Fetch evaluations with cycle info
-      const { data: evaluationsData, error: evaluationsError } = await supabase
+      // Fetch evaluations from cycles (employee_evaluations)
+      const { data: cycleEvaluationsData, error: cycleEvaluationsError } = await supabase
         .from('employee_evaluations')
         .select(`
           id,
@@ -124,17 +126,44 @@ export const RoadmapUpdateModal = ({
         .in('status', ['self_assessment_completed', 'manager_completed', 'completed'])
         .order('created_at', { ascending: false });
 
-      if (evaluationsError) throw evaluationsError;
-      
-      const mappedEvaluations: EmployeeEvaluation[] = (evaluationsData || []).map((ev: any) => ({
+      if (cycleEvaluationsError) throw cycleEvaluationsError;
+
+      // Fetch standalone evaluations (performance_reviews)
+      const { data: standaloneReviewsData, error: standaloneReviewsError } = await supabase
+        .from('performance_reviews')
+        .select('id, status, date, overall_feedback')
+        .eq('employee_id', roadmap.employeeId)
+        .eq('status', 'Completed')
+        .order('date', { ascending: false });
+
+      if (standaloneReviewsError) throw standaloneReviewsError;
+
+      // Map cycle evaluations
+      const mappedCycleEvaluations: EmployeeEvaluation[] = (cycleEvaluationsData || []).map((ev: any) => ({
         id: ev.id,
         cycle_title: ev.evaluation_cycles?.title || 'Ciclo sem nome',
         status: ev.status,
         self_assessment_completed_at: ev.self_assessment_completed_at,
         manager_evaluation_completed_at: ev.manager_evaluation_completed_at,
-        manager_feedback: ev.manager_feedback
+        manager_feedback: ev.manager_feedback,
+        source: 'cycle' as const,
+        date: null
       }));
-      setEmployeeEvaluations(mappedEvaluations);
+
+      // Map standalone reviews
+      const mappedStandaloneReviews: EmployeeEvaluation[] = (standaloneReviewsData || []).map((rev: any) => ({
+        id: rev.id,
+        cycle_title: 'Avaliação Avulsa',
+        status: 'completed',
+        self_assessment_completed_at: rev.date,
+        manager_evaluation_completed_at: null,
+        manager_feedback: rev.overall_feedback,
+        source: 'standalone' as const,
+        date: rev.date
+      }));
+
+      // Combine both types
+      setEmployeeEvaluations([...mappedCycleEvaluations, ...mappedStandaloneReviews]);
     } catch (error) {
       console.error('Error fetching employee data:', error);
     } finally {
@@ -517,12 +546,24 @@ export const RoadmapUpdateModal = ({
                                 )}
                               </div>
                               <div>
-                                <p className="text-sm font-medium text-foreground">{evaluation.cycle_title}</p>
+                                <div className="flex items-center gap-2">
+                                  <p className="text-sm font-medium text-foreground">{evaluation.cycle_title}</p>
+                                  {evaluation.source === 'standalone' && (
+                                    <Badge variant="outline" className="text-[10px] px-1.5 py-0">Avulsa</Badge>
+                                  )}
+                                </div>
                                 <p className="text-xs text-muted-foreground">
-                                  {evaluation.self_assessment_completed_at && 
-                                    `Autoavaliação: ${format(new Date(evaluation.self_assessment_completed_at), "dd/MM/yyyy", { locale: ptBR })}`}
-                                  {evaluation.manager_evaluation_completed_at && 
-                                    ` • Gestor: ${format(new Date(evaluation.manager_evaluation_completed_at), "dd/MM/yyyy", { locale: ptBR })}`}
+                                  {evaluation.source === 'standalone' && evaluation.date 
+                                    ? `Data: ${format(new Date(evaluation.date), "dd/MM/yyyy", { locale: ptBR })}`
+                                    : (
+                                      <>
+                                        {evaluation.self_assessment_completed_at && 
+                                          `Autoavaliação: ${format(new Date(evaluation.self_assessment_completed_at), "dd/MM/yyyy", { locale: ptBR })}`}
+                                        {evaluation.manager_evaluation_completed_at && 
+                                          ` • Gestor: ${format(new Date(evaluation.manager_evaluation_completed_at), "dd/MM/yyyy", { locale: ptBR })}`}
+                                      </>
+                                    )
+                                  }
                                 </p>
                               </div>
                             </div>
