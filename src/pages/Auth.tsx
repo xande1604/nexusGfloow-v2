@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
-import { Eye, EyeOff, LogIn, UserPlus, Loader2, Key, HelpCircle } from 'lucide-react';
+import { Eye, EyeOff, LogIn, UserPlus, Loader2, Key, HelpCircle, Play } from 'lucide-react';
 import { z } from 'zod';
 import {
   Tooltip,
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
+import { supabase } from '@/integrations/supabase/client';
 
 const emailSchema = z.string().email('Email inválido');
 const passwordSchema = z.string().min(6, 'Senha deve ter pelo menos 6 caracteres');
@@ -22,6 +23,7 @@ const Auth = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errors, setErrors] = useState<{ email?: string; password?: string; name?: string }>({});
+  const [isDemoLoading, setIsDemoLoading] = useState(false);
 
   const { signIn, signUp, isAuthenticated, loading } = useAuth();
   const { toast } = useToast();
@@ -291,6 +293,69 @@ const Auth = () => {
               )}
             </button>
           </form>
+
+          {/* Demo Login */}
+          <div className="mt-4 pt-4 border-t border-border">
+            <button
+              type="button"
+              disabled={isDemoLoading}
+              onClick={async () => {
+                setIsDemoLoading(true);
+                try {
+                  const { data, error } = await supabase.functions.invoke('demo-login');
+                  if (error || data?.error) {
+                    toast({
+                      title: 'Erro no demo',
+                      description: data?.error || error?.message || 'Tente novamente.',
+                      variant: 'destructive',
+                    });
+                    return;
+                  }
+                  const { error: sessionError } = await supabase.auth.setSession({
+                    access_token: data.access_token,
+                    refresh_token: data.refresh_token,
+                  });
+                  if (sessionError) {
+                    toast({
+                      title: 'Erro ao iniciar sessão demo',
+                      description: sessionError.message,
+                      variant: 'destructive',
+                    });
+                    return;
+                  }
+                  toast({
+                    title: 'Modo Demo ativado!',
+                    description: 'Explorando dados de exemplo.',
+                  });
+                  navigate('/app');
+                } catch (err: any) {
+                  toast({
+                    title: 'Erro',
+                    description: 'Não foi possível acessar o demo.',
+                    variant: 'destructive',
+                  });
+                } finally {
+                  setIsDemoLoading(false);
+                }
+              }}
+              className="w-full h-11 bg-amber-500/10 text-amber-700 dark:text-amber-400 border border-amber-500/30 rounded-lg font-medium hover:bg-amber-500/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+            >
+              {isDemoLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Carregando demo...
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  Experimentar gratuitamente
+                </>
+              )}
+            </button>
+            <p className="text-xs text-muted-foreground text-center mt-2">
+              Acesse uma demonstração completa sem cadastro
+            </p>
+          </div>
         </div>
 
         <p className="text-center text-sm text-muted-foreground mt-6">

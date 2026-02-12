@@ -2,6 +2,8 @@ import { createContext, useContext, useState, useEffect, ReactNode } from 'react
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
+const DEMO_EMAIL = 'demo@gfloow.com.br';
+
 interface DemoContextType {
   isDemoMode: boolean;
   setIsDemoMode: (value: boolean) => void;
@@ -9,6 +11,7 @@ interface DemoContextType {
   setHasCompletedLeadForm: (value: boolean) => void;
   hasOwnData: boolean;
   isCheckingData: boolean;
+  isDemoUser: boolean;
 }
 
 const DemoContext = createContext<DemoContextType | undefined>(undefined);
@@ -20,8 +23,23 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
   const [hasOwnData, setHasOwnData] = useState(false);
   const [isCheckingData, setIsCheckingData] = useState(true);
 
+  const isDemoUser = user?.email === DEMO_EMAIL;
+
+  // Auto-enable demo mode for demo user
+  useEffect(() => {
+    if (isDemoUser) {
+      setIsDemoMode(true);
+      setHasOwnData(false);
+      setIsCheckingData(false);
+      setHasCompletedLeadForm(true); // Skip lead form for demo user
+      return;
+    }
+  }, [isDemoUser]);
+
   // Check if user has their own data (employees with their owner_admin_id)
   useEffect(() => {
+    if (isDemoUser) return; // Skip for demo user
+    
     const checkUserData = async () => {
       if (!user?.id) {
         setHasOwnData(false);
@@ -30,7 +48,6 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
-        // Check if user has any employees assigned to them
         const { count, error } = await supabase
           .from('employees')
           .select('*', { count: 'exact', head: true })
@@ -40,9 +57,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
           console.error('Error checking user data:', error);
           setHasOwnData(false);
         } else {
-          // If count > 0, user has their own data
           setHasOwnData((count || 0) > 0);
-          // Auto-enable demo mode if user has no data
           if ((count || 0) === 0) {
             setIsDemoMode(true);
           }
@@ -56,7 +71,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
     };
 
     checkUserData();
-  }, [user?.id]);
+  }, [user?.id, isDemoUser]);
 
   // Load lead form status based on user ID
   useEffect(() => {
@@ -88,7 +103,8 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
       hasCompletedLeadForm, 
       setHasCompletedLeadForm: handleSetHasCompletedLeadForm,
       hasOwnData,
-      isCheckingData
+      isCheckingData,
+      isDemoUser
     }}>
       {children}
     </DemoContext.Provider>
