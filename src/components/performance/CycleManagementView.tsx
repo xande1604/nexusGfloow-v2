@@ -643,9 +643,9 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
 
         {/* Manager Evaluation Modal */}
         <Dialog open={isEvaluationModalOpen} onOpenChange={setIsEvaluationModalOpen}>
-          <DialogContent className="max-w-3xl max-h-[80vh] overflow-y-auto">
+          <DialogContent className="sm:max-w-3xl">
             <DialogHeader>
-              <DialogTitle>Avaliação - {selectedEvaluation?.employee?.nome || selectedEvaluation?.employee?.name}</DialogTitle>
+              <DialogTitle className="text-base sm:text-lg">Avaliação - {selectedEvaluation?.employee?.nome || selectedEvaluation?.employee?.name}</DialogTitle>
             </DialogHeader>
             {selectedEvaluation && (
               <div className="space-y-6">
@@ -660,7 +660,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                       <p className="font-medium mb-2">{idx + 1}. {q.question}</p>
                       <p className="text-xs text-muted-foreground mb-2">{q.category}</p>
                       
-                      <div className="grid grid-cols-2 gap-4">
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                         <div className="bg-secondary/50 p-3 rounded-lg">
                           <p className="text-xs font-medium text-muted-foreground mb-1">Autoavaliação:</p>
                           {selfResponse?.rating && <p className="font-semibold">Nota: {selfResponse.rating}/5</p>}
@@ -730,16 +730,16 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                 )}
               </div>
             )}
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsEvaluationModalOpen(false)}>
+            <DialogFooter className="flex-col gap-2 sm:flex-row sm:gap-0">
+              <Button variant="outline" onClick={() => setIsEvaluationModalOpen(false)} className="w-full sm:w-auto">
                 {selectedEvaluation?.status === 'completed' ? 'Fechar' : 'Cancelar'}
               </Button>
               {selectedEvaluation?.status !== 'completed' && (
                 <>
-                  <Button variant="secondary" onClick={() => handleSubmitManagerEvaluation(true)}>
+                  <Button variant="secondary" onClick={() => handleSubmitManagerEvaluation(true)} className="w-full sm:w-auto">
                     Apenas Fechar Ciclo
                   </Button>
-                  <Button onClick={() => handleSubmitManagerEvaluation(false)}>
+                  <Button onClick={() => handleSubmitManagerEvaluation(false)} className="w-full sm:w-auto">
                     Salvar Avaliação e Fechar
                   </Button>
                 </>
