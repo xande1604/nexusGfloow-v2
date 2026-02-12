@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { useKnowledgeBase } from '@/hooks/useKnowledgeBase';
+import { demoKnowledgeBase } from '@/components/demo/demoData';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useCostCenters } from '@/hooks/useCostCenters';
 import { Plus, Upload, FileText, Trash2, Search, Edit, Loader2, X } from 'lucide-react';
@@ -18,7 +19,8 @@ interface KnowledgeBaseTabProps {
 }
 
 export const KnowledgeBaseTab = ({ isDemoMode = false }: KnowledgeBaseTabProps) => {
-  const { items, loading, saveItem, deleteItem, uploadFile } = useKnowledgeBase();
+  const { items: realItems, loading, saveItem, deleteItem, uploadFile } = useKnowledgeBase();
+  const items = isDemoMode ? demoKnowledgeBase : realItems;
   const { roles } = useJobRoles();
   const { costCenters } = useCostCenters();
   const { toast } = useToast();
@@ -104,7 +106,7 @@ export const KnowledgeBaseTab = ({ isDemoMode = false }: KnowledgeBaseTabProps) 
     item.tags?.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  if (loading) {
+  if (!isDemoMode && loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-brand-600" />

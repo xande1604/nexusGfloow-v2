@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { useTests } from '@/hooks/useTests';
+import { demoTests } from '@/components/demo/demoData';
 import { useJobRoles } from '@/hooks/useJobRoles';
 import { useCostCenters } from '@/hooks/useCostCenters';
 import { supabase } from '@/integrations/supabase/client';
@@ -22,7 +23,8 @@ interface TestsTabProps {
 }
 
 export const TestsTab = ({ isDemoMode = false }: TestsTabProps) => {
-  const { tests, loading, saveTest, deleteTest } = useTests();
+  const { tests: realTests, loading, saveTest, deleteTest } = useTests();
+  const tests = isDemoMode ? demoTests : realTests;
   const { roles } = useJobRoles();
   const { costCenters } = useCostCenters();
   const { toast } = useToast();
@@ -155,7 +157,7 @@ export const TestsTab = ({ isDemoMode = false }: TestsTabProps) => {
     }
   };
 
-  if (loading) {
+  if (!isDemoMode && loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-brand-600" />

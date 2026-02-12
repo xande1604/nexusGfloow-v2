@@ -7,6 +7,7 @@ import { VagasTab } from './VagasTab';
 import { PipelineTab } from './PipelineTab';
 import { RecruitmentDashboard } from './RecruitmentDashboard';
 import { Loader2 } from 'lucide-react';
+import { demoCandidatos, demoVagas, demoCandidaturas } from '@/components/demo/demoData';
 
 interface RecruitmentViewProps {
   isDemoMode?: boolean;
@@ -15,9 +16,9 @@ interface RecruitmentViewProps {
 export const RecruitmentView = ({ isDemoMode = false }: RecruitmentViewProps) => {
   const [activeTab, setActiveTab] = useState('dashboard');
   const { 
-    candidatos, 
-    vagas, 
-    candidaturas, 
+    candidatos: realCandidatos, 
+    vagas: realVagas, 
+    candidaturas: realCandidaturas, 
     loading,
     saveCandidato,
     deleteCandidato,
@@ -31,7 +32,11 @@ export const RecruitmentView = ({ isDemoMode = false }: RecruitmentViewProps) =>
     refetch,
   } = useRecruitment();
 
-  if (loading) {
+  const candidatos = isDemoMode ? demoCandidatos : realCandidatos;
+  const vagas = isDemoMode ? demoVagas : realVagas;
+  const candidaturas = isDemoMode ? demoCandidaturas : realCandidaturas;
+
+  if (!isDemoMode && loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-brand-600" />

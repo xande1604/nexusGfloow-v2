@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { useCertifications, useTests } from '@/hooks/useTests';
+import { demoCertifications, demoTests } from '@/components/demo/demoData';
 import { useEmployees } from '@/hooks/useEmployees';
 import { Award, Search, Loader2, Calendar, CheckCircle, ExternalLink } from 'lucide-react';
 
@@ -11,10 +12,13 @@ interface CertificationsTabProps {
 }
 
 export const CertificationsTab = ({ isDemoMode = false }: CertificationsTabProps) => {
-  const { certifications, loading } = useCertifications();
-  const { tests } = useTests();
+  const { certifications: realCertifications, loading } = useCertifications();
+  const { tests: realTests } = useTests();
   const { employees } = useEmployees();
   const [searchTerm, setSearchTerm] = useState('');
+
+  const certifications = isDemoMode ? demoCertifications : realCertifications;
+  const tests = isDemoMode ? demoTests : realTests;
 
   const getTestTitle = (testId: string) => {
     const test = tests.find(t => t.id === testId);
@@ -33,7 +37,7 @@ export const CertificationsTab = ({ isDemoMode = false }: CertificationsTabProps
     return testTitle.includes(search) || employeeName.includes(search) || cert.certificateCode.toLowerCase().includes(search);
   });
 
-  if (loading) {
+  if (!isDemoMode && loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-brand-600" />

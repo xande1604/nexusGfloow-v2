@@ -529,6 +529,7 @@ export type Database = {
           faz_parte_cota_aprendiz: boolean
           hard_skills: string | null
           id: string
+          idlancamento: string | null
           owner_admin_id: string | null
           salary_max: number | null
           salary_min: number | null
@@ -544,6 +545,7 @@ export type Database = {
           faz_parte_cota_aprendiz?: boolean
           hard_skills?: string | null
           id?: string
+          idlancamento?: string | null
           owner_admin_id?: string | null
           salary_max?: number | null
           salary_min?: number | null
@@ -559,6 +561,7 @@ export type Database = {
           faz_parte_cota_aprendiz?: boolean
           hard_skills?: string | null
           id?: string
+          idlancamento?: string | null
           owner_admin_id?: string | null
           salary_max?: number | null
           salary_min?: number | null
@@ -575,6 +578,7 @@ export type Database = {
           codempresa: string
           created_at: string | null
           id: string
+          idlancamento: string | null
           nomecentrodecustos: string
           owner_admin_id: string | null
           updated_at: string | null
@@ -584,6 +588,7 @@ export type Database = {
           codempresa: string
           created_at?: string | null
           id?: string
+          idlancamento?: string | null
           nomecentrodecustos: string
           owner_admin_id?: string | null
           updated_at?: string | null
@@ -593,6 +598,7 @@ export type Database = {
           codempresa?: string
           created_at?: string | null
           id?: string
+          idlancamento?: string | null
           nomecentrodecustos?: string
           owner_admin_id?: string | null
           updated_at?: string | null
@@ -1056,6 +1062,7 @@ export type Database = {
           estadocivil: string | null
           gestor_id: string | null
           id: string
+          idlancamento: string | null
           matricula: string | null
           nome: string | null
           owner_admin_id: string | null
@@ -1090,6 +1097,7 @@ export type Database = {
           estadocivil?: string | null
           gestor_id?: string | null
           id?: string
+          idlancamento?: string | null
           matricula?: string | null
           nome?: string | null
           owner_admin_id?: string | null
@@ -1124,6 +1132,7 @@ export type Database = {
           estadocivil?: string | null
           gestor_id?: string | null
           id?: string
+          idlancamento?: string | null
           matricula?: string | null
           nome?: string | null
           owner_admin_id?: string | null
@@ -1161,6 +1170,7 @@ export type Database = {
           created_at: string | null
           grau_risco: number | null
           id: string
+          idlancamento: string | null
           nomeempresa: string
           owner_admin_id: string | null
           percentual_encargos: number | null
@@ -1172,6 +1182,7 @@ export type Database = {
           created_at?: string | null
           grau_risco?: number | null
           id?: string
+          idlancamento?: string | null
           nomeempresa: string
           owner_admin_id?: string | null
           percentual_encargos?: number | null
@@ -1183,6 +1194,7 @@ export type Database = {
           created_at?: string | null
           grau_risco?: number | null
           id?: string
+          idlancamento?: string | null
           nomeempresa?: string
           owner_admin_id?: string | null
           percentual_encargos?: number | null
@@ -1252,6 +1264,7 @@ export type Database = {
           created_at: string | null
           descricaograu: string
           id: string
+          idlancamento: string | null
           owner_admin_id: string | null
           updated_at: string | null
         }
@@ -1260,6 +1273,7 @@ export type Database = {
           created_at?: string | null
           descricaograu: string
           id?: string
+          idlancamento?: string | null
           owner_admin_id?: string | null
           updated_at?: string | null
         }
@@ -1268,6 +1282,7 @@ export type Database = {
           created_at?: string | null
           descricaograu?: string
           id?: string
+          idlancamento?: string | null
           owner_admin_id?: string | null
           updated_at?: string | null
         }
@@ -1279,6 +1294,7 @@ export type Database = {
           created_at: string | null
           descricaoestcivil: string
           id: string
+          idlancamento: string | null
           owner_admin_id: string | null
           updated_at: string | null
         }
@@ -1287,6 +1303,7 @@ export type Database = {
           created_at?: string | null
           descricaoestcivil: string
           id?: string
+          idlancamento?: string | null
           owner_admin_id?: string | null
           updated_at?: string | null
         }
@@ -1295,6 +1312,7 @@ export type Database = {
           created_at?: string | null
           descricaoestcivil?: string
           id?: string
+          idlancamento?: string | null
           owner_admin_id?: string | null
           updated_at?: string | null
         }
@@ -1387,6 +1405,7 @@ export type Database = {
           descricaoevento: string
           grupoeventos: string | null
           id: string
+          idlancamento: string | null
           owner_admin_id: string | null
           tipoevento: string | null
           updated_at: string | null
@@ -1397,6 +1416,7 @@ export type Database = {
           descricaoevento: string
           grupoeventos?: string | null
           id?: string
+          idlancamento?: string | null
           owner_admin_id?: string | null
           tipoevento?: string | null
           updated_at?: string | null
@@ -1407,6 +1427,7 @@ export type Database = {
           descricaoevento?: string
           grupoeventos?: string | null
           id?: string
+          idlancamento?: string | null
           owner_admin_id?: string | null
           tipoevento?: string | null
           updated_at?: string | null
@@ -1422,6 +1443,7 @@ export type Database = {
           dias_abono: number | null
           dias_gozados: number
           id: string
+          idlancamento: string | null
           matricula: string
           observacoes: string | null
           owner_admin_id: string | null
@@ -1438,6 +1460,7 @@ export type Database = {
           dias_abono?: number | null
           dias_gozados: number
           id?: string
+          idlancamento?: string | null
           matricula: string
           observacoes?: string | null
           owner_admin_id?: string | null
@@ -1454,6 +1477,7 @@ export type Database = {
           dias_abono?: number | null
           dias_gozados?: number
           id?: string
+          idlancamento?: string | null
           matricula?: string
           observacoes?: string | null
           owner_admin_id?: string | null
@@ -1483,6 +1507,7 @@ export type Database = {
           dias_vendidos: number | null
           fim_periodo_aquisitivo: string
           id: string
+          idlancamento: string | null
           inicio_periodo_aquisitivo: string
           matricula: string
           nome_colaborador: string | null
@@ -1502,6 +1527,7 @@ export type Database = {
           dias_vendidos?: number | null
           fim_periodo_aquisitivo: string
           id?: string
+          idlancamento?: string | null
           inicio_periodo_aquisitivo: string
           matricula: string
           nome_colaborador?: string | null
@@ -1521,6 +1547,7 @@ export type Database = {
           dias_vendidos?: number | null
           fim_periodo_aquisitivo?: string
           id?: string
+          idlancamento?: string | null
           inicio_periodo_aquisitivo?: string
           matricula?: string
           nome_colaborador?: string | null
@@ -1536,12 +1563,15 @@ export type Database = {
         Row: {
           codempresa: string
           codigoevento: string
+          codrat: string | null
           created_at: string | null
           data: string | null
           id: string
+          idlancamento: string | null
           matricula: string
           owner_admin_id: string | null
           referencia: number | null
+          tipcol: number | null
           tipcolaborador: string | null
           updated_at: string | null
           valor: number
@@ -1549,12 +1579,15 @@ export type Database = {
         Insert: {
           codempresa: string
           codigoevento: string
+          codrat?: string | null
           created_at?: string | null
           data?: string | null
           id?: string
+          idlancamento?: string | null
           matricula: string
           owner_admin_id?: string | null
           referencia?: number | null
+          tipcol?: number | null
           tipcolaborador?: string | null
           updated_at?: string | null
           valor: number
@@ -1562,12 +1595,15 @@ export type Database = {
         Update: {
           codempresa?: string
           codigoevento?: string
+          codrat?: string | null
           created_at?: string | null
           data?: string | null
           id?: string
+          idlancamento?: string | null
           matricula?: string
           owner_admin_id?: string | null
           referencia?: number | null
+          tipcol?: number | null
           tipcolaborador?: string | null
           updated_at?: string | null
           valor?: number
@@ -1580,6 +1616,7 @@ export type Database = {
           codigofilial: string
           created_at: string | null
           id: string
+          idlancamento: string | null
           nomefilial: string
           owner_admin_id: string | null
           updated_at: string | null
@@ -1589,6 +1626,7 @@ export type Database = {
           codigofilial: string
           created_at?: string | null
           id?: string
+          idlancamento?: string | null
           nomefilial: string
           owner_admin_id?: string | null
           updated_at?: string | null
@@ -1598,6 +1636,7 @@ export type Database = {
           codigofilial?: string
           created_at?: string | null
           id?: string
+          idlancamento?: string | null
           nomefilial?: string
           owner_admin_id?: string | null
           updated_at?: string | null
@@ -1613,6 +1652,7 @@ export type Database = {
           created_at: string
           custo_previsto: number | null
           id: string
+          idlancamento: string | null
           mes: number
           owner_admin_id: string | null
           quantidade_prevista: number
@@ -1626,6 +1666,7 @@ export type Database = {
           created_at?: string
           custo_previsto?: number | null
           id?: string
+          idlancamento?: string | null
           mes: number
           owner_admin_id?: string | null
           quantidade_prevista?: number
@@ -1639,6 +1680,7 @@ export type Database = {
           created_at?: string
           custo_previsto?: number | null
           id?: string
+          idlancamento?: string | null
           mes?: number
           owner_admin_id?: string | null
           quantidade_prevista?: number
@@ -1774,6 +1816,7 @@ export type Database = {
           codlocal: string
           created_at: string | null
           id: string
+          idlancamento: string | null
           nomelocal: string
           owner_admin_id: string | null
           updated_at: string | null
@@ -1782,6 +1825,7 @@ export type Database = {
           codlocal: string
           created_at?: string | null
           id?: string
+          idlancamento?: string | null
           nomelocal: string
           owner_admin_id?: string | null
           updated_at?: string | null
@@ -1790,6 +1834,7 @@ export type Database = {
           codlocal?: string
           created_at?: string | null
           id?: string
+          idlancamento?: string | null
           nomelocal?: string
           owner_admin_id?: string | null
           updated_at?: string | null
@@ -2000,6 +2045,7 @@ export type Database = {
           created_at: string | null
           descricaoraca: string
           id: string
+          idlancamento: string | null
           owner_admin_id: string | null
           updated_at: string | null
         }
@@ -2008,6 +2054,7 @@ export type Database = {
           created_at?: string | null
           descricaoraca: string
           id?: string
+          idlancamento?: string | null
           owner_admin_id?: string | null
           updated_at?: string | null
         }
@@ -2016,6 +2063,7 @@ export type Database = {
           created_at?: string | null
           descricaoraca?: string
           id?: string
+          idlancamento?: string | null
           owner_admin_id?: string | null
           updated_at?: string | null
         }
@@ -2683,6 +2731,68 @@ export type Database = {
             columns: ["cargo_id"]
             isOneToOne: false
             referencedRelation: "cargos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      webhook_import_logs: {
+        Row: {
+          created_at: string
+          duration_ms: number | null
+          errors: Json | null
+          id: string
+          ip_address: string | null
+          operation: string
+          owner_admin_id: string
+          records_data: Json | null
+          records_failed: number
+          records_processed: number
+          records_received: number
+          success: boolean
+          table_name: string
+          token_id: string | null
+          token_name: string | null
+        }
+        Insert: {
+          created_at?: string
+          duration_ms?: number | null
+          errors?: Json | null
+          id?: string
+          ip_address?: string | null
+          operation?: string
+          owner_admin_id: string
+          records_data?: Json | null
+          records_failed?: number
+          records_processed?: number
+          records_received?: number
+          success?: boolean
+          table_name: string
+          token_id?: string | null
+          token_name?: string | null
+        }
+        Update: {
+          created_at?: string
+          duration_ms?: number | null
+          errors?: Json | null
+          id?: string
+          ip_address?: string | null
+          operation?: string
+          owner_admin_id?: string
+          records_data?: Json | null
+          records_failed?: number
+          records_processed?: number
+          records_received?: number
+          success?: boolean
+          table_name?: string
+          token_id?: string | null
+          token_name?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "webhook_import_logs_token_id_fkey"
+            columns: ["token_id"]
+            isOneToOne: false
+            referencedRelation: "data_webhook_tokens"
             referencedColumns: ["id"]
           },
         ]

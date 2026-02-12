@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useTreinamentos, Treinamento } from '@/hooks/useTreinamentos';
+import { demoTreinamentos } from '@/components/demo/demoData';
 import { useEmployees } from '@/hooks/useEmployees';
 import { useCostCenters } from '@/hooks/useCostCenters';
 import { useSkills } from '@/hooks/useSkills';
@@ -58,7 +59,8 @@ export const TreinamentosView = ({ isDemoMode = false, onNavigateToRoadmap }: Tr
   const [detailsModalOpen, setDetailsModalOpen] = useState(false);
   const [selectedTreinamentoForDetails, setSelectedTreinamentoForDetails] = useState<Treinamento | null>(null);
 
-  const { treinamentos, loading, saveTreinamento, updateTreinamento, deleteTreinamento } = useTreinamentos();
+  const { treinamentos: realTreinamentos, loading, saveTreinamento, updateTreinamento, deleteTreinamento } = useTreinamentos();
+  const treinamentos = isDemoMode ? demoTreinamentos : realTreinamentos;
   const { employees } = useEmployees();
   const { costCenters } = useCostCenters();
   const { skills } = useSkills();
@@ -156,7 +158,7 @@ export const TreinamentosView = ({ isDemoMode = false, onNavigateToRoadmap }: Tr
     return { total, concluidos, emAndamento, totalHoras };
   }, [treinamentos]);
 
-  if (loading) {
+  if (!isDemoMode && loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <Loader2 className="w-8 h-8 animate-spin text-primary" />
