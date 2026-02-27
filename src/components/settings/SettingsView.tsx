@@ -4,6 +4,8 @@ import { CompanyContext } from '@/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 import { MasterAdminPanel } from './MasterAdminPanel';
+import { TeamManagementPanel } from './TeamManagementPanel';
+import { RequestAccessCard } from './RequestAccessCard';
 import { useMasterAdminData } from '@/hooks/useMasterAdminData';
 import { RedeemAccessKeyCard } from './RedeemAccessKeyCard';
 import { useUserRole } from '@/hooks/useUserRole';
@@ -73,6 +75,16 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
       {/* Redeem Access Key Card - Show for users without admin role */}
       {!roleLoading && role !== 'admin' && (
         <RedeemAccessKeyCard onSuccess={refreshData} />
+      )}
+
+      {/* Request Access Card - for users with no role at all */}
+      {!roleLoading && !role && (
+        <RequestAccessCard />
+      )}
+
+      {/* Team Management Panel - Show for non-master admins */}
+      {!roleLoading && role === 'admin' && !isMasterAdmin && (
+        <TeamManagementPanel />
       )}
 
       {/* Master Admin Panel */}
