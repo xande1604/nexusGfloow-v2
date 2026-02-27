@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Users, Key, Building2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Copy, FileText, Eye, Mail, Phone, Building, MessageSquare, Trash2, Pencil } from 'lucide-react';
+import { Users, Key, Building2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Copy, FileText, Eye, Mail, Phone, Building, MessageSquare, Trash2, Pencil, UserPlus } from 'lucide-react';
+import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -62,6 +63,10 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
   const [editUser, setEditUser] = useState<UserWithRole | null>(null);
   const [editRole, setEditRole] = useState<string>('');
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [assignModal, setAssignModal] = useState(false);
+  const [assignEmail, setAssignEmail] = useState('');
+  const [assignRole, setAssignRole] = useState('admin');
+  const [isAssigning, setIsAssigning] = useState(false);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -106,6 +111,59 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
       toast.error('Erro ao atualizar: ' + err.message);
     } finally {
       setIsSavingEdit(false);
+    }
+  };
+
+  const handleAssignAccess = async () => {
+    if (!assignEmail.trim()) return;
+    setIsAssigning(true);
+    try {
+      // Find profile by email
+      const { data: profile, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, email')
+        .eq('email', assignEmail.trim().toLowerCase())
+        .maybeSingle();
+
+      if (profileError || !profile) {
+        toast.error('Usuário não encontrado. Verifique se o e-mail está correto e o usuário já se cadastrou.');
+        return;
+      }
+
+      // Check if already has a role
+      const { data: existingRole } = await supabase
+        .from('user_roles')
+        .select('id')
+        .eq('user_id', profile.id)
+        .maybeSingle();
+
+      if (existingRole) {
+        toast.error('Este usuário já possui um perfil atribuído. Use o botão de edição para alterá-lo.');
+        return;
+      }
+
+      // Assign role — created_by_admin_id = null means this becomes a master-level assignment
+      // We use the current master admin's context; the edge function approach is safest but
+      // master admin can insert directly via service-level RLS bypass via the admin panel
+      const { error: insertError } = await supabase
+        .from('user_roles')
+        .insert({
+          user_id: profile.id,
+          role: assignRole as any,
+          created_by_admin_id: null, // will be master admin — adjust if needed
+        });
+
+      if (insertError) throw insertError;
+
+      toast.success(`Acesso atribuído com sucesso para ${assignEmail}`);
+      setAssignModal(false);
+      setAssignEmail('');
+      setAssignRole('admin');
+      onRefresh();
+    } catch (err: any) {
+      toast.error('Erro ao atribuir acesso: ' + err.message);
+    } finally {
+      setIsAssigning(false);
     }
   };
 
@@ -192,6 +250,12 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
 
         {/* Users Tab */}
         <TabsContent value="users">
+          <div className="flex justify-end mb-3">
+            <Button size="sm" onClick={() => setAssignModal(true)} className="flex items-center gap-2">
+              <UserPlus className="w-4 h-4" />
+              Atribuir Acesso
+            </Button>
+          </div>
           <div className="border border-border rounded-lg overflow-hidden">
             <table className="w-full">
               <thead className="bg-muted/50">
@@ -532,6 +596,57 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
             </Button>
             <Button onClick={handleSaveEdit} disabled={isSavingEdit} className="w-full sm:w-auto">
               {isSavingEdit ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Access Dialog */}
+      <Dialog open={assignModal} onOpenChange={(open) => { setAssignModal(open); if (!open) { setAssignEmail(''); setAssignRole('admin'); } }}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="w-5 h-5" />
+              Atribuir Acesso
+            </DialogTitle>
+            <DialogDescription>
+              Informe o e-mail de um usuário já cadastrado para atribuir um perfil de acesso manualmente.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <div className="space-y-1.5">
+              <Label>E-mail do usuário</Label>
+              <Input
+                type="email"
+                placeholder="usuario@exemplo.com"
+                value={assignEmail}
+                onChange={(e) => setAssignEmail(e.target.value)}
+              />
+            </div>
+            <div className="space-y-1.5">
+              <Label>Perfil</Label>
+              <Select value={assignRole} onValueChange={setAssignRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="gestor">Gestor</SelectItem>
+                  <SelectItem value="analista">Analista</SelectItem>
+                  <SelectItem value="visualizador">Visualizador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <p className="text-xs text-muted-foreground bg-amber-500/10 border border-amber-500/20 rounded-lg p-3">
+              ⚠️ O usuário precisa ter se cadastrado previamente no sistema. Esta ação cria o papel sem consumir uma chave de acesso.
+            </p>
+          </div>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={() => setAssignModal(false)} className="w-full sm:w-auto">
+              Cancelar
+            </Button>
+            <Button onClick={handleAssignAccess} disabled={isAssigning || !assignEmail.trim()} className="w-full sm:w-auto">
+              {isAssigning ? 'Atribuindo...' : 'Atribuir Acesso'}
             </Button>
           </DialogFooter>
         </DialogContent>
