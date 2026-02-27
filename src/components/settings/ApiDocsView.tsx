@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Copy, Download, ExternalLink, Key, CheckCircle, ChevronDown, ChevronRight, Code2, Table2, BookOpen } from 'lucide-react';
+import * as XLSX from 'xlsx';
+import { Copy, Download, ExternalLink, Key, CheckCircle, ChevronDown, ChevronRight, Code2, Table2, BookOpen, Upload } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
+import { DataImporter } from './DataImporter';
 
 const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'qashsyjrazmkhgeesglb';
 const BASE_URL = `https://${PROJECT_ID}.supabase.co/functions/v1/data-api`;
@@ -32,14 +34,22 @@ const CSV_TEMPLATES: Record<string, { label: string; headers: string[]; example:
   },
 };
 
-function downloadCSV(entity: string) {
+function downloadTemplate(entity: string, format: 'csv' | 'xlsx') {
   const tpl = CSV_TEMPLATES[entity];
-  const rows = [tpl.headers.join(','), tpl.example.join(',')];
-  const blob = new Blob([rows.join('\n')], { type: 'text/csv;charset=utf-8;' });
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(blob);
-  a.download = `template_${entity}.csv`;
-  a.click();
+  const ws = XLSX.utils.aoa_to_sheet([tpl.headers, tpl.example]);
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, tpl.label);
+
+  if (format === 'xlsx') {
+    XLSX.writeFile(wb, `template_${entity}.xlsx`);
+  } else {
+    const csv = XLSX.utils.sheet_to_csv(ws);
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `template_${entity}.csv`;
+    a.click();
+  }
 }
 
 // ─── Endpoint docs ────────────────────────────────────────────
@@ -74,7 +84,7 @@ function CodeBlock({ code, lang = 'bash' }: { code: string; lang?: string }) {
       <div className="flex items-center justify-between px-4 py-1.5 bg-muted-foreground/10 border-b border-border">
         <span className="text-xs font-mono text-muted-foreground">{lang}</span>
         <button onClick={handleCopy} className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground transition-colors">
-          {copied ? <CheckCircle className="w-3.5 h-3.5 text-emerald-500" /> : <Copy className="w-3.5 h-3.5" />}
+          {copied ? <CheckCircle className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
           {copied ? 'Copiado' : 'Copiar'}
         </button>
       </div>
@@ -111,7 +121,7 @@ export const ApiDocsView = () => {
       <Tabs defaultValue="api">
         <TabsList>
           <TabsTrigger value="api" className="gap-2"><BookOpen className="w-4 h-4" />Documentação API</TabsTrigger>
-          <TabsTrigger value="csv" className="gap-2"><Table2 className="w-4 h-4" />Templates CSV/XLSX</TabsTrigger>
+          <TabsTrigger value="csv" className="gap-2"><Upload className="w-4 h-4" />Templates & Importação</TabsTrigger>
         </TabsList>
 
         {/* ── API DOCS ────────────────────────────────────── */}
@@ -286,10 +296,12 @@ export const ApiDocsView = () => {
         </TabsContent>
 
         {/* ── CSV TEMPLATES ────────────────────────────────── */}
-        <TabsContent value="csv" className="space-y-4 mt-4">
+        <TabsContent value="csv" className="space-y-6 mt-4">
+          {/* Download templates */}
           <div className="bg-card rounded-xl p-5 border border-border">
+            <h3 className="font-semibold text-foreground mb-1">Templates de importação</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Baixe o template CSV para cada entidade, preencha com seus dados e importe via API (endpoint <code className="text-xs bg-muted px-1 py-0.5 rounded">POST /{`{entity}`}</code> com array de registros).
+              Baixe o template, preencha com seus dados e use o importador abaixo ou a API diretamente.
             </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               {ENTITIES.map(entity => (
@@ -298,13 +310,31 @@ export const ApiDocsView = () => {
                     <p className="font-medium text-foreground text-sm">{CSV_TEMPLATES[entity].label}</p>
                     <p className="text-xs text-muted-foreground mt-0.5">{CSV_TEMPLATES[entity].headers.length} colunas</p>
                   </div>
-                  <Button size="sm" variant="outline" className="gap-2" onClick={() => downloadCSV(entity)}>
-                    <Download className="w-3.5 h-3.5" />
-                    CSV
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant="outline" className="gap-1.5 text-xs" onClick={() => downloadTemplate(entity, 'xlsx')}>
+                      <Download className="w-3 h-3" />XLSX
+                    </Button>
+                    <Button size="sm" variant="ghost" className="gap-1.5 text-xs" onClick={() => downloadTemplate(entity, 'csv')}>
+                      <Download className="w-3 h-3" />CSV
+                    </Button>
+                  </div>
                 </div>
               ))}
             </div>
+          </div>
+
+          {/* Live importer */}
+          <div className="bg-card rounded-xl p-5 border border-border">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="w-9 h-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Upload className="w-4 h-4 text-primary" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-foreground">Importar arquivo</h3>
+                <p className="text-xs text-muted-foreground">CSV ou XLSX — os dados são enviados direto para a API com isolamento por tenant</p>
+              </div>
+            </div>
+            <DataImporter />
           </div>
 
           {/* Field reference per entity */}
