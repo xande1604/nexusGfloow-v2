@@ -1,9 +1,11 @@
 import { useState } from 'react';
-import { Users, Key, Building2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Copy, FileText, Eye, Mail, Phone, Building, MessageSquare, Trash2 } from 'lucide-react';
+import { Users, Key, Building2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Copy, FileText, Eye, Mail, Phone, Building, MessageSquare, Trash2, Pencil } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -57,6 +59,9 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
   const [selectedResponse, setSelectedResponse] = useState<PricingResponse | null>(null);
   const [deleteTarget, setDeleteTarget] = useState<{ type: 'user' | 'key'; id: string; label: string } | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [editUser, setEditUser] = useState<UserWithRole | null>(null);
+  const [editRole, setEditRole] = useState<string>('');
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   const handleDelete = async () => {
     if (!deleteTarget) return;
@@ -77,6 +82,30 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
     } finally {
       setIsDeleting(false);
       setDeleteTarget(null);
+    }
+  };
+
+  const handleEditUser = (user: UserWithRole) => {
+    setEditUser(user);
+    setEditRole(user.role);
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editUser) return;
+    setIsSavingEdit(true);
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ role: editRole as any })
+        .eq('user_id', editUser.id);
+      if (error) throw error;
+      toast.success('Perfil atualizado com sucesso');
+      onRefresh();
+      setEditUser(null);
+    } catch (err: any) {
+      toast.error('Erro ao atualizar: ' + err.message);
+    } finally {
+      setIsSavingEdit(false);
     }
   };
 
@@ -185,14 +214,24 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
                       <td className="px-4 py-3 text-sm text-muted-foreground hidden md:table-cell">{formatDate(user.created_at)}</td>
                       <td className="px-4 py-3">
                         {!isMaster && (
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
-                            onClick={() => setDeleteTarget({ type: 'user', id: user.id, label: user.name || user.email })}
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                          </Button>
+                          <div className="flex items-center gap-1">
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                              onClick={() => handleEditUser(user)}
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                              onClick={() => setDeleteTarget({ type: 'user', id: user.id, label: user.name || user.email })}
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </Button>
+                          </div>
                         )}
                       </td>
                     </tr>
@@ -456,6 +495,45 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit User Dialog */}
+      <Dialog open={!!editUser} onOpenChange={(open) => !open && setEditUser(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Pencil className="w-5 h-5" />
+              Editar usuário
+            </DialogTitle>
+            <DialogDescription>
+              {editUser?.name} — {editUser?.email}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-3 py-2">
+            <div className="space-y-1.5">
+              <Label>Perfil / Role</Label>
+              <Select value={editRole} onValueChange={setEditRole}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="admin">Admin</SelectItem>
+                  <SelectItem value="gestor">Gestor</SelectItem>
+                  <SelectItem value="analista">Analista</SelectItem>
+                  <SelectItem value="visualizador">Visualizador</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={() => setEditUser(null)} className="w-full sm:w-auto">
+              Cancelar
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={isSavingEdit} className="w-full sm:w-auto">
+              {isSavingEdit ? 'Salvando...' : 'Salvar'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 
