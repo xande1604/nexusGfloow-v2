@@ -82,12 +82,17 @@ serve(async (req) => {
       .from('profiles')
       .upsert({ id: userId }, { onConflict: 'id', ignoreDuplicates: true });
 
-    // 3. Create user role as admin with reference to creator
+    // 3. Determine role from key prefix (GES = gestor, ANA = analista, VIS = visualizador, else admin)
+    const keyPrefix = keyCode.trim().toUpperCase().substring(0, 3);
+    const roleMap: Record<string, string> = { GES: 'gestor', ANA: 'analista', VIS: 'visualizador' };
+    const assignedRole = roleMap[keyPrefix] || 'admin';
+
+    // 4. Create user role with reference to creator
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
         user_id: userId,
-        role: 'admin',
+        role: assignedRole,
         created_by_admin_id: accessKey.created_by_admin_id,
       });
 
@@ -105,13 +110,15 @@ serve(async (req) => {
       );
     }
 
-    console.log('Successfully validated key and assigned admin role');
+    console.log('Successfully validated key and assigned role:', assignedRole);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        role: 'admin',
-        message: 'Chave validada! Você agora é administrador.' 
+        role: assignedRole,
+        message: assignedRole === 'admin' 
+          ? 'Chave validada! Você agora é administrador.' 
+          : `Chave validada! Você agora é ${assignedRole} neste ambiente.`
       }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
