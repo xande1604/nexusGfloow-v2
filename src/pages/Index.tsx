@@ -59,7 +59,7 @@ const Index = () => {
 
   const { isAuthenticated, loading: authLoading } = useAuth();
   const { hasAccess, loading: roleLoading } = useUserRole();
-  const { hasCompletedLeadForm, setHasCompletedLeadForm, isDemoMode, setIsDemoMode } = useDemo();
+  const { hasCompletedLeadForm, setHasCompletedLeadForm, isDemoMode } = useDemo();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -71,14 +71,7 @@ const Index = () => {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
-  // Set demo mode when user doesn't have access
-  useEffect(() => {
-    if (!roleLoading && !hasAccess && hasCompletedLeadForm) {
-      setIsDemoMode(true);
-    } else {
-      setIsDemoMode(false);
-    }
-  }, [roleLoading, hasAccess, hasCompletedLeadForm, setIsDemoMode]);
+  // Demo mode is managed by DemoContext based on user roles
 
   // Supabase hooks
   const { roles, loading: rolesLoading, saveRole, deleteRole } = useJobRoles();
