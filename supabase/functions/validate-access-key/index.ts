@@ -77,7 +77,12 @@ serve(async (req) => {
       );
     }
 
-    // 2. Create user role as admin with reference to creator
+    // 2. Ensure profile exists (may not exist yet if email not confirmed)
+    await supabaseAdmin
+      .from('profiles')
+      .upsert({ id: userId }, { onConflict: 'id', ignoreDuplicates: true });
+
+    // 3. Create user role as admin with reference to creator
     const { error: roleError } = await supabaseAdmin
       .from('user_roles')
       .insert({
