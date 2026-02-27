@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Users, Key, Building2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Copy, FileText, Eye, Mail, Phone, Building, MessageSquare } from 'lucide-react';
+import { Users, Key, Building2, RefreshCw, CheckCircle, XCircle, Clock, Shield, Copy, FileText, Eye, Mail, Phone, Building, MessageSquare, Trash2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
 import type { PricingResponse, PricingQuestion } from '@/hooks/useMasterAdminData';
 
 interface UserWithRole {
@@ -54,6 +55,30 @@ const PROFILE_LABELS: Record<string, string> = {
 export const MasterAdminPanel = ({ users, accessKeys, environments, pricingResponses, pricingQuestions, onRefresh }: MasterAdminPanelProps) => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [selectedResponse, setSelectedResponse] = useState<PricingResponse | null>(null);
+  const [deleteTarget, setDeleteTarget] = useState<{ type: 'user' | 'key'; id: string; label: string } | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      if (deleteTarget.type === 'key') {
+        const { error } = await supabase.from('access_keys').delete().eq('id', deleteTarget.id);
+        if (error) throw error;
+        toast.success('Chave excluída com sucesso');
+      } else {
+        const { error } = await supabase.from('user_roles').delete().eq('user_id', deleteTarget.id);
+        if (error) throw error;
+        toast.success('Usuário removido com sucesso');
+      }
+      onRefresh();
+    } catch (err: any) {
+      toast.error('Erro ao excluir: ' + err.message);
+    } finally {
+      setIsDeleting(false);
+      setDeleteTarget(null);
+    }
+  };
 
   const getQuestionText = (questionId: string): string => {
     const question = pricingQuestions.find(q => q.id === questionId);
@@ -143,25 +168,39 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
               <thead className="bg-muted/50">
                 <tr>
                   <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Nome</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Email</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground hidden sm:table-cell">Email</th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Perfil</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Criado em</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground hidden md:table-cell">Criado em</th>
+                  <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
-                {(users || []).map((user) => (
-                  <tr key={user.id} className="hover:bg-muted/30 transition-colors">
-                    <td className="px-4 py-3 text-sm text-foreground font-medium">{user.name}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{user.email}</td>
-                    <td className="px-4 py-3">
-                      {getRoleBadge(user.role, user.created_by_admin_id === null && user.role === 'admin')}
-                    </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(user.created_at)}</td>
-                  </tr>
-                ))}
+                {(users || []).map((user) => {
+                  const isMaster = user.created_by_admin_id === null && user.role === 'admin';
+                  return (
+                    <tr key={user.id} className="hover:bg-muted/30 transition-colors">
+                      <td className="px-4 py-3 text-sm text-foreground font-medium">{user.name}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground hidden sm:table-cell">{user.email}</td>
+                      <td className="px-4 py-3">{getRoleBadge(user.role, isMaster)}</td>
+                      <td className="px-4 py-3 text-sm text-muted-foreground hidden md:table-cell">{formatDate(user.created_at)}</td>
+                      <td className="px-4 py-3">
+                        {!isMaster && (
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                            onClick={() => setDeleteTarget({ type: 'user', id: user.id, label: user.name || user.email })}
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
                 {(!users || users.length === 0) && (
                   <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
                       Nenhum usuário encontrado
                     </td>
                   </tr>
@@ -179,9 +218,10 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
                 <tr>
                   <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Chave</th>
                   <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Status</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Usada em</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Expira em</th>
-                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground">Criada em</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground hidden sm:table-cell">Usada em</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground hidden md:table-cell">Expira em</th>
+                  <th className="text-left px-4 py-3 text-sm font-medium text-muted-foreground hidden md:table-cell">Criada em</th>
+                  <th className="px-4 py-3"></th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-border">
@@ -213,14 +253,24 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
                         </Badge>
                       )}
                     </td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(key.used_at)}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(key.expires_at)}</td>
-                    <td className="px-4 py-3 text-sm text-muted-foreground">{formatDate(key.created_at)}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground hidden sm:table-cell">{formatDate(key.used_at)}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground hidden md:table-cell">{formatDate(key.expires_at)}</td>
+                    <td className="px-4 py-3 text-sm text-muted-foreground hidden md:table-cell">{formatDate(key.created_at)}</td>
+                    <td className="px-4 py-3">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="h-7 w-7 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setDeleteTarget({ type: 'key', id: key.id, label: key.key_code })}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </Button>
+                    </td>
                   </tr>
                 ))}
                 {(!accessKeys || accessKeys.length === 0) && (
                   <tr>
-                    <td colSpan={5} className="px-4 py-8 text-center text-muted-foreground">
+                    <td colSpan={6} className="px-4 py-8 text-center text-muted-foreground">
                       Nenhuma chave de acesso encontrada
                     </td>
                   </tr>
@@ -406,6 +456,31 @@ export const MasterAdminPanel = ({ users, accessKeys, environments, pricingRespo
               </div>
             </div>
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={!!deleteTarget} onOpenChange={(open) => !open && setDeleteTarget(null)}>
+        <DialogContent className="max-w-sm">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <Trash2 className="w-5 h-5" />
+              Confirmar exclusão
+            </DialogTitle>
+            <DialogDescription>
+              {deleteTarget?.type === 'key'
+                ? `Tem certeza que deseja excluir a chave "${deleteTarget?.label}"? Esta ação não pode ser desfeita.`
+                : `Tem certeza que deseja remover o usuário "${deleteTarget?.label}"? O acesso dele será revogado.`}
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex-col gap-2 sm:flex-row">
+            <Button variant="outline" onClick={() => setDeleteTarget(null)} className="w-full sm:w-auto">
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleDelete} disabled={isDeleting} className="w-full sm:w-auto">
+              {isDeleting ? 'Excluindo...' : 'Excluir'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
