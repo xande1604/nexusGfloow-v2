@@ -105,7 +105,8 @@ export enum AppView {
   TESTS = 'TESTS',
   RECRUITMENT = 'RECRUITMENT',
   TUTORIALS = 'TUTORIALS',
-  SETTINGS = 'SETTINGS'
+  SETTINGS = 'SETTINGS',
+  API_DOCS = 'API_DOCS'
 }
 
 export interface CostCenter {
