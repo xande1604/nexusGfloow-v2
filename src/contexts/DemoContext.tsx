@@ -48,19 +48,25 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
       }
 
       try {
-        const { count, error } = await supabase
-          .from('employees')
-          .select('*', { count: 'exact', head: true })
-          .limit(1);
+        // First check if user has a role assigned — if so, never force demo mode
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', user.id)
+          .maybeSingle();
 
-        if (error) {
-          console.error('Error checking user data:', error);
-          setHasOwnData(false);
-        } else {
+        if (roleData) {
+          // User has a role: check employee count just to set hasOwnData, but never force demo mode
+          const { count } = await supabase
+            .from('employees')
+            .select('*', { count: 'exact', head: true })
+            .limit(1);
           setHasOwnData((count || 0) > 0);
-          if ((count || 0) === 0) {
-            setIsDemoMode(true);
-          }
+          setIsDemoMode(false);
+        } else {
+          // No role assigned — activate demo mode
+          setHasOwnData(false);
+          setIsDemoMode(true);
         }
       } catch (err) {
         console.error('Exception checking user data:', err);
