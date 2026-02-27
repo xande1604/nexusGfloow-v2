@@ -12,7 +12,7 @@ interface DashboardViewProps {
 }
 
 export const DashboardView = ({ roles, skills, employees, onNavigate }: DashboardViewProps) => {
-  const { hasOwnData, isCheckingData } = useDemo();
+  const { hasOwnData, isCheckingData, isDemoMode } = useDemo();
   
   const avgSalary = roles.length > 0 
     ? Math.round(roles.reduce((acc, r) => acc + (r.salaryRange.min + r.salaryRange.max) / 2, 0) / roles.length)
@@ -26,8 +26,8 @@ export const DashboardView = ({ roles, skills, employees, onNavigate }: Dashboar
     leadership: skills.filter(s => s.category === 'Leadership').length,
   };
 
-  // Show demo banner if user doesn't have their own data (viewing demo data from DB)
-  const showDemoBanner = !isCheckingData && !hasOwnData;
+  // Show demo banner only if actively in demo mode (no role assigned)
+  const showDemoBanner = !isCheckingData && isDemoMode;
 
   return (
     <div className="space-y-6 animate-fade-in">
