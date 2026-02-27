@@ -32,6 +32,7 @@ const TreinamentosView = lazy(() => import('@/components/treinamentos/Treinament
 const TestsView = lazy(() => import('@/components/tests/TestsView').then(m => ({ default: m.TestsView })));
 const RecruitmentView = lazy(() => import('@/components/recruitment/RecruitmentView').then(m => ({ default: m.RecruitmentView })));
 const DemoLeadForm = lazy(() => import('@/components/demo/DemoLeadForm').then(m => ({ default: m.DemoLeadForm })));
+const ApiDocsView = lazy(() => import('@/components/settings/ApiDocsView').then(m => ({ default: m.ApiDocsView })));
 
 const ViewLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -262,6 +263,8 @@ const Index = () => {
         return <CostCentersView />;
       case AppView.TUTORIALS:
         return <TutorialsView />;
+      case AppView.API_DOCS:
+        return <ApiDocsView />;
       case AppView.SETTINGS:
         return <SettingsView companyContext={companyContext} onSaveContext={setCompanyContext} />;
       default:

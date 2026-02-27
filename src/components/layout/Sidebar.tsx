@@ -14,7 +14,8 @@ import {
   BookOpen,
   HelpCircle,
   FileCheck,
-  UserSearch
+  UserSearch,
+  Code2
 } from 'lucide-react';
 import { AppView } from '@/types';
 import { cn } from '@/lib/utils';
@@ -42,6 +43,7 @@ const menuItems = [
   { view: AppView.TESTS, label: 'Testes e Certificações', icon: FileCheck },
   { view: AppView.RECRUITMENT, label: 'Recrutamento', icon: UserSearch },
   { view: AppView.TUTORIALS, label: 'Tutoriais', icon: HelpCircle },
+  { view: AppView.API_DOCS, label: 'API & Importação', icon: Code2 },
   { view: AppView.SETTINGS, label: 'Configurações', icon: Settings },
 ];
 
