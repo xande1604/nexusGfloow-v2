@@ -1,11 +1,14 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import * as XLSX from 'xlsx';
-import { Copy, Download, ExternalLink, Key, CheckCircle, ChevronDown, ChevronRight, Code2, Table2, BookOpen, Upload } from 'lucide-react';
+import { Copy, Download, ExternalLink, Key, CheckCircle, ChevronDown, ChevronRight, Code2, Table2, BookOpen, Upload, Plus, Trash2, Eye, EyeOff, RefreshCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { DataImporter } from './DataImporter';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 const PROJECT_ID = import.meta.env.VITE_SUPABASE_PROJECT_ID || 'qashsyjrazmkhgeesglb';
 const BASE_URL = `https://${PROJECT_ID}.supabase.co/functions/v1/data-api`;
@@ -93,6 +96,167 @@ function CodeBlock({ code, lang = 'bash' }: { code: string; lang?: string }) {
   );
 }
 
+// ─── Token Manager ────────────────────────────────────────────
+interface ApiToken {
+  id: string;
+  name: string;
+  token: string;
+  is_active: boolean;
+  last_used_at: string | null;
+  created_at: string;
+}
+
+function TokenManager() {
+  const { user } = useAuth();
+  const [tokens, setTokens] = useState<ApiToken[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [creating, setCreating] = useState(false);
+  const [newName, setNewName] = useState('');
+  const [visibleTokens, setVisibleTokens] = useState<Set<string>>(new Set());
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const fetchTokens = async () => {
+    if (!user) return;
+    setLoading(true);
+    const { data } = await supabase
+      .from('data_webhook_tokens')
+      .select('*')
+      .order('created_at', { ascending: false });
+    setTokens((data as ApiToken[]) || []);
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchTokens(); }, [user]);
+
+  const createToken = async () => {
+    if (!newName.trim() || !user) return;
+    setCreating(true);
+    const token = `dwt_${crypto.randomUUID().replace(/-/g, '')}`;
+    const { error } = await supabase.from('data_webhook_tokens').insert({
+      name: newName.trim(),
+      token,
+      owner_admin_id: user.id,
+      is_active: true,
+    });
+    if (error) { toast.error('Erro ao criar token'); }
+    else {
+      toast.success('Token criado!');
+      setNewName('');
+      // Show the new token immediately
+      setVisibleTokens(prev => new Set([...prev, token]));
+      await fetchTokens();
+    }
+    setCreating(false);
+  };
+
+  const revokeToken = async (id: string) => {
+    const { error } = await supabase.from('data_webhook_tokens').update({ is_active: false }).eq('id', id);
+    if (error) toast.error('Erro ao revogar token');
+    else { toast.success('Token revogado'); fetchTokens(); }
+  };
+
+  const deleteToken = async (id: string) => {
+    const { error } = await supabase.from('data_webhook_tokens').delete().eq('id', id);
+    if (error) toast.error('Erro ao deletar token');
+    else { toast.success('Token removido'); fetchTokens(); }
+  };
+
+  const copyToken = (token: string, id: string) => {
+    navigator.clipboard.writeText(token);
+    setCopiedId(id);
+    toast.success('Token copiado!');
+    setTimeout(() => setCopiedId(null), 2000);
+  };
+
+  const toggleVisible = (id: string) => {
+    setVisibleTokens(prev => {
+      const s = new Set(prev);
+      s.has(id) ? s.delete(id) : s.add(id);
+      return s;
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Create new token */}
+      <div className="bg-card rounded-xl p-5 border border-border">
+        <h3 className="font-semibold text-foreground mb-3">Novo Token</h3>
+        <div className="flex gap-2">
+          <input
+            value={newName}
+            onChange={e => setNewName(e.target.value)}
+            onKeyDown={e => e.key === 'Enter' && createToken()}
+            placeholder="Nome do token (ex: Integração n8n)"
+            className="flex-1 h-9 px-3 bg-background border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary"
+          />
+          <Button onClick={createToken} disabled={creating || !newName.trim()} size="sm" className="gap-1.5">
+            <Plus className="w-4 h-4" />
+            {creating ? 'Criando...' : 'Criar'}
+          </Button>
+        </div>
+      </div>
+
+      {/* Token list */}
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-border">
+          <h3 className="font-semibold text-foreground">Tokens criados</h3>
+          <button onClick={fetchTokens} className="text-muted-foreground hover:text-foreground transition-colors">
+            <RefreshCw className="w-4 h-4" />
+          </button>
+        </div>
+        {loading ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">Carregando...</div>
+        ) : tokens.length === 0 ? (
+          <div className="p-8 text-center text-sm text-muted-foreground">Nenhum token criado ainda.</div>
+        ) : (
+          <div className="divide-y divide-border">
+            {tokens.map(t => (
+              <div key={t.id} className="px-5 py-4 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                  <Key className="w-4 h-4 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="font-medium text-sm text-foreground">{t.name}</span>
+                    <Badge variant={t.is_active ? 'default' : 'secondary'} className="text-xs">
+                      {t.is_active ? 'Ativo' : 'Revogado'}
+                    </Badge>
+                  </div>
+                  <div className="flex items-center gap-1.5 mt-1.5">
+                    <code className="text-xs font-mono text-muted-foreground bg-muted px-2 py-0.5 rounded truncate max-w-xs">
+                      {visibleTokens.has(t.id) ? t.token : '•'.repeat(24)}
+                    </code>
+                    <button onClick={() => toggleVisible(t.id)} className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0">
+                      {visibleTokens.has(t.id) ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                    </button>
+                    <button onClick={() => copyToken(t.token, t.id)} className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0">
+                      {copiedId === t.id ? <CheckCircle className="w-3.5 h-3.5 text-success" /> : <Copy className="w-3.5 h-3.5" />}
+                    </button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Criado em {new Date(t.created_at).toLocaleDateString('pt-BR')}
+                    {t.last_used_at && ` · Último uso: ${new Date(t.last_used_at).toLocaleDateString('pt-BR')}`}
+                  </p>
+                </div>
+                <div className="flex gap-1 flex-shrink-0">
+          {t.is_active && (
+                    <Button variant="ghost" size="sm" className="text-xs h-7 text-warning hover:text-warning/80" onClick={() => revokeToken(t.id)}>
+                      Revogar
+                    </Button>
+                  )}
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 text-destructive hover:text-destructive" onClick={() => deleteToken(t.id)}>
+                    <Trash2 className="w-3.5 h-3.5" />
+                  </Button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // ─── Component ────────────────────────────────────────────────
 export const ApiDocsView = () => {
   const [openSection, setOpenSection] = useState<string | null>('overview');
@@ -120,9 +284,15 @@ export const ApiDocsView = () => {
 
       <Tabs defaultValue="api">
         <TabsList>
+          <TabsTrigger value="tokens" className="gap-2"><Key className="w-4 h-4" />Tokens de API</TabsTrigger>
           <TabsTrigger value="api" className="gap-2"><BookOpen className="w-4 h-4" />Documentação API</TabsTrigger>
           <TabsTrigger value="csv" className="gap-2"><Upload className="w-4 h-4" />Templates & Importação</TabsTrigger>
         </TabsList>
+
+        {/* ── TOKENS ────────────────────────────────────── */}
+        <TabsContent value="tokens" className="mt-4">
+          <TokenManager />
+        </TabsContent>
 
         {/* ── API DOCS ────────────────────────────────────── */}
         <TabsContent value="api" className="space-y-4 mt-4">
