@@ -69,6 +69,7 @@ export const useCostCenters = () => {
           codcentrodecustos: costCenter.codcentrodecustos,
           nomecentrodecustos: costCenter.nomecentrodecustos,
           codempresa: costCenter.codempresa,
+          owner_admin_id: user?.id,
         });
 
       if (error) throw error;
