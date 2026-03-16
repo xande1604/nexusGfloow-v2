@@ -55,7 +55,7 @@ serve(async (req) => {
 
     const accessKey = keys?.[0] ?? null;
 
-    if (keyError || !accessKey) {
+    if (!accessKey) {
       console.error('Invalid or used key:', keyError?.message);
       return new Response(
         JSON.stringify({ error: 'Chave de acesso inválida ou já utilizada' }),
