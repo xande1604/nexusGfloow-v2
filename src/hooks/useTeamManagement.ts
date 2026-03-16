@@ -161,6 +161,21 @@ export const useTeamManagement = (isAdmin: boolean) => {
     }
   };
 
+  const updateMemberRole = async (userId: string, newRole: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_roles')
+        .update({ role: newRole as any })
+        .eq('user_id', userId)
+        .eq('created_by_admin_id', user!.id);
+      if (error) throw error;
+      toast.success('Perfil atualizado com sucesso!');
+      await fetchData();
+    } catch (err) {
+      toast.error('Erro ao atualizar perfil');
+    }
+  };
+
   const removeMember = async (userId: string) => {
     try {
       const { error } = await supabase
