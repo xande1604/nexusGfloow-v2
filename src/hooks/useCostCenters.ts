@@ -12,6 +12,7 @@ export const useCostCenters = () => {
   const [costCenters, setCostCenters] = useState<CostCenterWithCount[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchCostCenters = async () => {
     try {
