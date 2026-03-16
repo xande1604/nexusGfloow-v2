@@ -127,6 +127,15 @@ export const TeamManagementPanel = () => {
                     <Button
                       variant="ghost"
                       size="sm"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                      title="Alterar perfil"
+                      onClick={() => { setEditRoleDialog({ userId: member.id, name: member.name, currentRole: member.role }); setEditRole(member.role); }}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="h-7 w-7 p-0 text-destructive hover:bg-destructive/10"
                       onClick={() => removeMember(member.id)}
                     >
