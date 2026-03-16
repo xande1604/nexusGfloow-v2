@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Key, Plus, Copy, Trash2, CheckCircle, XCircle, Clock, Shield, RefreshCw, UserCheck, UserX } from 'lucide-react';
+import { Users, Key, Plus, Copy, Trash2, CheckCircle, Clock, Shield, RefreshCw, UserCheck, UserX, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -28,7 +28,7 @@ const ROLE_COLORS: Record<string, string> = {
 export const TeamManagementPanel = () => {
   const { role } = useUserRole();
   const isAdmin = role === 'admin';
-  const { members, pendingMembers, accessKeys, loading, generateKey, deleteKey, approveMember, rejectMember, removeMember, refresh } = useTeamManagement(isAdmin);
+  const { members, pendingMembers, accessKeys, loading, generateKey, deleteKey, approveMember, rejectMember, removeMember, updateMemberRole, refresh } = useTeamManagement(isAdmin);
 
   const [showGenerateKey, setShowGenerateKey] = useState(false);
   const [keyRole, setKeyRole] = useState('gestor');
@@ -37,6 +37,8 @@ export const TeamManagementPanel = () => {
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const [approveDialog, setApproveDialog] = useState<{ userId: string; name: string } | null>(null);
   const [approveRole, setApproveRole] = useState('gestor');
+  const [editRoleDialog, setEditRoleDialog] = useState<{ userId: string; name: string; currentRole: string } | null>(null);
+  const [editRole, setEditRole] = useState('gestor');
 
   if (!isAdmin) return null;
 
@@ -122,6 +124,15 @@ export const TeamManagementPanel = () => {
                     <span className={`text-xs font-medium px-2 py-1 rounded-full ${ROLE_COLORS[member.role] || ROLE_COLORS.visualizador}`}>
                       {ROLE_LABELS[member.role] || member.role}
                     </span>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="h-7 w-7 p-0 text-muted-foreground hover:text-foreground"
+                      title="Alterar perfil"
+                      onClick={() => { setEditRoleDialog({ userId: member.id, name: member.name, currentRole: member.role }); setEditRole(member.role); }}
+                    >
+                      <Pencil className="w-3.5 h-3.5" />
+                    </Button>
                     <Button
                       variant="ghost"
                       size="sm"
@@ -348,6 +359,42 @@ export const TeamManagementPanel = () => {
               }}
             >
               Aprovar Membro
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Edit Role Dialog */}
+      <Dialog open={!!editRoleDialog} onOpenChange={() => setEditRoleDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar perfil de {editRoleDialog?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">Selecione o novo perfil para este membro:</p>
+            <Select value={editRole} onValueChange={setEditRole}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="gestor">Gestor</SelectItem>
+                <SelectItem value="analista">Analista</SelectItem>
+                <SelectItem value="visualizador">Visualizador</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditRoleDialog(null)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                if (editRoleDialog) {
+                  updateMemberRole(editRoleDialog.userId, editRole);
+                  setEditRoleDialog(null);
+                }
+              }}
+            >
+              Salvar Alteração
             </Button>
           </DialogFooter>
         </DialogContent>
