@@ -65,7 +65,12 @@ export const useEmpresas = () => {
   const saveEmpresa = async (empresa: Partial<Empresa>) => {
     try {
       const { data: userData } = await supabase.auth.getUser();
-      
+      const userId = userData?.user?.id;
+
+      // Resolve the correct owner_admin_id via RPC (handles gestor -> admin tenant)
+      const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: userId });
+      const ownerAdminId = ownerIdData ?? userId;
+
       if (empresa.id) {
         // Update existing
         const { error } = await supabase
@@ -92,7 +97,7 @@ export const useEmpresas = () => {
             cnae: empresa.cnae,
             percentual_encargos: empresa.percentual_encargos ?? 80.0,
             grau_risco: empresa.grau_risco,
-            owner_admin_id: userData?.user?.id
+            owner_admin_id: ownerAdminId
           });
 
         if (error) throw error;

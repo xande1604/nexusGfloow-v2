@@ -53,15 +53,21 @@ export const useJobRoles = () => {
 
   const saveRole = async (role: JobRole) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: userId });
+      const ownerAdminId = ownerIdData ?? userId;
+
       const dbRole = {
         id: role.id,
         tituloreduzido: role.title,
-        codigocargo: role.id.substring(0, 8),
+        codigocargo: role.codigocargo || role.id.substring(0, 8),
         technical_knowledge: role.technicalKnowledge || null,
         hard_skills: role.hardSkills || null,
         soft_skills: role.softSkills || null,
         salary_min: role.salaryRange?.min || 0,
         salary_max: role.salaryRange?.max || 0,
+        owner_admin_id: ownerAdminId,
       };
 
       const { error } = await supabase

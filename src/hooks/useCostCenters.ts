@@ -62,6 +62,9 @@ export const useCostCenters = () => {
 
   const saveCostCenter = async (costCenter: Partial<CostCenter>) => {
     try {
+      const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: user?.id });
+      const ownerAdminId = ownerIdData ?? user?.id;
+
       const { error } = await supabase
         .from('centrodecustos')
         .upsert({
@@ -69,7 +72,7 @@ export const useCostCenters = () => {
           codcentrodecustos: costCenter.codcentrodecustos,
           nomecentrodecustos: costCenter.nomecentrodecustos,
           codempresa: costCenter.codempresa,
-          owner_admin_id: user?.id,
+          owner_admin_id: ownerAdminId,
         });
 
       if (error) throw error;
