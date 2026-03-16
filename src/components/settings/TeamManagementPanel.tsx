@@ -28,7 +28,7 @@ const ROLE_COLORS: Record<string, string> = {
 export const TeamManagementPanel = () => {
   const { role } = useUserRole();
   const isAdmin = role === 'admin';
-  const { members, pendingMembers, accessKeys, loading, generateKey, deleteKey, approveMember, rejectMember, removeMember, refresh } = useTeamManagement(isAdmin);
+  const { members, pendingMembers, accessKeys, loading, generateKey, deleteKey, approveMember, rejectMember, removeMember, updateMemberRole, refresh } = useTeamManagement(isAdmin);
 
   const [showGenerateKey, setShowGenerateKey] = useState(false);
   const [keyRole, setKeyRole] = useState('gestor');
@@ -37,6 +37,8 @@ export const TeamManagementPanel = () => {
   const [generatedKey, setGeneratedKey] = useState<string | null>(null);
   const [approveDialog, setApproveDialog] = useState<{ userId: string; name: string } | null>(null);
   const [approveRole, setApproveRole] = useState('gestor');
+  const [editRoleDialog, setEditRoleDialog] = useState<{ userId: string; name: string; currentRole: string } | null>(null);
+  const [editRole, setEditRole] = useState('gestor');
 
   if (!isAdmin) return null;
 
