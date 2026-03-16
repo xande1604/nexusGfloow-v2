@@ -31,13 +31,29 @@ serve(async (req) => {
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
     );
 
-    // Find valid access key
-    const { data: accessKey, error: keyError } = await supabaseAdmin
+    // Check if user already has a role assigned
+    const { data: existingRole } = await supabaseAdmin
+      .from('user_roles')
+      .select('role, created_by_admin_id')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (existingRole) {
+      return new Response(
+        JSON.stringify({ error: 'Este usuário já possui um papel atribuído neste ambiente.' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // Find valid access key (use limit(1) to avoid single() failing with multiple results)
+    const { data: keys, error: keyError } = await supabaseAdmin
       .from('access_keys')
       .select('*')
       .eq('key_code', keyCode.trim().toUpperCase())
       .eq('is_used', false)
-      .single();
+      .limit(1);
+
+    const accessKey = keys?.[0] ?? null;
 
     if (keyError || !accessKey) {
       console.error('Invalid or used key:', keyError?.message);
