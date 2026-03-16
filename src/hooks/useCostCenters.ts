@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { CostCenter } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface CostCenterWithCount extends CostCenter {
   employeeCount: number;
