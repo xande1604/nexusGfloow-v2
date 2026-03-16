@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { CostCenter } from '@/types';
+import { useAuth } from '@/hooks/useAuth';
 
 export interface CostCenterWithCount extends CostCenter {
   employeeCount: number;
@@ -11,6 +12,7 @@ export const useCostCenters = () => {
   const [costCenters, setCostCenters] = useState<CostCenterWithCount[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const { user } = useAuth();
 
   const fetchCostCenters = async () => {
     try {
@@ -67,6 +69,7 @@ export const useCostCenters = () => {
           codcentrodecustos: costCenter.codcentrodecustos,
           nomecentrodecustos: costCenter.nomecentrodecustos,
           codempresa: costCenter.codempresa,
+          owner_admin_id: user?.id,
         });
 
       if (error) throw error;
