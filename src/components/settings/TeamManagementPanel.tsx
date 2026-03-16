@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Users, Key, Plus, Copy, Trash2, CheckCircle, XCircle, Clock, Shield, RefreshCw, UserCheck, UserX } from 'lucide-react';
+import { Users, Key, Plus, Copy, Trash2, CheckCircle, Clock, Shield, RefreshCw, UserCheck, UserX, Pencil } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
