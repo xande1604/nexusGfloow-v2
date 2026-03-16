@@ -65,15 +65,29 @@ export const useCostCenters = () => {
       const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: user?.id });
       const ownerAdminId = ownerIdData ?? user?.id;
 
-      const { error } = await supabase
-        .from('centrodecustos')
-        .upsert({
-          id: costCenter.id,
-          codcentrodecustos: costCenter.codcentrodecustos,
-          nomecentrodecustos: costCenter.nomecentrodecustos,
-          codempresa: costCenter.codempresa,
-          owner_admin_id: ownerAdminId,
-        });
+      let error;
+
+      if (costCenter.id) {
+        // UPDATE existing
+        ({ error } = await supabase
+          .from('centrodecustos')
+          .update({
+            codcentrodecustos: costCenter.codcentrodecustos,
+            nomecentrodecustos: costCenter.nomecentrodecustos,
+            codempresa: costCenter.codempresa,
+          })
+          .eq('id', costCenter.id));
+      } else {
+        // INSERT new
+        ({ error } = await supabase
+          .from('centrodecustos')
+          .insert({
+            codcentrodecustos: costCenter.codcentrodecustos,
+            nomecentrodecustos: costCenter.nomecentrodecustos,
+            codempresa: costCenter.codempresa,
+            owner_admin_id: ownerAdminId,
+          }));
+      }
 
       if (error) throw error;
 
