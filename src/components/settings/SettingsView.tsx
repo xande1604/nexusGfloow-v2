@@ -72,8 +72,8 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
         </div>
       </button>
 
-      {/* Redeem Access Key Card - Show for users without admin role */}
-      {!roleLoading && role !== 'admin' && (
+      {/* Redeem Access Key Card - only for users with NO role yet */}
+      {!roleLoading && !role && (
         <RedeemAccessKeyCard onSuccess={refreshData} />
       )}
 
