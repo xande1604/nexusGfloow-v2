@@ -363,6 +363,42 @@ export const TeamManagementPanel = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      {/* Edit Role Dialog */}
+      <Dialog open={!!editRoleDialog} onOpenChange={() => setEditRoleDialog(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Alterar perfil de {editRoleDialog?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-2">
+            <p className="text-sm text-muted-foreground">Selecione o novo perfil para este membro:</p>
+            <Select value={editRole} onValueChange={setEditRole}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="admin">Admin</SelectItem>
+                <SelectItem value="gestor">Gestor</SelectItem>
+                <SelectItem value="analista">Analista</SelectItem>
+                <SelectItem value="visualizador">Visualizador</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEditRoleDialog(null)}>Cancelar</Button>
+            <Button
+              onClick={() => {
+                if (editRoleDialog) {
+                  updateMemberRole(editRoleDialog.userId, editRole);
+                  setEditRoleDialog(null);
+                }
+              }}
+            >
+              Salvar Alteração
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
