@@ -201,6 +201,7 @@ export const useTeamManagement = (isAdmin: boolean) => {
     approveMember,
     rejectMember,
     removeMember,
+    updateMemberRole,
     refresh: fetchData,
   };
 };
