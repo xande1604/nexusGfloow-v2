@@ -67,7 +67,17 @@ serve(async (req) => {
   // Update last_used_at
   await supabase.from('data_webhook_tokens').update({ last_used_at: new Date().toISOString() }).eq('id', tokenData.id)
 
-  const ownerAdminId = tokenData.owner_admin_id
+  // Resolve the root tenant admin ID (same logic as get_owner_admin_id DB function)
+  // If the token owner is a sub-admin, use their created_by_admin_id instead
+  let ownerAdminId = tokenData.owner_admin_id
+  const { data: tokenOwnerRole } = await supabase
+    .from('user_roles')
+    .select('created_by_admin_id')
+    .eq('user_id', ownerAdminId)
+    .maybeSingle()
+  if (tokenOwnerRole?.created_by_admin_id) {
+    ownerAdminId = tokenOwnerRole.created_by_admin_id
+  }
 
   // Validate entity
   if (!entityName || !ENTITY_MAP[entityName]) {
