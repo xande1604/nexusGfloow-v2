@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { JobRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export const useJobRoles = () => {
   const [roles, setRoles] = useState<JobRole[]>([]);
