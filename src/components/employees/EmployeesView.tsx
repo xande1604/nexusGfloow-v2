@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmployeeDetailsModal } from './EmployeeDetailsModal';
+import { EmployeeFormModal } from './EmployeeFormModal';
 import { SkillGapReport } from './SkillGapReport';
 import { useEmployeeSkills } from '@/hooks/useEmployeeSkills';
 import { useCostCenters } from '@/hooks/useCostCenters';
