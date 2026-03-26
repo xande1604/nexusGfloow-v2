@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck, Eye, BarChart3, Building2, Layers } from 'lucide-react';
+import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck, Eye, BarChart3, Building2, Layers, Plus } from 'lucide-react';
 import { Employee, JobRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { EmployeeDetailsModal } from './EmployeeDetailsModal';
+import { EmployeeFormModal } from './EmployeeFormModal';
 import { SkillGapReport } from './SkillGapReport';
 import { useEmployeeSkills } from '@/hooks/useEmployeeSkills';
 import { useCostCenters } from '@/hooks/useCostCenters';
@@ -18,9 +19,19 @@ interface EmployeesViewProps {
   roles: JobRole[];
   onUpdateEmail: (employeeId: string, email: string) => Promise<{ success: boolean; error?: any }>;
   onUpdateGestor?: (employeeId: string, gestorId: string | null) => Promise<{ success: boolean; error?: any }>;
+  onCreateEmployee?: (data: {
+    nome: string;
+    email?: string;
+    codigocargo?: string;
+    dataadmissao?: string;
+    codempresa?: string;
+    codcentrodecustos?: string;
+    matricula?: string;
+  }) => Promise<{ success: boolean; error?: any }>;
+  isDemoMode?: boolean;
 }
 
-export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor }: EmployeesViewProps) => {
+export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, isDemoMode }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
@@ -28,6 +39,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
   const [selectedGestor, setSelectedGestor] = useState<string>('');
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
   const { toast } = useToast();
   const { skills: allEmployeeSkills } = useEmployeeSkills();
@@ -151,6 +163,12 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
             Gerencie os colaboradores e analise gaps de habilidades
           </p>
         </div>
+        {onCreateEmployee && (
+          <Button onClick={() => setIsFormModalOpen(true)} disabled={isDemoMode}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Colaborador
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}
@@ -442,6 +460,31 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
         roles={roles}
         employees={employees}
       />
+
+      {/* Employee Form Modal */}
+      {onCreateEmployee && (
+        <EmployeeFormModal
+          open={isFormModalOpen}
+          onOpenChange={setIsFormModalOpen}
+          roles={roles}
+          onSave={async (data) => {
+            const result = await onCreateEmployee(data);
+            if (result.success) {
+              toast({
+                title: 'Colaborador cadastrado',
+                description: 'O colaborador foi cadastrado com sucesso.',
+              });
+            } else {
+              toast({
+                title: 'Erro ao cadastrar',
+                description: 'Não foi possível cadastrar o colaborador.',
+                variant: 'destructive',
+              });
+            }
+            return result;
+          }}
+        />
+      )}
     </div>
   );
 };
