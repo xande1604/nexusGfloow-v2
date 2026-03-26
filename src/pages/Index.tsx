@@ -78,7 +78,7 @@ const Index = () => {
   const { roles, loading: rolesLoading, saveRole, deleteRole } = useJobRoles();
   const { skills, loading: skillsLoading, saveSkill, deleteSkill } = useSkills();
   const { roadmaps, loading: roadmapsLoading, saveRoadmap, updateRoadmapProgress, updateRoadmapEmployee } = useRoadmaps();
-  const { employees, loading: employeesLoading, updateEmployeeEmail, updateEmployeeGestor } = useEmployees();
+  const { employees, loading: employeesLoading, updateEmployeeEmail, updateEmployeeGestor, createEmployee } = useEmployees();
 
   const handleGenerateRoadmap = async (sourceRole: string, targetRole: string, employeeName?: string) => {
     if (isDemoMode) {
