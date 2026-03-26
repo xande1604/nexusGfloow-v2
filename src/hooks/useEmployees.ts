@@ -88,7 +88,6 @@ export const useEmployees = () => {
     matricula?: string;
   }) => {
     try {
-      // Get owner_admin_id
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
@@ -123,9 +122,59 @@ export const useEmployees = () => {
     }
   };
 
+  const updateEmployee = async (employeeId: string, data: {
+    nome: string;
+    email?: string;
+    codigocargo?: string;
+    dataadmissao?: string;
+    codempresa?: string;
+    codcentrodecustos?: string;
+    matricula?: string;
+  }) => {
+    try {
+      const { error } = await supabase
+        .from('nexus_employees')
+        .update({
+          nome: data.nome,
+          email: data.email || null,
+          codigocargo: data.codigocargo || null,
+          dataadmissao: data.dataadmissao || null,
+          codempresa: data.codempresa || null,
+          codcentrodecustos: data.codcentrodecustos || null,
+          matricula: data.matricula || null,
+        })
+        .eq('id', employeeId);
+
+      if (error) throw error;
+
+      await fetchEmployees();
+      return { success: true };
+    } catch (error) {
+      console.error('Error updating employee:', error);
+      return { success: false, error };
+    }
+  };
+
+  const deleteEmployee = async (employeeId: string) => {
+    try {
+      const { error } = await supabase
+        .from('nexus_employees')
+        .delete()
+        .eq('id', employeeId);
+
+      if (error) throw error;
+
+      setEmployees(prev => prev.filter(emp => emp.id !== employeeId));
+      return { success: true };
+    } catch (error) {
+      console.error('Error deleting employee:', error);
+      return { success: false, error };
+    }
+  };
+
   useEffect(() => {
     fetchEmployees();
   }, []);
 
-  return { employees, loading, refetch: fetchEmployees, updateEmployeeEmail, updateEmployeeGestor, createEmployee };
+  return { employees, loading, refetch: fetchEmployees, updateEmployeeEmail, updateEmployeeGestor, createEmployee, updateEmployee, deleteEmployee };
 };
