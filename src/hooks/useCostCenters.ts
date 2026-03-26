@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { CostCenter } from '@/types';
 import { useAuth } from '@/hooks/useAuth';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export interface CostCenterWithCount extends CostCenter {
   employeeCount: number;
