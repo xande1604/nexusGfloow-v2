@@ -79,9 +79,60 @@ export const useEmployees = () => {
     }
   };
 
+  const createEmployee = async (data: {
+    nome: string;
+    email?: string;
+    codigocargo?: string;
+    dataadmissao?: string;
+    codempresa?: string;
+    codcentrodecustos?: string;
+    matricula?: string;
+  }) => {
+    try {
+      // Get owner_admin_id
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('Not authenticated');
+
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('created_by_admin_id, role')
+        .eq('user_id', user.id)
+        .single();
+
+      const ownerAdminId = roleData?.created_by_admin_id || user.id;
+
+      // Build chave_empresa
+      const chave_empresa = data.codempresa
+        ? `${ownerAdminId}_${data.codempresa}`
+        : `${ownerAdminId}_MANUAL`;
+
+      const { error } = await supabase
+        .from('employees')
+        .insert({
+          nome: data.nome,
+          email: data.email || null,
+          codigocargo: data.codigocargo || null,
+          dataadmissao: data.dataadmissao || null,
+          codempresa: data.codempresa || null,
+          codcentrodecustos: data.codcentrodecustos || null,
+          matricula: data.matricula || null,
+          chave_empresa,
+          owner_admin_id: ownerAdminId,
+        });
+
+      if (error) throw error;
+
+      await fetchEmployees();
+      return { success: true };
+    } catch (error) {
+      console.error('Error creating employee:', error);
+      return { success: false, error };
+    }
+  };
+
   useEffect(() => {
     fetchEmployees();
   }, []);
 
-  return { employees, loading, refetch: fetchEmployees, updateEmployeeEmail, updateEmployeeGestor };
+  return { employees, loading, refetch: fetchEmployees, updateEmployeeEmail, updateEmployeeGestor, createEmployee };
 };
