@@ -34,12 +34,9 @@ export const useRecruitment = () => {
   // Fetch candidatos
   const fetchCandidatos = async () => {
     try {
-      const { data, error } = await supabase
-        .from('candidatos')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchAllRows('candidatos', {
+        order: { column: 'created_at', ascending: false },
+      });
 
       // Fetch skills for each candidato
       const candidatosWithSkills = await Promise.all(
