@@ -163,6 +163,12 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
             Gerencie os colaboradores e analise gaps de habilidades
           </p>
         </div>
+        {onCreateEmployee && (
+          <Button onClick={() => setIsFormModalOpen(true)} disabled={isDemoMode}>
+            <Plus className="w-4 h-4 mr-2" />
+            Novo Colaborador
+          </Button>
+        )}
       </div>
 
       {/* Tabs */}
