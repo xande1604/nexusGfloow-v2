@@ -429,19 +429,69 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
                                     <p>Ver perfil e habilidades</p>
                                   </TooltipContent>
                                 </Tooltip>
+                                {onUpdateEmployee && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <button
+                                        onClick={() => handleEditEmployee(employee)}
+                                        className="p-1.5 rounded-lg text-muted-foreground hover:text-accent-foreground hover:bg-accent transition-colors"
+                                      >
+                                        <Pencil className="w-4 h-4" />
+                                      </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Editar colaborador</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <button
                                       onClick={() => handleEditStart(employee)}
                                       className="p-1.5 rounded-lg text-muted-foreground hover:text-brand-600 hover:bg-brand-100 transition-colors"
                                     >
-                                      <Edit2 className="w-4 h-4" />
+                                      <Mail className="w-4 h-4" />
                                     </button>
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p>Editar email</p>
                                   </TooltipContent>
                                 </Tooltip>
+                                {onDeleteEmployee && (
+                                  <AlertDialog>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <AlertDialogTrigger asChild>
+                                          <button
+                                            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </button>
+                                        </AlertDialogTrigger>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Excluir colaborador</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Excluir colaborador?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Tem certeza que deseja excluir <strong>{employee.name}</strong>? Esta ação não pode ser desfeita e removerá também habilidades, avaliações e roadmaps associados.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => handleDeleteEmployee(employee.id)}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          Excluir
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                )}
                               </>
                             )}
                           </div>
@@ -480,25 +530,40 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
         employees={employees}
       />
 
-      {/* Employee Form Modal */}
+      {/* Create Employee Modal */}
       {onCreateEmployee && (
         <EmployeeFormModal
           open={isFormModalOpen}
           onOpenChange={setIsFormModalOpen}
           roles={roles}
+          mode="create"
           onSave={async (data) => {
             const result = await onCreateEmployee(data);
             if (result.success) {
-              toast({
-                title: 'Colaborador cadastrado',
-                description: 'O colaborador foi cadastrado com sucesso.',
-              });
+              toast({ title: 'Colaborador cadastrado', description: 'O colaborador foi cadastrado com sucesso.' });
             } else {
-              toast({
-                title: 'Erro ao cadastrar',
-                description: 'Não foi possível cadastrar o colaborador.',
-                variant: 'destructive',
-              });
+              toast({ title: 'Erro ao cadastrar', description: 'Não foi possível cadastrar o colaborador.', variant: 'destructive' });
+            }
+            return result;
+          }}
+        />
+      )}
+
+      {/* Edit Employee Modal */}
+      {onUpdateEmployee && editingEmployee && (
+        <EmployeeFormModal
+          open={!!editingEmployee}
+          onOpenChange={(open) => { if (!open) setEditingEmployee(null); }}
+          roles={roles}
+          mode="edit"
+          initialData={editingEmployee}
+          onSave={async (data) => {
+            const result = await onUpdateEmployee(editingEmployee.id, data);
+            if (result.success) {
+              toast({ title: 'Colaborador atualizado', description: 'Os dados foram atualizados com sucesso.' });
+              setEditingEmployee(null);
+            } else {
+              toast({ title: 'Erro ao atualizar', description: 'Não foi possível atualizar o colaborador.', variant: 'destructive' });
             }
             return result;
           }}
