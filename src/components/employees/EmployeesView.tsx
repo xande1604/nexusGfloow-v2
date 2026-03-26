@@ -140,6 +140,29 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
     setSelectedEmployee(null);
   };
 
+  const handleEditEmployee = (employee: Employee) => {
+    setEditingEmployee({
+      id: employee.id,
+      nome: employee.name,
+      email: employee.email || undefined,
+      codigocargo: employee.roleId || undefined,
+      dataadmissao: employee.admissionDate || undefined,
+      codempresa: (employee as any).codempresa || undefined,
+      codcentrodecustos: (employee as any).codcentrodecustos || undefined,
+      matricula: undefined,
+    });
+  };
+
+  const handleDeleteEmployee = async (employeeId: string) => {
+    if (!onDeleteEmployee) return;
+    const result = await onDeleteEmployee(employeeId);
+    if (result.success) {
+      toast({ title: 'Colaborador excluído', description: 'O colaborador foi excluído com sucesso.' });
+    } else {
+      toast({ title: 'Erro ao excluir', description: 'Não foi possível excluir o colaborador.', variant: 'destructive' });
+    }
+  };
+
   const formatDate = (dateStr: string) => {
     if (!dateStr) return '-';
     try {
