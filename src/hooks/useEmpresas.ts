@@ -26,19 +26,13 @@ export const useEmpresas = () => {
       setLoading(true);
       
       // Fetch empresas
-      const { data: empresasData, error: empresasError } = await supabase
-        .from('empresas')
-        .select('*')
-        .order('nomeempresa');
+      const empresasData = await fetchAllRows('empresas', {
+        order: { column: 'nomeempresa', ascending: true },
+      });
 
-      if (empresasError) throw empresasError;
-
-      // Fetch employee counts per empresa
-      const { data: employeeCounts, error: countError } = await supabase
-        .from('employees')
-        .select('codempresa');
-
-      if (countError) throw countError;
+      const employeeCounts = await fetchAllRows('employees', {
+        select: 'codempresa',
+      });
 
       // Count employees per empresa
       const countMap: Record<string, number> = {};

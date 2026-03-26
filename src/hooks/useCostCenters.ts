@@ -20,19 +20,14 @@ export const useCostCenters = () => {
       setLoading(true);
       
       // Fetch cost centers
-      const { data: ccData, error: ccError } = await supabase
-        .from('centrodecustos')
-        .select('id, codcentrodecustos, nomecentrodecustos, codempresa')
-        .order('nomecentrodecustos');
+      const ccData = await fetchAllRows('centrodecustos', {
+        select: 'id, codcentrodecustos, nomecentrodecustos, codempresa',
+        order: { column: 'nomecentrodecustos', ascending: true },
+      });
 
-      if (ccError) throw ccError;
-
-      // Fetch employee counts by cost center
-      const { data: employeeData, error: empError } = await supabase
-        .from('employees')
-        .select('codcentrodecustos');
-
-      if (empError) throw empError;
+      const employeeData = await fetchAllRows('employees', {
+        select: 'codcentrodecustos',
+      });
 
       // Count employees per cost center
       const countMap = new Map<string, number>();
