@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck, Eye, BarChart3, Building2, Layers, Plus } from 'lucide-react';
+import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck, Eye, BarChart3, Building2, Layers, Plus, Pencil, Trash2 } from 'lucide-react';
 import { Employee, JobRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { EmployeeDetailsModal } from './EmployeeDetailsModal';
-import { EmployeeFormModal } from './EmployeeFormModal';
+import { EmployeeFormModal, EmployeeFormData } from './EmployeeFormModal';
 import { SkillGapReport } from './SkillGapReport';
 import { useEmployeeSkills } from '@/hooks/useEmployeeSkills';
 import { useCostCenters } from '@/hooks/useCostCenters';
