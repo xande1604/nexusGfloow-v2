@@ -31,7 +31,7 @@ interface EmployeesViewProps {
   isDemoMode?: boolean;
 }
 
-export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor }: EmployeesViewProps) => {
+export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, isDemoMode }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
@@ -39,6 +39,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor 
   const [selectedGestor, setSelectedGestor] = useState<string>('');
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [isFormModalOpen, setIsFormModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
   const { toast } = useToast();
   const { skills: allEmployeeSkills } = useEmployeeSkills();
