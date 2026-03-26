@@ -53,27 +53,21 @@ export const useEvaluationCycles = () => {
   };
 
   const fetchEvaluations = async (cycleId?: string) => {
-    let query = supabase
-      .from('employee_evaluations')
-      .select(`
-        *,
-        employee:employees(id, nome, email, codigocargo)
-      `)
-      .order('created_at', { ascending: false });
+    try {
+      const data = await fetchAllRows('employee_evaluations', {
+        select: `
+          *,
+          employee:employees(id, nome, email, codigocargo)
+        `,
+        order: { column: 'created_at', ascending: false },
+        filters: cycleId ? (q: any) => q.eq('cycle_id', cycleId) : undefined,
+      });
 
-    if (cycleId) {
-      query = query.eq('cycle_id', cycleId);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
+      setEvaluations(data as unknown as EmployeeEvaluation[]);
+    } catch (error) {
       console.error('Error fetching evaluations:', error);
       toast.error('Erro ao carregar avaliações');
-      return;
     }
-
-    setEvaluations(data as unknown as EmployeeEvaluation[]);
   };
 
   const createCycle = async (cycle: Omit<EvaluationCycle, 'id' | 'created_at'>) => {
