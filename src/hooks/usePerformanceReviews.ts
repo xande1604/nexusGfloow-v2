@@ -43,9 +43,8 @@ export const usePerformanceReviews = () => {
 
   const fetchReviews = async () => {
     try {
-      const { data, error } = await supabase
-        .from('performance_reviews')
-        .select(`
+      const data = await fetchAllRows('performance_reviews', {
+        select: `
           id,
           employee_id,
           date,
@@ -55,10 +54,9 @@ export const usePerformanceReviews = () => {
           overall_feedback,
           created_at,
           employees!performance_reviews_employee_id_fkey (nome)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+        `,
+        order: { column: 'created_at', ascending: false },
+      });
 
       const mappedReviews: PerformanceReview[] = (data || []).map(review => ({
         id: review.id,
