@@ -460,6 +460,31 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
         roles={roles}
         employees={employees}
       />
+
+      {/* Employee Form Modal */}
+      {onCreateEmployee && (
+        <EmployeeFormModal
+          open={isFormModalOpen}
+          onOpenChange={setIsFormModalOpen}
+          roles={roles}
+          onSave={async (data) => {
+            const result = await onCreateEmployee(data);
+            if (result.success) {
+              toast({
+                title: 'Colaborador cadastrado',
+                description: 'O colaborador foi cadastrado com sucesso.',
+              });
+            } else {
+              toast({
+                title: 'Erro ao cadastrar',
+                description: 'Não foi possível cadastrar o colaborador.',
+                variant: 'destructive',
+              });
+            }
+            return result;
+          }}
+        />
+      )}
     </div>
   );
 };
