@@ -97,12 +97,9 @@ export const useRecruitment = () => {
   // Fetch candidaturas
   const fetchCandidaturas = async () => {
     try {
-      const { data, error } = await supabase
-        .from('candidaturas')
-        .select('*')
-        .order('data_candidatura', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchAllRows('candidaturas', {
+        order: { column: 'data_candidatura', ascending: false },
+      });
 
       setCandidaturas(asCandidaturas(data || []));
     } catch (error) {
