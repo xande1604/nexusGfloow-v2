@@ -1,5 +1,4 @@
 import { supabase } from '@/integrations/supabase/client';
-import type { PostgrestFilterBuilder } from '@supabase/postgrest-js';
 
 /**
  * Fetches all rows from a Supabase query, paginating automatically
@@ -20,9 +19,8 @@ export async function fetchAllRows<T = any>(
   let hasMore = true;
 
   while (hasMore) {
-    let query = supabase
-      .from(tableName)
-      .select(options?.select || '*', { count: 'exact' })
+    let query = (supabase.from as any)(tableName)
+      .select(options?.select || '*')
       .range(from, from + pageSize - 1);
 
     if (options?.order) {
