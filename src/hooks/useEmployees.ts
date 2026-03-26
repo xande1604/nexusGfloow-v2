@@ -59,7 +59,7 @@ export const useEmployees = () => {
   const updateEmployeeGestor = async (employeeId: string, gestorId: string | null) => {
     try {
       const { error } = await supabase
-        .from('employees')
+        .from('nexus_employees')
         .update({ gestor_id: gestorId || null })
         .eq('id', employeeId);
 
