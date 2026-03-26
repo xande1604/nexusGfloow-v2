@@ -100,11 +100,6 @@ export const useEmployees = () => {
 
       const ownerAdminId = roleData?.created_by_admin_id || user.id;
 
-      // Build chave_empresa
-      const chave_empresa = data.codempresa
-        ? `${ownerAdminId}_${data.codempresa}`
-        : `${ownerAdminId}_MANUAL`;
-
       const { error } = await supabase
         .from('nexus_employees')
         .insert({
