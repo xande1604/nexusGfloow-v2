@@ -9,7 +9,7 @@ export const useEmployees = () => {
 
   const fetchEmployees = async () => {
     try {
-      const data = await fetchAllRows('employees', {
+      const data = await fetchAllRows('nexus_employees', {
         select: 'id, nome, codigocargo, matricula, dataadmissao, email, gestor_id, codcentrodecustos, codempresa',
         order: { column: 'nome', ascending: true },
         filters: (q: any) => q.not('nome', 'is', null),
