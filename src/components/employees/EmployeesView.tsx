@@ -20,19 +20,13 @@ interface EmployeesViewProps {
   roles: JobRole[];
   onUpdateEmail: (employeeId: string, email: string) => Promise<{ success: boolean; error?: any }>;
   onUpdateGestor?: (employeeId: string, gestorId: string | null) => Promise<{ success: boolean; error?: any }>;
-  onCreateEmployee?: (data: {
-    nome: string;
-    email?: string;
-    codigocargo?: string;
-    dataadmissao?: string;
-    codempresa?: string;
-    codcentrodecustos?: string;
-    matricula?: string;
-  }) => Promise<{ success: boolean; error?: any }>;
+  onCreateEmployee?: (data: EmployeeFormData) => Promise<{ success: boolean; error?: any }>;
+  onUpdateEmployee?: (employeeId: string, data: EmployeeFormData) => Promise<{ success: boolean; error?: any }>;
+  onDeleteEmployee?: (employeeId: string) => Promise<{ success: boolean; error?: any }>;
   isDemoMode?: boolean;
 }
 
-export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, isDemoMode }: EmployeesViewProps) => {
+export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
@@ -41,6 +35,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<(EmployeeFormData & { id: string }) | null>(null);
   const [activeTab, setActiveTab] = useState('list');
   const { toast } = useToast();
   const { skills: allEmployeeSkills } = useEmployeeSkills();
