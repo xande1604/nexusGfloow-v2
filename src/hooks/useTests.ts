@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Test, TestQuestion, TestAttempt, Certification } from '@/types/tests';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export const useTests = () => {
   const [tests, setTests] = useState<Test[]>([]);
