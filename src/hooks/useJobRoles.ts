@@ -11,12 +11,9 @@ export const useJobRoles = () => {
 
   const fetchRoles = async () => {
     try {
-      const { data, error } = await supabase
-        .from('cargos')
-        .select('*')
-        .order('tituloreduzido');
-
-      if (error) throw error;
+      const data = await fetchAllRows('cargos', {
+        order: { column: 'tituloreduzido', ascending: true },
+      });
 
       const mappedRoles: JobRole[] = (data || []).map(row => ({
         id: row.id,
