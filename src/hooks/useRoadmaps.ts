@@ -35,12 +35,9 @@ export const useRoadmaps = () => {
 
   const fetchRoadmaps = async () => {
     try {
-      const { data, error } = await supabase
-        .from('career_roadmaps')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchAllRows('career_roadmaps', {
+        order: { column: 'created_at', ascending: false },
+      });
 
       const mappedRoadmaps: CareerRoadmap[] = (data || []).map(row => ({
         id: row.id,

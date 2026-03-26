@@ -11,12 +11,9 @@ export const useTests = () => {
 
   const fetchTests = async () => {
     try {
-      const { data, error } = await supabase
-        .from('tests')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchAllRows('tests', {
+        order: { column: 'created_at', ascending: false },
+      });
 
       const mapped: Test[] = (data || []).map(row => ({
         id: row.id,
