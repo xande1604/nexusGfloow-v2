@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck, Eye, BarChart3, Building2, Layers, Plus } from 'lucide-react';
+import { Search, Mail, User, Calendar, Briefcase, Edit2, Check, X, UserCheck, Eye, BarChart3, Building2, Layers, Plus, Pencil, Trash2 } from 'lucide-react';
 import { Employee, JobRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Input } from '@/components/ui/input';
@@ -7,8 +7,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { EmployeeDetailsModal } from './EmployeeDetailsModal';
-import { EmployeeFormModal } from './EmployeeFormModal';
+import { EmployeeFormModal, EmployeeFormData } from './EmployeeFormModal';
 import { SkillGapReport } from './SkillGapReport';
 import { useEmployeeSkills } from '@/hooks/useEmployeeSkills';
 import { useCostCenters } from '@/hooks/useCostCenters';
@@ -19,19 +20,13 @@ interface EmployeesViewProps {
   roles: JobRole[];
   onUpdateEmail: (employeeId: string, email: string) => Promise<{ success: boolean; error?: any }>;
   onUpdateGestor?: (employeeId: string, gestorId: string | null) => Promise<{ success: boolean; error?: any }>;
-  onCreateEmployee?: (data: {
-    nome: string;
-    email?: string;
-    codigocargo?: string;
-    dataadmissao?: string;
-    codempresa?: string;
-    codcentrodecustos?: string;
-    matricula?: string;
-  }) => Promise<{ success: boolean; error?: any }>;
+  onCreateEmployee?: (data: EmployeeFormData) => Promise<{ success: boolean; error?: any }>;
+  onUpdateEmployee?: (employeeId: string, data: EmployeeFormData) => Promise<{ success: boolean; error?: any }>;
+  onDeleteEmployee?: (employeeId: string) => Promise<{ success: boolean; error?: any }>;
   isDemoMode?: boolean;
 }
 
-export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, isDemoMode }: EmployeesViewProps) => {
+export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
@@ -40,6 +35,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
   const [selectedEmployee, setSelectedEmployee] = useState<Employee | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const [isFormModalOpen, setIsFormModalOpen] = useState(false);
+  const [editingEmployee, setEditingEmployee] = useState<(EmployeeFormData & { id: string }) | null>(null);
   const [activeTab, setActiveTab] = useState('list');
   const { toast } = useToast();
   const { skills: allEmployeeSkills } = useEmployeeSkills();
@@ -142,6 +138,29 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
   const handleCloseDetailsModal = () => {
     setIsDetailsModalOpen(false);
     setSelectedEmployee(null);
+  };
+
+  const handleEditEmployee = (employee: Employee) => {
+    setEditingEmployee({
+      id: employee.id,
+      nome: employee.name,
+      email: employee.email || undefined,
+      codigocargo: employee.roleId || undefined,
+      dataadmissao: employee.admissionDate || undefined,
+      codempresa: (employee as any).codempresa || undefined,
+      codcentrodecustos: (employee as any).codcentrodecustos || undefined,
+      matricula: undefined,
+    });
+  };
+
+  const handleDeleteEmployee = async (employeeId: string) => {
+    if (!onDeleteEmployee) return;
+    const result = await onDeleteEmployee(employeeId);
+    if (result.success) {
+      toast({ title: 'Colaborador excluído', description: 'O colaborador foi excluído com sucesso.' });
+    } else {
+      toast({ title: 'Erro ao excluir', description: 'Não foi possível excluir o colaborador.', variant: 'destructive' });
+    }
   };
 
   const formatDate = (dateStr: string) => {
@@ -410,19 +429,69 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
                                     <p>Ver perfil e habilidades</p>
                                   </TooltipContent>
                                 </Tooltip>
+                                {onUpdateEmployee && (
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <button
+                                        onClick={() => handleEditEmployee(employee)}
+                                        className="p-1.5 rounded-lg text-muted-foreground hover:text-accent-foreground hover:bg-accent transition-colors"
+                                      >
+                                        <Pencil className="w-4 h-4" />
+                                      </button>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p>Editar colaborador</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                )}
                                 <Tooltip>
                                   <TooltipTrigger asChild>
                                     <button
                                       onClick={() => handleEditStart(employee)}
                                       className="p-1.5 rounded-lg text-muted-foreground hover:text-brand-600 hover:bg-brand-100 transition-colors"
                                     >
-                                      <Edit2 className="w-4 h-4" />
+                                      <Mail className="w-4 h-4" />
                                     </button>
                                   </TooltipTrigger>
                                   <TooltipContent>
                                     <p>Editar email</p>
                                   </TooltipContent>
                                 </Tooltip>
+                                {onDeleteEmployee && (
+                                  <AlertDialog>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <AlertDialogTrigger asChild>
+                                          <button
+                                            className="p-1.5 rounded-lg text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-colors"
+                                          >
+                                            <Trash2 className="w-4 h-4" />
+                                          </button>
+                                        </AlertDialogTrigger>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p>Excluir colaborador</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                    <AlertDialogContent>
+                                      <AlertDialogHeader>
+                                        <AlertDialogTitle>Excluir colaborador?</AlertDialogTitle>
+                                        <AlertDialogDescription>
+                                          Tem certeza que deseja excluir <strong>{employee.name}</strong>? Esta ação não pode ser desfeita e removerá também habilidades, avaliações e roadmaps associados.
+                                        </AlertDialogDescription>
+                                      </AlertDialogHeader>
+                                      <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                        <AlertDialogAction
+                                          onClick={() => handleDeleteEmployee(employee.id)}
+                                          className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                        >
+                                          Excluir
+                                        </AlertDialogAction>
+                                      </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                  </AlertDialog>
+                                )}
                               </>
                             )}
                           </div>
@@ -461,25 +530,40 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
         employees={employees}
       />
 
-      {/* Employee Form Modal */}
+      {/* Create Employee Modal */}
       {onCreateEmployee && (
         <EmployeeFormModal
           open={isFormModalOpen}
           onOpenChange={setIsFormModalOpen}
           roles={roles}
+          mode="create"
           onSave={async (data) => {
             const result = await onCreateEmployee(data);
             if (result.success) {
-              toast({
-                title: 'Colaborador cadastrado',
-                description: 'O colaborador foi cadastrado com sucesso.',
-              });
+              toast({ title: 'Colaborador cadastrado', description: 'O colaborador foi cadastrado com sucesso.' });
             } else {
-              toast({
-                title: 'Erro ao cadastrar',
-                description: 'Não foi possível cadastrar o colaborador.',
-                variant: 'destructive',
-              });
+              toast({ title: 'Erro ao cadastrar', description: 'Não foi possível cadastrar o colaborador.', variant: 'destructive' });
+            }
+            return result;
+          }}
+        />
+      )}
+
+      {/* Edit Employee Modal */}
+      {onUpdateEmployee && editingEmployee && (
+        <EmployeeFormModal
+          open={!!editingEmployee}
+          onOpenChange={(open) => { if (!open) setEditingEmployee(null); }}
+          roles={roles}
+          mode="edit"
+          initialData={editingEmployee}
+          onSave={async (data) => {
+            const result = await onUpdateEmployee(editingEmployee.id, data);
+            if (result.success) {
+              toast({ title: 'Colaborador atualizado', description: 'Os dados foram atualizados com sucesso.' });
+              setEditingEmployee(null);
+            } else {
+              toast({ title: 'Erro ao atualizar', description: 'Não foi possível atualizar o colaborador.', variant: 'destructive' });
             }
             return result;
           }}

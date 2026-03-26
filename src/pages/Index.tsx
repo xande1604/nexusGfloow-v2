@@ -78,7 +78,7 @@ const Index = () => {
   const { roles, loading: rolesLoading, saveRole, deleteRole } = useJobRoles();
   const { skills, loading: skillsLoading, saveSkill, deleteSkill } = useSkills();
   const { roadmaps, loading: roadmapsLoading, saveRoadmap, updateRoadmapProgress, updateRoadmapEmployee } = useRoadmaps();
-  const { employees, loading: employeesLoading, updateEmployeeEmail, updateEmployeeGestor, createEmployee } = useEmployees();
+  const { employees, loading: employeesLoading, updateEmployeeEmail, updateEmployeeGestor, createEmployee, updateEmployee, deleteEmployee } = useEmployees();
 
   const handleGenerateRoadmap = async (sourceRole: string, targetRole: string, employeeName?: string) => {
     if (isDemoMode) {
@@ -229,7 +229,7 @@ const Index = () => {
       case AppView.SKILLS:
         return <SkillsView skills={displaySkills} roles={displayRoles} onSaveSkill={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveSkill} onDeleteSkill={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteSkill} />;
       case AppView.EMPLOYEES:
-        return <EmployeesView employees={displayEmployees} roles={displayRoles} onUpdateEmail={isDemoMode ? demoNoOp : updateEmployeeEmail} onUpdateGestor={isDemoMode ? demoNoOp : updateEmployeeGestor} onCreateEmployee={isDemoMode ? undefined : createEmployee} isDemoMode={isDemoMode} />;
+        return <EmployeesView employees={displayEmployees} roles={displayRoles} onUpdateEmail={isDemoMode ? demoNoOp : updateEmployeeEmail} onUpdateGestor={isDemoMode ? demoNoOp : updateEmployeeGestor} onCreateEmployee={isDemoMode ? undefined : createEmployee} onUpdateEmployee={isDemoMode ? undefined : updateEmployee} onDeleteEmployee={isDemoMode ? undefined : deleteEmployee} isDemoMode={isDemoMode} />;
       case AppView.ROADMAP:
         return (
           <RoadmapView 

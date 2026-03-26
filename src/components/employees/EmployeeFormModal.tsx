@@ -8,22 +8,26 @@ import { JobRole } from '@/types';
 import { useEmpresas } from '@/hooks/useEmpresas';
 import { useCostCenters } from '@/hooks/useCostCenters';
 
+export interface EmployeeFormData {
+  nome: string;
+  email?: string;
+  codigocargo?: string;
+  dataadmissao?: string;
+  codempresa?: string;
+  codcentrodecustos?: string;
+  matricula?: string;
+}
+
 interface EmployeeFormModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   roles: JobRole[];
-  onSave: (data: {
-    nome: string;
-    email?: string;
-    codigocargo?: string;
-    dataadmissao?: string;
-    codempresa?: string;
-    codcentrodecustos?: string;
-    matricula?: string;
-  }) => Promise<{ success: boolean; error?: any }>;
+  onSave: (data: EmployeeFormData) => Promise<{ success: boolean; error?: any }>;
+  initialData?: EmployeeFormData & { id?: string };
+  mode?: 'create' | 'edit';
 }
 
-export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave }: EmployeeFormModalProps) => {
+export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave, initialData, mode = 'create' }: EmployeeFormModalProps) => {
   const [nome, setNome] = useState('');
   const [email, setEmail] = useState('');
   const [codigocargo, setCodigocargo] = useState('');
@@ -36,7 +40,15 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave }: Employe
   const { costCenters } = useCostCenters();
 
   useEffect(() => {
-    if (!open) {
+    if (open && initialData) {
+      setNome(initialData.nome || '');
+      setEmail(initialData.email || '');
+      setCodigocargo(initialData.codigocargo || '');
+      setDataadmissao(initialData.dataadmissao || '');
+      setCodempresa(initialData.codempresa || '');
+      setCodcentrodecustos(initialData.codcentrodecustos || '');
+      setMatricula(initialData.matricula || '');
+    } else if (!open) {
       setNome('');
       setEmail('');
       setCodigocargo('');
@@ -45,7 +57,7 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave }: Employe
       setCodcentrodecustos('');
       setMatricula('');
     }
-  }, [open]);
+  }, [open, initialData]);
 
   const filteredCostCenters = codempresa
     ? costCenters.filter(cc => cc.codempresa === codempresa)
@@ -76,7 +88,7 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave }: Employe
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle>Novo Colaborador</DialogTitle>
+          <DialogTitle>{mode === 'edit' ? 'Editar Colaborador' : 'Novo Colaborador'}</DialogTitle>
         </DialogHeader>
         <div className="space-y-4">
           <div>
@@ -143,7 +155,7 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave }: Employe
           <div className="flex justify-end gap-2 pt-2">
             <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
             <Button onClick={handleSave} disabled={!nome.trim() || saving}>
-              {saving ? 'Salvando...' : 'Salvar'}
+              {saving ? 'Salvando...' : mode === 'edit' ? 'Atualizar' : 'Salvar'}
             </Button>
           </div>
         </div>
