@@ -28,7 +28,7 @@ serve(async (req) => {
 
     // Find employee by email
     const { data: employee, error: employeeError } = await supabase
-      .from('employees')
+      .from('nexus_employees')
       .select('id, nome, email, codigocargo')
       .eq('email', email.toLowerCase().trim())
       .single();

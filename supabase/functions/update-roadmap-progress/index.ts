@@ -275,7 +275,7 @@ Seja preciso na análise, cruzando as habilidades obtidas com as necessárias em
 
         if (employee?.gestor_id) {
           const { data: manager } = await supabase
-            .from('employees')
+            .from('nexus_employees')
             .select('nome, email')
             .eq('id', employee.gestor_id)
             .single();
