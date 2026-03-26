@@ -19,6 +19,16 @@ interface EmployeesViewProps {
   roles: JobRole[];
   onUpdateEmail: (employeeId: string, email: string) => Promise<{ success: boolean; error?: any }>;
   onUpdateGestor?: (employeeId: string, gestorId: string | null) => Promise<{ success: boolean; error?: any }>;
+  onCreateEmployee?: (data: {
+    nome: string;
+    email?: string;
+    codigocargo?: string;
+    dataadmissao?: string;
+    codempresa?: string;
+    codcentrodecustos?: string;
+    matricula?: string;
+  }) => Promise<{ success: boolean; error?: any }>;
+  isDemoMode?: boolean;
 }
 
 export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor }: EmployeesViewProps) => {
