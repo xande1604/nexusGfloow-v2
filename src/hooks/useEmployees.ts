@@ -106,7 +106,7 @@ export const useEmployees = () => {
         : `${ownerAdminId}_MANUAL`;
 
       const { error } = await supabase
-        .from('employees')
+        .from('nexus_employees')
         .insert({
           nome: data.nome,
           email: data.email || null,
@@ -115,7 +115,6 @@ export const useEmployees = () => {
           codempresa: data.codempresa || null,
           codcentrodecustos: data.codcentrodecustos || null,
           matricula: data.matricula || null,
-          chave_empresa,
           owner_admin_id: ownerAdminId,
         });
 
