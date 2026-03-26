@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Employee } from '@/types';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export const useEmployees = () => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -8,15 +9,13 @@ export const useEmployees = () => {
 
   const fetchEmployees = async () => {
     try {
-      const { data, error } = await supabase
-        .from('employees')
-        .select('id, nome, codigocargo, matricula, dataadmissao, email, gestor_id, codcentrodecustos, codempresa')
-        .not('nome', 'is', null)
-        .order('nome');
+      const data = await fetchAllRows('employees', {
+        select: 'id, nome, codigocargo, matricula, dataadmissao, email, gestor_id, codcentrodecustos, codempresa',
+        order: { column: 'nome', ascending: true },
+        filters: (q: any) => q.not('nome', 'is', null),
+      });
 
-      if (error) throw error;
-
-      const mappedEmployees: (Employee & { gestorId?: string; codcentrodecustos?: string; codempresa?: string })[] = (data || []).map(emp => ({
+      const mappedEmployees: (Employee & { gestorId?: string; codcentrodecustos?: string; codempresa?: string })[] = (data || []).map((emp: any) => ({
         id: emp.id,
         name: emp.nome || '',
         roleId: emp.codigocargo || '',

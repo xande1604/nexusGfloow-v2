@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export interface EmployeeSkill {
   id: string;
@@ -30,18 +31,10 @@ export const useEmployeeSkills = (employeeId?: string) => {
 
   const fetchSkills = async () => {
     try {
-      let query = supabase
-        .from('employee_skills')
-        .select('*')
-        .order('acquired_at', { ascending: false });
-
-      if (employeeId) {
-        query = query.eq('employee_id', employeeId);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
+      const data = await fetchAllRows('employee_skills', {
+        order: { column: 'acquired_at', ascending: false },
+        filters: employeeId ? (q: any) => q.eq('employee_id', employeeId) : undefined,
+      });
 
       setSkills((data || []) as EmployeeSkill[]);
     } catch (error: any) {

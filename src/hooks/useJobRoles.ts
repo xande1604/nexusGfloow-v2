@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { JobRole } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export const useJobRoles = () => {
   const [roles, setRoles] = useState<JobRole[]>([]);
@@ -10,12 +11,9 @@ export const useJobRoles = () => {
 
   const fetchRoles = async () => {
     try {
-      const { data, error } = await supabase
-        .from('cargos')
-        .select('*')
-        .order('tituloreduzido');
-
-      if (error) throw error;
+      const data = await fetchAllRows('cargos', {
+        order: { column: 'tituloreduzido', ascending: true },
+      });
 
       const mappedRoles: JobRole[] = (data || []).map(row => ({
         id: row.id,

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export interface Treinamento {
   id: string;
@@ -37,12 +38,9 @@ export const useTreinamentos = () => {
   const fetchTreinamentos = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('treinamentos')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchAllRows('treinamentos', {
+        order: { column: 'created_at', ascending: false },
+      });
       
       setTreinamentos((data as Treinamento[]) || []);
     } catch (error: any) {

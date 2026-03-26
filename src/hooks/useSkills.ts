@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skill } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export const useSkills = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
@@ -10,12 +11,9 @@ export const useSkills = () => {
 
   const fetchSkills = async () => {
     try {
-      const { data, error } = await supabase
-        .from('skills')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
+      const data = await fetchAllRows('skills', {
+        order: { column: 'name', ascending: true },
+      });
 
       const mappedSkills: Skill[] = (data || []).map(row => ({
         id: row.id,

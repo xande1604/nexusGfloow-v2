@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 import type { 
   Candidato, 
   Vaga, 
@@ -33,12 +34,9 @@ export const useRecruitment = () => {
   // Fetch candidatos
   const fetchCandidatos = async () => {
     try {
-      const { data, error } = await supabase
-        .from('candidatos')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchAllRows('candidatos', {
+        order: { column: 'created_at', ascending: false },
+      });
 
       // Fetch skills for each candidato
       const candidatosWithSkills = await Promise.all(
@@ -99,12 +97,9 @@ export const useRecruitment = () => {
   // Fetch candidaturas
   const fetchCandidaturas = async () => {
     try {
-      const { data, error } = await supabase
-        .from('candidaturas')
-        .select('*')
-        .order('data_candidatura', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchAllRows('candidaturas', {
+        order: { column: 'data_candidatura', ascending: false },
+      });
 
       setCandidaturas(asCandidaturas(data || []));
     } catch (error) {

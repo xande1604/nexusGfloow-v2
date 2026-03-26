@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export interface EvaluationCycle {
   id: string;
@@ -40,42 +41,33 @@ export const useEvaluationCycles = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchCycles = async () => {
-    const { data, error } = await supabase
-      .from('evaluation_cycles')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    try {
+      const data = await fetchAllRows('evaluation_cycles', {
+        order: { column: 'created_at', ascending: false },
+      });
+      setCycles(data as EvaluationCycle[]);
+    } catch (error) {
       console.error('Error fetching cycles:', error);
       toast.error('Erro ao carregar ciclos');
-      return;
     }
-
-    setCycles(data as EvaluationCycle[]);
   };
 
   const fetchEvaluations = async (cycleId?: string) => {
-    let query = supabase
-      .from('employee_evaluations')
-      .select(`
-        *,
-        employee:employees(id, nome, email, codigocargo)
-      `)
-      .order('created_at', { ascending: false });
+    try {
+      const data = await fetchAllRows('employee_evaluations', {
+        select: `
+          *,
+          employee:employees(id, nome, email, codigocargo)
+        `,
+        order: { column: 'created_at', ascending: false },
+        filters: cycleId ? (q: any) => q.eq('cycle_id', cycleId) : undefined,
+      });
 
-    if (cycleId) {
-      query = query.eq('cycle_id', cycleId);
-    }
-
-    const { data, error } = await query;
-
-    if (error) {
+      setEvaluations(data as unknown as EmployeeEvaluation[]);
+    } catch (error) {
       console.error('Error fetching evaluations:', error);
       toast.error('Erro ao carregar avaliações');
-      return;
     }
-
-    setEvaluations(data as unknown as EmployeeEvaluation[]);
   };
 
   const createCycle = async (cycle: Omit<EvaluationCycle, 'id' | 'created_at'>) => {
