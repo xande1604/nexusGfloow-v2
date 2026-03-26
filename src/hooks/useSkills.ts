@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Skill } from '@/types';
 import { useToast } from '@/hooks/use-toast';
+import { fetchAllRows } from '@/lib/fetchAllRows';
 
 export const useSkills = () => {
   const [skills, setSkills] = useState<Skill[]>([]);
