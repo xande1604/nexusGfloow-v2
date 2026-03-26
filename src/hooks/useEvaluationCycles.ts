@@ -41,18 +41,15 @@ export const useEvaluationCycles = () => {
   const [loading, setLoading] = useState(true);
 
   const fetchCycles = async () => {
-    const { data, error } = await supabase
-      .from('evaluation_cycles')
-      .select('*')
-      .order('created_at', { ascending: false });
-
-    if (error) {
+    try {
+      const data = await fetchAllRows('evaluation_cycles', {
+        order: { column: 'created_at', ascending: false },
+      });
+      setCycles(data as EvaluationCycle[]);
+    } catch (error) {
       console.error('Error fetching cycles:', error);
       toast.error('Erro ao carregar ciclos');
-      return;
     }
-
-    setCycles(data as EvaluationCycle[]);
   };
 
   const fetchEvaluations = async (cycleId?: string) => {

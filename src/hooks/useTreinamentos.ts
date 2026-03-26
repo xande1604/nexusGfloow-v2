@@ -38,12 +38,9 @@ export const useTreinamentos = () => {
   const fetchTreinamentos = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
-        .from('treinamentos')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
+      const data = await fetchAllRows('treinamentos', {
+        order: { column: 'created_at', ascending: false },
+      });
       
       setTreinamentos((data as Treinamento[]) || []);
     } catch (error: any) {

@@ -11,12 +11,9 @@ export const useSkills = () => {
 
   const fetchSkills = async () => {
     try {
-      const { data, error } = await supabase
-        .from('skills')
-        .select('*')
-        .order('name');
-
-      if (error) throw error;
+      const data = await fetchAllRows('skills', {
+        order: { column: 'name', ascending: true },
+      });
 
       const mappedSkills: Skill[] = (data || []).map(row => ({
         id: row.id,
