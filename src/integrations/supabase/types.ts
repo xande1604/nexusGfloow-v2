@@ -509,14 +509,7 @@ export type Database = {
             foreignKeyName: "career_roadmaps_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "career_roadmaps_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees_masked"
+            referencedRelation: "nexus_employees"
             referencedColumns: ["id"]
           },
         ]
@@ -648,14 +641,7 @@ export type Database = {
             foreignKeyName: "certifications_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "certifications_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees_masked"
+            referencedRelation: "nexus_employees"
             referencedColumns: ["id"]
           },
           {
@@ -904,14 +890,7 @@ export type Database = {
             foreignKeyName: "employee_credentials_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: true
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_credentials_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: true
-            referencedRelation: "employees_masked"
+            referencedRelation: "nexus_employees"
             referencedColumns: ["id"]
           },
         ]
@@ -974,14 +953,7 @@ export type Database = {
             foreignKeyName: "employee_evaluations_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_evaluations_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees_masked"
+            referencedRelation: "nexus_employees"
             referencedColumns: ["id"]
           },
         ]
@@ -1028,14 +1000,7 @@ export type Database = {
             foreignKeyName: "employee_skills_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "employee_skills_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees_masked"
+            referencedRelation: "nexus_employees"
             referencedColumns: ["id"]
           },
         ]
@@ -1841,6 +1806,76 @@ export type Database = {
         }
         Relationships: []
       }
+      nexus_employees: {
+        Row: {
+          codcentrodecustos: string | null
+          codempresa: string | null
+          codigocargo: string | null
+          created_at: string | null
+          dataadmissao: string | null
+          email: string | null
+          gestor_id: string | null
+          id: string
+          matricula: string | null
+          nome: string
+          owner_admin_id: string | null
+          source_employee_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          codcentrodecustos?: string | null
+          codempresa?: string | null
+          codigocargo?: string | null
+          created_at?: string | null
+          dataadmissao?: string | null
+          email?: string | null
+          gestor_id?: string | null
+          id?: string
+          matricula?: string | null
+          nome: string
+          owner_admin_id?: string | null
+          source_employee_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          codcentrodecustos?: string | null
+          codempresa?: string | null
+          codigocargo?: string | null
+          created_at?: string | null
+          dataadmissao?: string | null
+          email?: string | null
+          gestor_id?: string | null
+          id?: string
+          matricula?: string | null
+          nome?: string
+          owner_admin_id?: string | null
+          source_employee_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "nexus_employees_gestor_id_fkey"
+            columns: ["gestor_id"]
+            isOneToOne: false
+            referencedRelation: "nexus_employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nexus_employees_source_employee_id_fkey"
+            columns: ["source_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "nexus_employees_source_employee_id_fkey"
+            columns: ["source_employee_id"]
+            isOneToOne: false
+            referencedRelation: "employees_masked"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       performance_reviews: {
         Row: {
           created_at: string | null
@@ -1880,14 +1915,7 @@ export type Database = {
             foreignKeyName: "performance_reviews_employee_id_fkey"
             columns: ["employee_id"]
             isOneToOne: false
-            referencedRelation: "employees"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "performance_reviews_employee_id_fkey"
-            columns: ["employee_id"]
-            isOneToOne: false
-            referencedRelation: "employees_masked"
+            referencedRelation: "nexus_employees"
             referencedColumns: ["id"]
           },
         ]
