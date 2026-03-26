@@ -9,7 +9,7 @@ export const useEmployees = () => {
 
   const fetchEmployees = async () => {
     try {
-      const data = await fetchAllRows('employees', {
+      const data = await fetchAllRows('nexus_employees', {
         select: 'id, nome, codigocargo, matricula, dataadmissao, email, gestor_id, codcentrodecustos, codempresa',
         order: { column: 'nome', ascending: true },
         filters: (q: any) => q.not('nome', 'is', null),
@@ -37,7 +37,7 @@ export const useEmployees = () => {
   const updateEmployeeEmail = async (employeeId: string, email: string) => {
     try {
       const { error } = await supabase
-        .from('employees')
+        .from('nexus_employees')
         .update({ email })
         .eq('id', employeeId);
 
@@ -59,7 +59,7 @@ export const useEmployees = () => {
   const updateEmployeeGestor = async (employeeId: string, gestorId: string | null) => {
     try {
       const { error } = await supabase
-        .from('employees')
+        .from('nexus_employees')
         .update({ gestor_id: gestorId || null })
         .eq('id', employeeId);
 
@@ -100,13 +100,8 @@ export const useEmployees = () => {
 
       const ownerAdminId = roleData?.created_by_admin_id || user.id;
 
-      // Build chave_empresa
-      const chave_empresa = data.codempresa
-        ? `${ownerAdminId}_${data.codempresa}`
-        : `${ownerAdminId}_MANUAL`;
-
       const { error } = await supabase
-        .from('employees')
+        .from('nexus_employees')
         .insert({
           nome: data.nome,
           email: data.email || null,
@@ -115,7 +110,6 @@ export const useEmployees = () => {
           codempresa: data.codempresa || null,
           codcentrodecustos: data.codcentrodecustos || null,
           matricula: data.matricula || null,
-          chave_empresa,
           owner_admin_id: ownerAdminId,
         });
 

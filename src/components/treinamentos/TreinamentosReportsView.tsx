@@ -35,7 +35,7 @@ export const TreinamentosReportsView = ({
   useEffect(() => {
     const fetchEmployeesWithCostCenter = async () => {
       const { data } = await supabase
-        .from('employees')
+        .from('nexus_employees')
         .select('id, nome, codcentrodecustos');
       if (data) {
         setEmployeesWithCostCenter(data);

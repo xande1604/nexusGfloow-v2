@@ -70,7 +70,7 @@ export const CareerProgressDashboard = ({ roadmaps, roles }: CareerProgressDashb
     const fetchData = async () => {
       try {
         const [empResult, empresasResult, ccResult] = await Promise.all([
-          supabase.from('employees').select('id, nome, codempresa, codcentrodecustos, codigocargo'),
+          supabase.from('nexus_employees').select('id, nome, codempresa, codcentrodecustos, codigocargo'),
           supabase.from('empresas').select('codempresa, nomeempresa'),
           supabase.from('centrodecustos').select('codcentrodecustos, nomecentrodecustos, codempresa')
         ]);

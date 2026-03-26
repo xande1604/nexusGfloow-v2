@@ -58,7 +58,7 @@ export const DemoProvider = ({ children }: { children: ReactNode }) => {
         if (roleData) {
           // User has a role: check employee count just to set hasOwnData, but never force demo mode
           const { count } = await supabase
-            .from('employees')
+            .from('nexus_employees')
             .select('*', { count: 'exact', head: true })
             .limit(1);
           setHasOwnData((count || 0) > 0);

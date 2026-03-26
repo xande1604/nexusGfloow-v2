@@ -13,6 +13,11 @@ const ENTITY_MAP: Record<string, { table: string; required: string[]; allowedFie
     required: ['chave_empresa'],
     allowedFields: ['nome', 'chave_empresa', 'matricula', 'codigocargo', 'codempresa', 'codfilial', 'codcentrodecustos', 'dataadmissao', 'dataafastamento', 'datanascimento', 'sexo', 'estadocivil', 'escolaridade', 'tipocontrato', 'tipodecolaborador', 'codsituacao', 'valorsalario', 'email', 'cpf', 'pcd', 'racacor', 'periodopagamento', 'idlancamento']
   },
+  talentos: {
+    table: 'nexus_employees',
+    required: ['nome'],
+    allowedFields: ['nome', 'email', 'codigocargo', 'matricula', 'dataadmissao', 'codempresa', 'codcentrodecustos', 'source_employee_id']
+  },
   cargos: {
     table: 'cargos',
     required: ['codigocargo', 'tituloreduzido'],
