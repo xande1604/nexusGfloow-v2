@@ -523,6 +523,7 @@ export type Database = {
           hard_skills: string | null
           id: string
           idlancamento: string | null
+          is_active: boolean
           owner_admin_id: string | null
           salary_max: number | null
           salary_min: number | null
@@ -539,6 +540,7 @@ export type Database = {
           hard_skills?: string | null
           id?: string
           idlancamento?: string | null
+          is_active?: boolean
           owner_admin_id?: string | null
           salary_max?: number | null
           salary_min?: number | null
@@ -555,6 +557,7 @@ export type Database = {
           hard_skills?: string | null
           id?: string
           idlancamento?: string | null
+          is_active?: boolean
           owner_admin_id?: string | null
           salary_max?: number | null
           salary_min?: number | null
@@ -572,6 +575,7 @@ export type Database = {
           created_at: string | null
           id: string
           idlancamento: string | null
+          is_active: boolean
           nomecentrodecustos: string
           owner_admin_id: string | null
           updated_at: string | null
@@ -582,6 +586,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           idlancamento?: string | null
+          is_active?: boolean
           nomecentrodecustos: string
           owner_admin_id?: string | null
           updated_at?: string | null
@@ -592,6 +597,7 @@ export type Database = {
           created_at?: string | null
           id?: string
           idlancamento?: string | null
+          is_active?: boolean
           nomecentrodecustos?: string
           owner_admin_id?: string | null
           updated_at?: string | null
