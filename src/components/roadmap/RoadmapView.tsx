@@ -633,7 +633,7 @@ export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerat
                 {(() => {
                   const sourceRoleObj = sourceRole ? roles.find(r => r.title === sourceRole) : null;
                   const filteredEmployees = sourceRoleObj
-                    ? employees.filter(emp => emp.roleId === sourceRoleObj.id)
+                    ? employees.filter(emp => emp.roleId === sourceRoleObj.codigocargo || emp.roleId === sourceRoleObj.id)
                     : employees;
                   return filteredEmployees.map(employee => (
                     <option key={employee.id} value={employee.name}>
@@ -644,7 +644,7 @@ export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerat
               </select>
               {sourceRole && (() => {
                 const sourceRoleObj = roles.find(r => r.title === sourceRole);
-                const count = sourceRoleObj ? employees.filter(emp => emp.roleId === sourceRoleObj.id).length : 0;
+                const count = sourceRoleObj ? employees.filter(emp => emp.roleId === sourceRoleObj.codigocargo || emp.roleId === sourceRoleObj.id).length : 0;
                 return count > 0 ? (
                   <p className="text-xs text-muted-foreground mt-1">{count} colaborador(es) no cargo selecionado</p>
                 ) : (
