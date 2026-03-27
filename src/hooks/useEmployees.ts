@@ -91,13 +91,8 @@ export const useEmployees = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data: roleData } = await supabase
-        .from('user_roles')
-        .select('created_by_admin_id, role')
-        .eq('user_id', user.id)
-        .single();
-
-      const ownerAdminId = roleData?.created_by_admin_id || user.id;
+      const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: user.id });
+      const ownerAdminId = ownerIdData ?? user.id;
 
       const { error } = await supabase
         .from('nexus_employees')

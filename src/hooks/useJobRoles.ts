@@ -56,7 +56,7 @@ export const useJobRoles = () => {
       const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: userId });
       const ownerAdminId = ownerIdData ?? userId;
 
-      const dbRole = {
+      const dbRole: any = {
         id: role.id,
         tituloreduzido: role.title,
         codigocargo: role.codigocargo || role.id.substring(0, 8),
@@ -66,6 +66,7 @@ export const useJobRoles = () => {
         salary_min: role.salaryRange?.min || 0,
         salary_max: role.salaryRange?.max || 0,
         owner_admin_id: ownerAdminId,
+        is_active: (role as any).is_active !== false,
       };
 
       const { error } = await supabase

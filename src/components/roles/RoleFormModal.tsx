@@ -4,6 +4,8 @@ import { JobRole, Skill } from '@/types';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface RoleFormModalProps {
   isOpen: boolean;
@@ -19,7 +21,7 @@ const departments = ['Tecnologia', 'Produto', 'Design', 'Marketing', 'Vendas', '
 export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFormModalProps) => {
   const { toast } = useToast();
   const [isRefining, setIsRefining] = useState(false);
-  const [form, setForm] = useState<Partial<JobRole>>({
+  const [form, setForm] = useState<Partial<JobRole> & { is_active?: boolean }>({
     title: '',
     level: 'Pleno',
     department: 'Tecnologia',
@@ -31,13 +33,14 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
     hardSkills: '',
     softSkills: '',
     keyDeliverables: '',
+    is_active: true,
   });
 
   const [baseSalary, setBaseSalary] = useState<number>(0);
 
   useEffect(() => {
     if (role) {
-      setForm(role);
+      setForm({ ...role, is_active: (role as any).is_active !== false });
       setBaseSalary(role.salaryRange?.min || 0);
     } else {
       setForm({
@@ -130,7 +133,8 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
       hardSkills: form.hardSkills,
       softSkills: form.softSkills,
       keyDeliverables: form.keyDeliverables,
-    });
+      is_active: form.is_active,
+    } as any);
   };
 
   if (!isOpen) return null;
@@ -371,6 +375,16 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
                 placeholder="- Liderança de equipes&#10;- Comunicação assertiva&#10;- Resolução de conflitos..."
               />
             </div>
+          </div>
+
+          {/* Active Flag */}
+          <div className="flex items-center justify-between pt-3 border-t border-border">
+            <Label htmlFor="role-is-active" className="text-sm font-medium">Cargo Ativo</Label>
+            <Switch
+              id="role-is-active"
+              checked={form.is_active !== false}
+              onCheckedChange={(checked) => setForm(prev => ({ ...prev, is_active: checked }))}
+            />
           </div>
 
           {/* Actions */}

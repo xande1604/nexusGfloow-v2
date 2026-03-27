@@ -112,7 +112,7 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave, initialDa
               <SelectContent>
                 {roles.map(role => (
                   <SelectItem key={role.id} value={role.codigocargo || role.id}>
-                    {role.title}
+                    {role.codigocargo ? `${role.codigocargo} - ${role.title}` : role.title}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -131,7 +131,7 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave, initialDa
               <SelectContent>
                 {empresas.map(emp => (
                   <SelectItem key={emp.id} value={emp.codempresa}>
-                    {emp.nomeempresa}
+                    {emp.codempresa} - {emp.nomeempresa}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -146,7 +146,7 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave, initialDa
               <SelectContent>
                 {filteredCostCenters.map(cc => (
                   <SelectItem key={cc.id} value={cc.codcentrodecustos}>
-                    {cc.nomecentrodecustos}
+                    {cc.codcentrodecustos} - {cc.nomecentrodecustos}
                   </SelectItem>
                 ))}
               </SelectContent>
