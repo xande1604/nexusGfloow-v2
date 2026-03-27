@@ -10,11 +10,12 @@ interface RolesViewProps {
   employees?: Employee[];
   onSaveRole: (role: JobRole) => void;
   onDeleteRole: (id: string) => void;
+  onNavigateToEmployees?: (codigocargo: string) => void;
 }
 
 const levels = ['Estagiário', 'Trainee', 'Júnior', 'Pleno', 'Sênior', 'Master', 'Especialista', 'Tech Lead', 'Coordenador', 'Gerente', 'Diretor', 'C-Level'];
 
-export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteRole }: RolesViewProps) => {
+export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteRole, onNavigateToEmployees }: RolesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -170,12 +171,20 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
                 </span>
               </div>
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Users className="w-4 h-4" />
-                  <span className="text-xs font-medium">
-                    {getEmployeeCount(role)}
-                  </span>
-                </div>
+                <div 
+                  className={`flex items-center gap-1 text-muted-foreground ${getEmployeeCount(role) > 0 && onNavigateToEmployees ? 'cursor-pointer hover:text-brand-600 transition-colors' : ''}`}
+                  onClick={() => {
+                    if (getEmployeeCount(role) > 0 && onNavigateToEmployees && role.codigocargo) {
+                      onNavigateToEmployees(role.codigocargo);
+                    }
+                  }}
+                  title={getEmployeeCount(role) > 0 ? 'Ver colaboradores deste cargo' : ''}
+                >
+                   <Users className="w-4 h-4" />
+                   <span className="text-xs font-medium">
+                     {getEmployeeCount(role)}
+                   </span>
+                 </div>
                 <span className="text-xs text-muted-foreground">
                   {role.requiredSkillIds.length} skills
                 </span>

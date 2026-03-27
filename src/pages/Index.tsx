@@ -56,6 +56,7 @@ const Index = () => {
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [employeeCostCenterFilter, setEmployeeCostCenterFilter] = useState<string>('');
   const [employeeEmpresaFilter, setEmployeeEmpresaFilter] = useState<string>('');
+  const [employeeCargoFilter, setEmployeeCargoFilter] = useState<string>('');
   const [prefilledRoadmapData, setPrefilledRoadmapData] = useState<{
     employeeId: string;
     skills: string[];
@@ -237,11 +238,11 @@ const Index = () => {
       case AppView.DASHBOARD:
         return <DashboardView roles={displayRoles} skills={displaySkills} employees={displayEmployees} onNavigate={(view) => setActiveView(view as AppView)} />;
       case AppView.ROLES:
-        return <RolesView roles={displayRoles} skills={displaySkills} employees={displayEmployees} onSaveRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveRole} onDeleteRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteRole} />;
+        return <RolesView roles={displayRoles} skills={displaySkills} employees={displayEmployees} onSaveRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveRole} onDeleteRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteRole} onNavigateToEmployees={(codigocargo) => { setEmployeeCargoFilter(codigocargo); setActiveView(AppView.EMPLOYEES); }} />;
       case AppView.SKILLS:
         return <SkillsView skills={displaySkills} roles={displayRoles} onSaveSkill={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveSkill} onDeleteSkill={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteSkill} />;
       case AppView.EMPLOYEES:
-        return <EmployeesView employees={displayEmployees} roles={displayRoles} onUpdateEmail={isDemoMode ? demoNoOp : updateEmployeeEmail} onUpdateGestor={isDemoMode ? demoNoOp : updateEmployeeGestor} onCreateEmployee={isDemoMode ? undefined : createEmployee} onUpdateEmployee={isDemoMode ? undefined : updateEmployee} onDeleteEmployee={isDemoMode ? undefined : deleteEmployee} isDemoMode={isDemoMode} initialCostCenterFilter={employeeCostCenterFilter} initialEmpresaFilter={employeeEmpresaFilter} />;
+        return <EmployeesView employees={displayEmployees} roles={displayRoles} onUpdateEmail={isDemoMode ? demoNoOp : updateEmployeeEmail} onUpdateGestor={isDemoMode ? demoNoOp : updateEmployeeGestor} onCreateEmployee={isDemoMode ? undefined : createEmployee} onUpdateEmployee={isDemoMode ? undefined : updateEmployee} onDeleteEmployee={isDemoMode ? undefined : deleteEmployee} isDemoMode={isDemoMode} initialCostCenterFilter={employeeCostCenterFilter} initialEmpresaFilter={employeeEmpresaFilter} initialCargoFilter={employeeCargoFilter} />;
       case AppView.ROADMAP:
         return (
           <RoadmapView 

@@ -26,12 +26,14 @@ interface EmployeesViewProps {
   isDemoMode?: boolean;
   initialCostCenterFilter?: string;
   initialEmpresaFilter?: string;
+  initialCargoFilter?: string;
 }
 
-export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode, initialCostCenterFilter, initialEmpresaFilter }: EmployeesViewProps) => {
+export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode, initialCostCenterFilter, initialEmpresaFilter, initialCargoFilter }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [costCenterFilter, setCostCenterFilter] = useState<string>(initialCostCenterFilter || '');
   const [empresaFilter, setEmpresaFilter] = useState<string>(initialEmpresaFilter || '');
+  const [cargoFilter, setCargoFilter] = useState<string>(initialCargoFilter || '');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
   const [editingGestorId, setEditingGestorId] = useState<string | null>(null);
@@ -51,7 +53,8 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
       emp.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCostCenter = !costCenterFilter || (emp as any).codcentrodecustos === costCenterFilter;
     const matchesEmpresa = !empresaFilter || (emp as any).codempresa === empresaFilter;
-    return matchesSearch && matchesCostCenter && matchesEmpresa;
+    const matchesCargo = !cargoFilter || emp.roleId === cargoFilter;
+    return matchesSearch && matchesCostCenter && matchesEmpresa && matchesCargo;
   });
 
   const getRoleName = (roleId: string) => {
