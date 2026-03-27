@@ -262,8 +262,8 @@ export const EmpresasView = ({ onNavigateToEmployees }: EmpresasViewProps) => {
                           variant={emp.employeeCount > 0 ? "default" : "outline"} 
                           className={`gap-1 ${emp.employeeCount > 0 ? 'cursor-pointer hover:opacity-80' : ''}`}
                           onClick={() => {
-                            if (emp.employeeCount > 0) {
-                              navigate('/app', { state: { view: 'employees', filterEmpresa: emp.codempresa } });
+                            if (emp.employeeCount > 0 && onNavigateToEmployees) {
+                              onNavigateToEmployees(emp.codempresa);
                             }
                           }}
                         >
