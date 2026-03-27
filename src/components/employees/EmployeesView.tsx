@@ -25,11 +25,13 @@ interface EmployeesViewProps {
   onDeleteEmployee?: (employeeId: string) => Promise<{ success: boolean; error?: any }>;
   isDemoMode?: boolean;
   initialCostCenterFilter?: string;
+  initialEmpresaFilter?: string;
 }
 
-export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode, initialCostCenterFilter }: EmployeesViewProps) => {
+export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode, initialCostCenterFilter, initialEmpresaFilter }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [costCenterFilter, setCostCenterFilter] = useState<string>(initialCostCenterFilter || '');
+  const [empresaFilter, setEmpresaFilter] = useState<string>(initialEmpresaFilter || '');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
   const [editingGestorId, setEditingGestorId] = useState<string | null>(null);
@@ -48,7 +50,8 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
     const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCostCenter = !costCenterFilter || (emp as any).codcentrodecustos === costCenterFilter;
-    return matchesSearch && matchesCostCenter;
+    const matchesEmpresa = !empresaFilter || (emp as any).codempresa === empresaFilter;
+    return matchesSearch && matchesCostCenter && matchesEmpresa;
   });
 
   const getRoleName = (roleId: string) => {
@@ -223,6 +226,22 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
                 className="pl-10"
               />
             </div>
+            <Select value={empresaFilter || 'all'} onValueChange={(v) => setEmpresaFilter(v === 'all' ? '' : v)}>
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Filtrar por empresa" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as empresas</SelectItem>
+                {empresas
+                  .sort((a, b) => (a.codempresa || '').localeCompare(b.codempresa || ''))
+                  .map(emp => (
+                    <SelectItem key={emp.id} value={emp.codempresa}>
+                      {emp.codempresa} - {emp.nomeempresa}
+                    </SelectItem>
+                  ))
+                }
+              </SelectContent>
+            </Select>
             <Select value={costCenterFilter || 'all'} onValueChange={(v) => setCostCenterFilter(v === 'all' ? '' : v)}>
               <SelectTrigger className="w-full sm:w-[280px]">
                 <SelectValue placeholder="Filtrar por centro de custos" />

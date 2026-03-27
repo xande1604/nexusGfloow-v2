@@ -29,7 +29,11 @@ import { useDemo } from '@/contexts/DemoContext';
 import { demoEmpresas } from '@/components/demo/demoData';
 import { toast } from 'sonner';
 
-export const EmpresasView = () => {
+interface EmpresasViewProps {
+  onNavigateToEmployees?: (codempresa: string) => void;
+}
+
+export const EmpresasView = ({ onNavigateToEmployees }: EmpresasViewProps) => {
   const { isDemoMode } = useDemo();
   const { empresas: realEmpresas, loading, saveEmpresa, deleteEmpresa } = useEmpresas();
   
@@ -254,7 +258,15 @@ export const EmpresasView = () => {
                         {getRiskBadge(emp.grau_risco)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={emp.employeeCount > 0 ? "default" : "outline"} className="gap-1">
+                        <Badge 
+                          variant={emp.employeeCount > 0 ? "default" : "outline"} 
+                          className={`gap-1 ${emp.employeeCount > 0 ? 'cursor-pointer hover:opacity-80' : ''}`}
+                          onClick={() => {
+                            if (emp.employeeCount > 0 && onNavigateToEmployees) {
+                              onNavigateToEmployees(emp.codempresa);
+                            }
+                          }}
+                        >
                           <Users className="w-3 h-3" />
                           {emp.employeeCount}
                         </Badge>
