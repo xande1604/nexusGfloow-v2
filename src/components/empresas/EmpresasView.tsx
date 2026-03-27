@@ -29,8 +29,11 @@ import { useDemo } from '@/contexts/DemoContext';
 import { demoEmpresas } from '@/components/demo/demoData';
 import { toast } from 'sonner';
 
-export const EmpresasView = () => {
-  const navigate = useNavigate();
+interface EmpresasViewProps {
+  onNavigateToEmployees?: (codempresa: string) => void;
+}
+
+export const EmpresasView = ({ onNavigateToEmployees }: EmpresasViewProps) => {
   const { isDemoMode } = useDemo();
   const { empresas: realEmpresas, loading, saveEmpresa, deleteEmpresa } = useEmpresas();
   
