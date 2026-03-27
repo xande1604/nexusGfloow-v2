@@ -26,6 +26,7 @@ const viewTitles: Record<AppView, { title: string; subtitle: string }> = {
   [AppView.TUTORIALS]: { title: 'Tutoriais', subtitle: 'Aprenda a usar todas as funcionalidades' },
   [AppView.SETTINGS]: { title: 'Configurações', subtitle: 'Contexto da empresa e preferências' },
   [AppView.API_DOCS]: { title: 'API & Importação', subtitle: 'Documentação da API REST e templates de importação' },
+  [AppView.MY_DASHBOARD]: { title: 'Meu Painel', subtitle: 'Seus dados de desenvolvimento e carreira' },
 };
 
 export const Header = ({ activeView, onMenuClick }: HeaderProps) => {
