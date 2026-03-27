@@ -161,10 +161,21 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
         </div>
 
         <form onSubmit={handleSubmit} className="p-5 space-y-5 overflow-y-auto max-h-[calc(90vh-140px)]">
-          {/* Title & Level */}
-          <div className="grid grid-cols-2 gap-4">
+          {/* Code & Title */}
+          <div className="grid grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Título do Cargo</label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Código do Cargo *</label>
+              <input
+                type="text"
+                value={form.codigocargo || ''}
+                onChange={(e) => setForm(prev => ({ ...prev, codigocargo: e.target.value }))}
+                className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                placeholder="Ex: 001"
+                required
+              />
+            </div>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium text-foreground mb-1.5">Título do Cargo *</label>
               <input
                 type="text"
                 value={form.title}
