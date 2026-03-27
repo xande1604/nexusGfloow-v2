@@ -9,6 +9,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import {
   Select,
   SelectContent,
@@ -22,8 +23,8 @@ import { Empresa } from '@/hooks/useEmpresas';
 interface CostCenterFormModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onSave: (costCenter: Partial<CostCenter>) => void;
-  costCenter: CostCenter | null;
+  onSave: (costCenter: Partial<CostCenter> & { is_active?: boolean }) => void;
+  costCenter: (CostCenter & { is_active?: boolean }) | null;
   empresas: Empresa[];
 }
 
@@ -38,6 +39,7 @@ export const CostCenterFormModal = ({
     codcentrodecustos: '',
     nomecentrodecustos: '',
     codempresa: '',
+    is_active: true,
   });
 
   useEffect(() => {
@@ -46,12 +48,14 @@ export const CostCenterFormModal = ({
         codcentrodecustos: costCenter.codcentrodecustos,
         nomecentrodecustos: costCenter.nomecentrodecustos,
         codempresa: costCenter.codempresa,
+        is_active: costCenter.is_active !== false,
       });
     } else {
       setFormData({
         codcentrodecustos: '',
         nomecentrodecustos: '',
         codempresa: empresas[0]?.codempresa || '',
+        is_active: true,
       });
     }
   }, [costCenter, empresas, isOpen]);
@@ -107,11 +111,19 @@ export const CostCenterFormModal = ({
               <SelectContent>
                 {empresas.map(empresa => (
                   <SelectItem key={empresa.codempresa} value={empresa.codempresa}>
-                    {empresa.nomeempresa}
+                    {empresa.codempresa} - {empresa.nomeempresa}
                   </SelectItem>
                 ))}
               </SelectContent>
             </Select>
+          </div>
+          <div className="flex items-center justify-between">
+            <Label htmlFor="is_active">Ativo</Label>
+            <Switch
+              id="is_active"
+              checked={formData.is_active}
+              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_active: checked }))}
+            />
           </div>
           <DialogFooter>
             <Button type="button" variant="outline" onClick={onClose}>
