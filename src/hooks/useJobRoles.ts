@@ -56,10 +56,10 @@ export const useJobRoles = () => {
       const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: userId });
       const ownerAdminId = ownerIdData ?? userId;
 
-      const dbRole: any = {
-        id: role.id,
+      const dbFields: any = {
         tituloreduzido: role.title,
         codigocargo: role.codigocargo || role.title.substring(0, 10).toUpperCase(),
+        cbo2002: role.cbo || null,
         technical_knowledge: role.technicalKnowledge || null,
         hard_skills: role.hardSkills || null,
         soft_skills: role.softSkills || null,
@@ -69,11 +69,21 @@ export const useJobRoles = () => {
         is_active: (role as any).is_active !== false,
       };
 
-      const { error } = await supabase
-        .from('cargos')
-        .upsert(dbRole, { onConflict: 'id' });
+      // Check if role already exists
+      const existing = roles.find(r => r.id === role.id);
 
-      if (error) throw error;
+      if (existing) {
+        const { error } = await supabase
+          .from('cargos')
+          .update(dbFields)
+          .eq('id', role.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from('cargos')
+          .insert({ id: role.id, ...dbFields });
+        if (error) throw error;
+      }
 
       toast({
         title: 'Cargo salvo',
