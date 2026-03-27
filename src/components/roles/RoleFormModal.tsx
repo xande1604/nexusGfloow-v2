@@ -21,7 +21,7 @@ const departments = ['Tecnologia', 'Produto', 'Design', 'Marketing', 'Vendas', '
 export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFormModalProps) => {
   const { toast } = useToast();
   const [isRefining, setIsRefining] = useState(false);
-  const [form, setForm] = useState<Partial<JobRole>>({
+  const [form, setForm] = useState<Partial<JobRole> & { is_active?: boolean }>({
     title: '',
     level: 'Pleno',
     department: 'Tecnologia',
@@ -33,6 +33,7 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
     hardSkills: '',
     softSkills: '',
     keyDeliverables: '',
+    is_active: true,
   });
 
   const [baseSalary, setBaseSalary] = useState<number>(0);
