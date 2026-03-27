@@ -74,6 +74,9 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
     return gestor?.name || null;
   };
 
+  const getErrorMessage = (error: any) =>
+    error?.message || error?.details || error?.hint || (typeof error === 'string' ? error : 'Não foi possível concluir a operação.');
+
   const handleEditGestorStart = (employee: Employee & { gestorId?: string }) => {
     setEditingGestorId(employee.id);
     setSelectedGestor(employee.gestorId || '');

@@ -25,7 +25,7 @@ export const useCostCenters = () => {
         order: { column: 'nomecentrodecustos', ascending: true },
       });
 
-      const employeeData = await fetchAllRows('employees', {
+      const employeeData = await fetchAllRows('nexus_employees', {
         select: 'codcentrodecustos',
       });
 

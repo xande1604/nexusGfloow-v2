@@ -91,8 +91,12 @@ export const useEmployees = () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: user.id });
-      const ownerAdminId = ownerIdData ?? user.id;
+      const { data: ownerIdData, error: ownerIdError } = await supabase.rpc('get_owner_admin_id', { _user_id: user.id });
+      if (ownerIdError) throw ownerIdError;
+      if (!ownerIdData) {
+        throw new Error('Não foi possível identificar o ambiente do usuário. Verifique o vínculo de acesso/perfil.');
+      }
+      const ownerAdminId = ownerIdData;
 
       const { error } = await supabase
         .from('nexus_employees')
