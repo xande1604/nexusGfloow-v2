@@ -71,6 +71,7 @@ export const useCostCenters = () => {
             codcentrodecustos: costCenter.codcentrodecustos,
             nomecentrodecustos: costCenter.nomecentrodecustos,
             codempresa: costCenter.codempresa,
+            is_active: (costCenter as any).is_active !== false,
           })
           .eq('id', costCenter.id));
       } else {
@@ -81,6 +82,7 @@ export const useCostCenters = () => {
             codcentrodecustos: costCenter.codcentrodecustos,
             nomecentrodecustos: costCenter.nomecentrodecustos,
             codempresa: costCenter.codempresa,
+            is_active: (costCenter as any).is_active !== false,
             owner_admin_id: ownerAdminId,
           }));
       }
