@@ -40,7 +40,7 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
 
   useEffect(() => {
     if (role) {
-      setForm(role);
+      setForm({ ...role, is_active: (role as any).is_active !== false });
       setBaseSalary(role.salaryRange?.min || 0);
     } else {
       setForm({
