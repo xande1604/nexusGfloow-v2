@@ -230,6 +230,8 @@ const Index = () => {
     }
 
     switch (activeView) {
+      case AppView.MY_DASHBOARD:
+        return <MyDashboardView linkedEmployee={linkedEmployee} onNavigate={(view) => setActiveView(view)} />;
       case AppView.DASHBOARD:
         return <DashboardView roles={displayRoles} skills={displaySkills} employees={displayEmployees} onNavigate={(view) => setActiveView(view as AppView)} />;
       case AppView.ROLES:
