@@ -61,7 +61,7 @@ const Index = () => {
   } | undefined>(undefined);
 
   const { isAuthenticated, loading: authLoading } = useAuth();
-  const { hasAccess, loading: roleLoading } = useUserRole();
+  const { hasCompletedLeadForm, setHasCompletedLeadForm, isDemoMode } = useDemo();
   const { hasCompletedLeadForm, setHasCompletedLeadForm, isDemoMode } = useDemo();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
