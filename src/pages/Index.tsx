@@ -238,7 +238,7 @@ const Index = () => {
       case AppView.DASHBOARD:
         return <DashboardView roles={displayRoles} skills={displaySkills} employees={displayEmployees} onNavigate={(view) => setActiveView(view as AppView)} />;
       case AppView.ROLES:
-        return <RolesView roles={displayRoles} skills={displaySkills} employees={displayEmployees} onSaveRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveRole} onDeleteRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteRole} />;
+        return <RolesView roles={displayRoles} skills={displaySkills} employees={displayEmployees} onSaveRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveRole} onDeleteRole={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteRole} onNavigateToEmployees={(codigocargo) => { setEmployeeCargoFilter(codigocargo); setActiveView(AppView.EMPLOYEES); }} />;
       case AppView.SKILLS:
         return <SkillsView skills={displaySkills} roles={displayRoles} onSaveSkill={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveSkill} onDeleteSkill={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteSkill} />;
       case AppView.EMPLOYEES:
