@@ -226,6 +226,22 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
                 className="pl-10"
               />
             </div>
+            <Select value={empresaFilter || 'all'} onValueChange={(v) => setEmpresaFilter(v === 'all' ? '' : v)}>
+              <SelectTrigger className="w-full sm:w-[220px]">
+                <SelectValue placeholder="Filtrar por empresa" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todas as empresas</SelectItem>
+                {empresas
+                  .sort((a, b) => (a.codempresa || '').localeCompare(b.codempresa || ''))
+                  .map(emp => (
+                    <SelectItem key={emp.id} value={emp.codempresa}>
+                      {emp.codempresa} - {emp.nomeempresa}
+                    </SelectItem>
+                  ))
+                }
+              </SelectContent>
+            </Select>
             <Select value={costCenterFilter || 'all'} onValueChange={(v) => setCostCenterFilter(v === 'all' ? '' : v)}>
               <SelectTrigger className="w-full sm:w-[280px]">
                 <SelectValue placeholder="Filtrar por centro de custos" />
