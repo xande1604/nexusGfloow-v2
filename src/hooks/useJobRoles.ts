@@ -56,9 +56,13 @@ export const useJobRoles = () => {
       const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: userId });
       const ownerAdminId = ownerIdData ?? userId;
 
+      // Preserve the codigocargo exactly as provided - never auto-generate for existing roles
+      const isExisting = roles.find(r => r.id === role.id);
       const dbFields: any = {
         tituloreduzido: role.title,
-        codigocargo: role.codigocargo || role.title.substring(0, 10).toUpperCase(),
+        codigocargo: role.codigocargo && role.codigocargo.trim() !== '' 
+          ? role.codigocargo.trim() 
+          : (isExisting ? isExisting.codigocargo : role.title.substring(0, 10).toUpperCase()),
         cbo2002: role.cbo || null,
         technical_knowledge: role.technicalKnowledge || null,
         hard_skills: role.hardSkills || null,
