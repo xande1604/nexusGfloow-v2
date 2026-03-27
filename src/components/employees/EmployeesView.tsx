@@ -25,11 +25,13 @@ interface EmployeesViewProps {
   onDeleteEmployee?: (employeeId: string) => Promise<{ success: boolean; error?: any }>;
   isDemoMode?: boolean;
   initialCostCenterFilter?: string;
+  initialEmpresaFilter?: string;
 }
 
-export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode, initialCostCenterFilter }: EmployeesViewProps) => {
+export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode, initialCostCenterFilter, initialEmpresaFilter }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [costCenterFilter, setCostCenterFilter] = useState<string>(initialCostCenterFilter || '');
+  const [empresaFilter, setEmpresaFilter] = useState<string>(initialEmpresaFilter || '');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
   const [editingGestorId, setEditingGestorId] = useState<string | null>(null);
