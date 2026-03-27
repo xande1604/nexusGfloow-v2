@@ -50,7 +50,8 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
     const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       emp.email?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesCostCenter = !costCenterFilter || (emp as any).codcentrodecustos === costCenterFilter;
-    return matchesSearch && matchesCostCenter;
+    const matchesEmpresa = !empresaFilter || (emp as any).codempresa === empresaFilter;
+    return matchesSearch && matchesCostCenter && matchesEmpresa;
   });
 
   const getRoleName = (roleId: string) => {
