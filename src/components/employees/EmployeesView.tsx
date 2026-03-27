@@ -24,10 +24,12 @@ interface EmployeesViewProps {
   onUpdateEmployee?: (employeeId: string, data: EmployeeFormData) => Promise<{ success: boolean; error?: any }>;
   onDeleteEmployee?: (employeeId: string) => Promise<{ success: boolean; error?: any }>;
   isDemoMode?: boolean;
+  initialCostCenterFilter?: string;
 }
 
-export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode }: EmployeesViewProps) => {
+export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode, initialCostCenterFilter }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [costCenterFilter, setCostCenterFilter] = useState<string>(initialCostCenterFilter || '');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
   const [editingGestorId, setEditingGestorId] = useState<string | null>(null);
@@ -42,10 +44,12 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
   const { costCenters } = useCostCenters();
   const { empresas } = useEmpresas();
 
-  const filteredEmployees = employees.filter(emp =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCostCenter = !costCenterFilter || (emp as any).codcentrodecustos === costCenterFilter;
+    return matchesSearch && matchesCostCenter;
+  });
 
   const getRoleName = (roleId: string) => {
     const role = roles.find(r => r.id === roleId);
@@ -205,7 +209,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
 
         <TabsContent value="list" className="mt-6 space-y-6">
           {/* Search and Stats for list view */}
-          <div className="flex items-center gap-3 w-full sm:w-auto">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3 w-full">
             <div className="relative flex-1 sm:w-64">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
               <Input
@@ -216,6 +220,22 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
                 className="pl-10"
               />
             </div>
+            <Select value={costCenterFilter || 'all'} onValueChange={(v) => setCostCenterFilter(v === 'all' ? '' : v)}>
+              <SelectTrigger className="w-full sm:w-[280px]">
+                <SelectValue placeholder="Filtrar por centro de custos" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos os centros de custos</SelectItem>
+                {costCenters
+                  .sort((a, b) => (a.codcentrodecustos || '').localeCompare(b.codcentrodecustos || ''))
+                  .map(cc => (
+                    <SelectItem key={cc.id} value={cc.codcentrodecustos}>
+                      {cc.codcentrodecustos} - {cc.nomecentrodecustos}
+                    </SelectItem>
+                  ))
+                }
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Stats */}

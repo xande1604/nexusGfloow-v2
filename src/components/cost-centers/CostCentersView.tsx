@@ -1,9 +1,10 @@
 import { useState, useMemo } from 'react';
-import { Building2, Search, Plus, Pencil, Trash2, Users } from 'lucide-react';
+import { Building2, Search, Plus, Pencil, Trash2, Users, CheckSquare, ToggleLeft, ToggleRight } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Table,
   TableBody,
@@ -38,9 +39,13 @@ import { useDemo } from '@/contexts/DemoContext';
 import { demoCostCenters, demoEmpresas } from '@/components/demo/demoData';
 import { toast } from 'sonner';
 
-export const CostCentersView = () => {
+interface CostCentersViewProps {
+  onNavigateToEmployees?: (costCenterCode: string) => void;
+}
+
+export const CostCentersView = ({ onNavigateToEmployees }: CostCentersViewProps) => {
   const { isDemoMode } = useDemo();
-  const { costCenters: realCostCenters, loading, saveCostCenter, deleteCostCenter } = useCostCenters();
+  const { costCenters: realCostCenters, loading, saveCostCenter, deleteCostCenter, bulkUpdateActive } = useCostCenters();
   const { empresas: realEmpresas } = useEmpresas();
   
   const costCenters = isDemoMode ? demoCostCenters : realCostCenters;
@@ -52,6 +57,7 @@ export const CostCentersView = () => {
   const [editingCostCenter, setEditingCostCenter] = useState<CostCenterWithCount | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [costCenterToDelete, setCostCenterToDelete] = useState<CostCenterWithCount | null>(null);
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   
   const handleDemoAction = () => {
     toast.info('Funcionalidade restrita no modo demonstração');
@@ -77,19 +83,13 @@ export const CostCentersView = () => {
   };
 
   const handleEdit = (costCenter: CostCenterWithCount) => {
-    if (isDemoMode) {
-      handleDemoAction();
-      return;
-    }
+    if (isDemoMode) { handleDemoAction(); return; }
     setEditingCostCenter(costCenter);
     setIsModalOpen(true);
   };
 
   const handleDelete = (costCenter: CostCenterWithCount) => {
-    if (isDemoMode) {
-      handleDemoAction();
-      return;
-    }
+    if (isDemoMode) { handleDemoAction(); return; }
     setCostCenterToDelete(costCenter);
     setDeleteDialogOpen(true);
   };
@@ -111,6 +111,33 @@ export const CostCentersView = () => {
   const handleCloseModal = () => {
     setIsModalOpen(false);
     setEditingCostCenter(null);
+  };
+
+  // Bulk selection
+  const allFilteredSelected = filteredCostCenters.length > 0 && filteredCostCenters.every(cc => selectedIds.has(cc.id));
+
+  const toggleSelectAll = () => {
+    if (allFilteredSelected) {
+      setSelectedIds(new Set());
+    } else {
+      setSelectedIds(new Set(filteredCostCenters.map(cc => cc.id)));
+    }
+  };
+
+  const toggleSelect = (id: string) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
+
+  const handleBulkActivate = async (activate: boolean) => {
+    if (isDemoMode) { handleDemoAction(); return; }
+    if (selectedIds.size === 0) return;
+    await bulkUpdateActive(Array.from(selectedIds), activate);
+    setSelectedIds(new Set());
   };
 
   if (loading) {
@@ -187,10 +214,24 @@ export const CostCentersView = () => {
               <Building2 className="w-5 h-5 text-brand-600" />
               Centros de Custos
             </CardTitle>
-            <Button onClick={() => isDemoMode ? handleDemoAction() : setIsModalOpen(true)} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Novo Centro de Custos
-            </Button>
+            <div className="flex gap-2">
+              {selectedIds.size > 0 && (
+                <>
+                  <Button variant="outline" size="sm" onClick={() => handleBulkActivate(true)} className="gap-1">
+                    <ToggleRight className="w-4 h-4 text-emerald-600" />
+                    Ativar ({selectedIds.size})
+                  </Button>
+                  <Button variant="outline" size="sm" onClick={() => handleBulkActivate(false)} className="gap-1">
+                    <ToggleLeft className="w-4 h-4 text-destructive" />
+                    Inativar ({selectedIds.size})
+                  </Button>
+                </>
+              )}
+              <Button onClick={() => isDemoMode ? handleDemoAction() : setIsModalOpen(true)} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Novo Centro de Custos
+              </Button>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -224,9 +265,16 @@ export const CostCentersView = () => {
             <Table>
               <TableHeader>
                 <TableRow className="bg-muted/50">
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allFilteredSelected}
+                      onCheckedChange={toggleSelectAll}
+                    />
+                  </TableHead>
                   <TableHead>Código</TableHead>
                   <TableHead>Nome</TableHead>
                   <TableHead>Empresa</TableHead>
+                  <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-center">Colaboradores</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
@@ -234,13 +282,19 @@ export const CostCentersView = () => {
               <TableBody>
                 {filteredCostCenters.length === 0 ? (
                   <TableRow>
-                    <TableCell colSpan={5} className="text-center py-8 text-muted-foreground">
+                    <TableCell colSpan={7} className="text-center py-8 text-muted-foreground">
                       Nenhum centro de custos encontrado.
                     </TableCell>
                   </TableRow>
                 ) : (
                   filteredCostCenters.map(cc => (
                     <TableRow key={cc.id} className="hover:bg-muted/30">
+                      <TableCell>
+                        <Checkbox
+                          checked={selectedIds.has(cc.id)}
+                          onCheckedChange={() => toggleSelect(cc.id)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="font-mono">
                           {cc.codcentrodecustos}
@@ -253,7 +307,20 @@ export const CostCentersView = () => {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={cc.employeeCount > 0 ? "default" : "outline"} className="gap-1">
+                        <Badge variant={(cc as any).is_active !== false ? "default" : "outline"} className={(cc as any).is_active !== false ? "bg-emerald-500" : "text-muted-foreground"}>
+                          {(cc as any).is_active !== false ? 'Ativo' : 'Inativo'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <Badge
+                          variant={cc.employeeCount > 0 ? "default" : "outline"}
+                          className={`gap-1 ${cc.employeeCount > 0 && onNavigateToEmployees ? 'cursor-pointer hover:opacity-80' : ''}`}
+                          onClick={() => {
+                            if (cc.employeeCount > 0 && onNavigateToEmployees) {
+                              onNavigateToEmployees(cc.codcentrodecustos);
+                            }
+                          }}
+                        >
                           <Users className="w-3 h-3" />
                           {cc.employeeCount}
                         </Badge>

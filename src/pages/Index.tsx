@@ -54,6 +54,7 @@ const Index = () => {
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
   const [showAccessRequest, setShowAccessRequest] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
+  const [employeeCostCenterFilter, setEmployeeCostCenterFilter] = useState<string>('');
   const [prefilledRoadmapData, setPrefilledRoadmapData] = useState<{
     employeeId: string;
     skills: string[];
@@ -239,7 +240,7 @@ const Index = () => {
       case AppView.SKILLS:
         return <SkillsView skills={displaySkills} roles={displayRoles} onSaveSkill={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Edição não disponível.', variant: 'destructive' }) : saveSkill} onDeleteSkill={isDemoMode ? () => toast({ title: 'Modo demonstração', description: 'Exclusão não disponível.', variant: 'destructive' }) : deleteSkill} />;
       case AppView.EMPLOYEES:
-        return <EmployeesView employees={displayEmployees} roles={displayRoles} onUpdateEmail={isDemoMode ? demoNoOp : updateEmployeeEmail} onUpdateGestor={isDemoMode ? demoNoOp : updateEmployeeGestor} onCreateEmployee={isDemoMode ? undefined : createEmployee} onUpdateEmployee={isDemoMode ? undefined : updateEmployee} onDeleteEmployee={isDemoMode ? undefined : deleteEmployee} isDemoMode={isDemoMode} />;
+        return <EmployeesView employees={displayEmployees} roles={displayRoles} onUpdateEmail={isDemoMode ? demoNoOp : updateEmployeeEmail} onUpdateGestor={isDemoMode ? demoNoOp : updateEmployeeGestor} onCreateEmployee={isDemoMode ? undefined : createEmployee} onUpdateEmployee={isDemoMode ? undefined : updateEmployee} onDeleteEmployee={isDemoMode ? undefined : deleteEmployee} isDemoMode={isDemoMode} initialCostCenterFilter={employeeCostCenterFilter} />;
       case AppView.ROADMAP:
         return (
           <RoadmapView 
@@ -270,7 +271,10 @@ const Index = () => {
       case AppView.EMPRESAS:
         return <EmpresasView />;
       case AppView.COST_CENTERS:
-        return <CostCentersView />;
+        return <CostCentersView onNavigateToEmployees={(ccCode) => {
+          setEmployeeCostCenterFilter(ccCode);
+          setActiveView(AppView.EMPLOYEES);
+        }} />;
       case AppView.TUTORIALS:
         return <TutorialsView />;
       case AppView.API_DOCS:
