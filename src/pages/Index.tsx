@@ -73,6 +73,13 @@ const Index = () => {
     }
   }, [isAuthenticated, authLoading, navigate]);
 
+  // Set initial view based on role
+  useEffect(() => {
+    if (!roleLoading && isUserRole) {
+      setActiveView(AppView.MY_DASHBOARD);
+    }
+  }, [roleLoading, isUserRole]);
+
   // Demo mode is managed by DemoContext based on user roles
 
   // Supabase hooks
