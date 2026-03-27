@@ -30,7 +30,7 @@ export const useEmpresas = () => {
         order: { column: 'nomeempresa', ascending: true },
       });
 
-      const employeeCounts = await fetchAllRows('employees', {
+      const employeeCounts = await fetchAllRows('nexus_employees', {
         select: 'codempresa',
       });
 
