@@ -124,6 +124,7 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
     e.preventDefault();
     onSave({
       id: role?.id || crypto.randomUUID(),
+      codigocargo: form.codigocargo || '',
       title: form.title || '',
       level: form.level || 'Pleno',
       department: form.department || 'Tecnologia',
