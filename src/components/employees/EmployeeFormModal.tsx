@@ -146,7 +146,7 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave, initialDa
               <SelectContent>
                 {filteredCostCenters.map(cc => (
                   <SelectItem key={cc.id} value={cc.codcentrodecustos}>
-                    {cc.nomecentrodecustos}
+                    {cc.codcentrodecustos} - {cc.nomecentrodecustos}
                   </SelectItem>
                 ))}
               </SelectContent>
