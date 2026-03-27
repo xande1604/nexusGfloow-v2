@@ -33,6 +33,7 @@ const TestsView = lazy(() => import('@/components/tests/TestsView').then(m => ({
 const RecruitmentView = lazy(() => import('@/components/recruitment/RecruitmentView').then(m => ({ default: m.RecruitmentView })));
 const DemoLeadForm = lazy(() => import('@/components/demo/DemoLeadForm').then(m => ({ default: m.DemoLeadForm })));
 const ApiDocsView = lazy(() => import('@/components/settings/ApiDocsView').then(m => ({ default: m.ApiDocsView })));
+const MyDashboardView = lazy(() => import('@/components/dashboard/MyDashboardView').then(m => ({ default: m.MyDashboardView })));
 
 const ViewLoader = () => (
   <div className="flex items-center justify-center h-64">
