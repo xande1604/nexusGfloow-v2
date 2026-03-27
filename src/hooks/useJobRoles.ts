@@ -59,7 +59,7 @@ export const useJobRoles = () => {
       const dbRole: any = {
         id: role.id,
         tituloreduzido: role.title,
-        codigocargo: role.codigocargo || role.id.substring(0, 8),
+        codigocargo: role.codigocargo || role.title.substring(0, 10).toUpperCase(),
         technical_knowledge: role.technicalKnowledge || null,
         hard_skills: role.hardSkills || null,
         soft_skills: role.softSkills || null,
