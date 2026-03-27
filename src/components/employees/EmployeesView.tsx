@@ -24,9 +24,10 @@ interface EmployeesViewProps {
   onUpdateEmployee?: (employeeId: string, data: EmployeeFormData) => Promise<{ success: boolean; error?: any }>;
   onDeleteEmployee?: (employeeId: string) => Promise<{ success: boolean; error?: any }>;
   isDemoMode?: boolean;
+  initialCostCenterFilter?: string;
 }
 
-export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode }: EmployeesViewProps) => {
+export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode, initialCostCenterFilter }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');

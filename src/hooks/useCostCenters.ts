@@ -133,11 +133,37 @@ export const useCostCenters = () => {
     fetchCostCenters();
   }, []);
 
+  const bulkUpdateActive = async (ids: string[], isActive: boolean) => {
+    try {
+      const { error } = await supabase
+        .from('centrodecustos')
+        .update({ is_active: isActive })
+        .in('id', ids);
+
+      if (error) throw error;
+
+      toast({
+        title: isActive ? 'Centros ativados' : 'Centros inativados',
+        description: `${ids.length} centro(s) de custos atualizado(s).`,
+      });
+
+      await fetchCostCenters();
+    } catch (error: any) {
+      console.error('Error bulk updating cost centers:', error);
+      toast({
+        title: 'Erro ao atualizar',
+        description: error.message,
+        variant: 'destructive',
+      });
+    }
+  };
+
   return {
     costCenters,
     loading,
     saveCostCenter,
     deleteCostCenter,
+    bulkUpdateActive,
     refetch: fetchCostCenters,
   };
 };
