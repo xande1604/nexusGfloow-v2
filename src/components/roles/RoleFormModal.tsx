@@ -22,6 +22,7 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
   const { toast } = useToast();
   const [isRefining, setIsRefining] = useState(false);
   const [form, setForm] = useState<Partial<JobRole> & { is_active?: boolean }>({
+    codigocargo: '',
     title: '',
     level: 'Pleno',
     department: 'Tecnologia',
