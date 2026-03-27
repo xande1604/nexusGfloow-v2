@@ -271,7 +271,10 @@ const Index = () => {
       case AppView.EMPRESAS:
         return <EmpresasView />;
       case AppView.COST_CENTERS:
-        return <CostCentersView />;
+        return <CostCentersView onNavigateToEmployees={(ccCode) => {
+          setEmployeeCostCenterFilter(ccCode);
+          setActiveView(AppView.EMPLOYEES);
+        }} />;
       case AppView.TUTORIALS:
         return <TutorialsView />;
       case AppView.API_DOCS:
