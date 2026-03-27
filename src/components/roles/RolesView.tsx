@@ -15,7 +15,7 @@ interface RolesViewProps {
 
 const levels = ['Estagiário', 'Trainee', 'Júnior', 'Pleno', 'Sênior', 'Master', 'Especialista', 'Tech Lead', 'Coordenador', 'Gerente', 'Diretor', 'C-Level'];
 
-export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteRole }: RolesViewProps) => {
+export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteRole, onNavigateToEmployees }: RolesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedDepartment, setSelectedDepartment] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
