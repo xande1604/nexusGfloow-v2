@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { X, User, Mail, Briefcase, Calendar, Building2, Award, BookOpen, Loader2 } from 'lucide-react';
+import { X, User, Mail, Briefcase, Calendar, Building2, Award, BookOpen, Loader2, Hash, MapPin } from 'lucide-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -92,63 +92,99 @@ export const EmployeeDetailsModal = ({
 
   if (!employee) return null;
 
+  const empAny = employee as any;
+
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl max-h-[90vh] overflow-hidden flex flex-col">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <User className="w-6 h-6 text-primary" />
+      <DialogContent className="max-w-4xl max-h-[92vh] overflow-hidden flex flex-col p-0">
+        {/* Header */}
+        <div className="px-6 pt-6 pb-4 border-b border-border bg-muted/30">
+          <div className="flex items-start gap-4">
+            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
+              <User className="w-7 h-7 text-primary" />
             </div>
-            <div>
-              <h2 className="text-xl font-semibold text-foreground">{employee.name}</h2>
-              <p className="text-sm text-muted-foreground font-normal">{getRoleName(employee.roleId)}</p>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-xl font-bold text-foreground leading-tight">{employee.name}</h2>
+              <p className="text-sm text-muted-foreground mt-0.5">{getRoleName(employee.roleId)}</p>
             </div>
-          </DialogTitle>
-        </DialogHeader>
+          </div>
 
-        {/* Employee Info Summary */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-4 border-b border-border">
-          <div className="flex items-center gap-2 text-sm">
-            <Mail className="w-4 h-4 text-muted-foreground" />
-            <span className="text-foreground truncate">{employee.email || 'Não cadastrado'}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Briefcase className="w-4 h-4 text-muted-foreground" />
-            <span className="text-foreground truncate">{getRoleName(employee.roleId)}</span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Calendar className="w-4 h-4 text-muted-foreground" />
-            <span className="text-foreground">
-              {employee.admissionDate 
-                ? format(new Date(employee.admissionDate), "dd/MM/yyyy", { locale: ptBR })
-                : 'N/A'}
-            </span>
-          </div>
-          <div className="flex items-center gap-2 text-sm">
-            <Building2 className="w-4 h-4 text-muted-foreground" />
-            <span className="text-foreground truncate">
-              {getGestorName((employee as Employee & { gestorId?: string }).gestorId)}
-            </span>
+          {/* Info Grid */}
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-5">
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Mail className="w-4 h-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Email</p>
+                <p className="text-sm text-foreground truncate">{employee.email || '—'}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Hash className="w-4 h-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Matrícula</p>
+                <p className="text-sm text-foreground truncate">{empAny.matricula || '—'}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Calendar className="w-4 h-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Admissão</p>
+                <p className="text-sm text-foreground">
+                  {employee.admissionDate
+                    ? format(new Date(employee.admissionDate), "dd/MM/yyyy", { locale: ptBR })
+                    : '—'}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <Building2 className="w-4 h-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Empresa</p>
+                <p className="text-sm text-foreground truncate">{empAny.codempresa || '—'}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-2.5 min-w-0">
+              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                <MapPin className="w-4 h-4 text-primary" />
+              </div>
+              <div className="min-w-0">
+                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Centro Custos</p>
+                <p className="text-sm text-foreground truncate">{empAny.codcentrodecustos || '—'}</p>
+              </div>
+            </div>
           </div>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="skills" className="flex items-center gap-2">
-              <Award className="w-4 h-4" />
-              Habilidades ({skills.length})
-            </TabsTrigger>
-            <TabsTrigger value="trainings" className="flex items-center gap-2">
-              <BookOpen className="w-4 h-4" />
-              Treinamentos ({trainings.length})
-            </TabsTrigger>
-          </TabsList>
+          <div className="px-6 pt-3">
+            <TabsList className="grid w-full grid-cols-2 h-11">
+              <TabsTrigger value="skills" className="flex items-center gap-2 text-sm">
+                <Award className="w-4 h-4" />
+                Habilidades ({skills.length})
+              </TabsTrigger>
+              <TabsTrigger value="trainings" className="flex items-center gap-2 text-sm">
+                <BookOpen className="w-4 h-4" />
+                Treinamentos ({trainings.length})
+              </TabsTrigger>
+            </TabsList>
+          </div>
 
-          <div className="flex-1 overflow-y-auto py-4">
+          <div className="flex-1 overflow-y-auto px-6 py-4">
             <TabsContent value="skills" className="mt-0 h-full">
-              <EmployeeSkillsPanel 
+              <EmployeeSkillsPanel
                 skills={skills}
                 employeeName={employee.name}
                 loading={loadingSkills}
