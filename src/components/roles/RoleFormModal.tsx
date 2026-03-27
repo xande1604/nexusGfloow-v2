@@ -4,6 +4,8 @@ import { JobRole, Skill } from '@/types';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 interface RoleFormModalProps {
   isOpen: boolean;
