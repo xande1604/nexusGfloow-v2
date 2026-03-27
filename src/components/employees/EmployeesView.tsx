@@ -564,7 +564,8 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
             const result = await onCreateEmployee(data);
             if (result.success) {
               toast({ title: 'Colaborador cadastrado', description: 'O colaborador foi cadastrado com sucesso.' });
-              <div className="mt-2 text-xs text-muted-foreground">{result.error ? getErrorMessage(result.error) : 'Verifique suas permissões de acesso no ambiente.'}</div>
+            } else {
+              toast({ title: 'Erro ao cadastrar', description: getErrorMessage(result.error), variant: 'destructive' });
             }
             return result;
           }}
@@ -585,7 +586,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
               toast({ title: 'Colaborador atualizado', description: 'Os dados foram atualizados com sucesso.' });
               setEditingEmployee(null);
             } else {
-              toast({ title: 'Erro ao atualizar', description: 'Não foi possível atualizar o colaborador.', variant: 'destructive' });
+              toast({ title: 'Erro ao atualizar', description: getErrorMessage(result.error), variant: 'destructive' });
             }
             return result;
           }}
