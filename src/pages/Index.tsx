@@ -33,6 +33,7 @@ const TestsView = lazy(() => import('@/components/tests/TestsView').then(m => ({
 const RecruitmentView = lazy(() => import('@/components/recruitment/RecruitmentView').then(m => ({ default: m.RecruitmentView })));
 const DemoLeadForm = lazy(() => import('@/components/demo/DemoLeadForm').then(m => ({ default: m.DemoLeadForm })));
 const ApiDocsView = lazy(() => import('@/components/settings/ApiDocsView').then(m => ({ default: m.ApiDocsView })));
+const MyDashboardView = lazy(() => import('@/components/dashboard/MyDashboardView').then(m => ({ default: m.MyDashboardView })));
 
 const ViewLoader = () => (
   <div className="flex items-center justify-center h-64">
@@ -47,6 +48,7 @@ const initialContext: CompanyContext = {
 };
 
 const Index = () => {
+  const { hasAccess, loading: roleLoading, isUserRole, linkedEmployee } = useUserRole();
   const [activeView, setActiveView] = useState<AppView>(AppView.DASHBOARD);
   const [companyContext, setCompanyContext] = useState<CompanyContext>(initialContext);
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
@@ -59,7 +61,6 @@ const Index = () => {
   } | undefined>(undefined);
 
   const { isAuthenticated, loading: authLoading } = useAuth();
-  const { hasAccess, loading: roleLoading } = useUserRole();
   const { hasCompletedLeadForm, setHasCompletedLeadForm, isDemoMode } = useDemo();
   const isMobile = useIsMobile();
   const navigate = useNavigate();
@@ -71,6 +72,13 @@ const Index = () => {
       navigate('/auth');
     }
   }, [isAuthenticated, authLoading, navigate]);
+
+  // Set initial view based on role
+  useEffect(() => {
+    if (!roleLoading && isUserRole) {
+      setActiveView(AppView.MY_DASHBOARD);
+    }
+  }, [roleLoading, isUserRole]);
 
   // Demo mode is managed by DemoContext based on user roles
 
@@ -222,6 +230,8 @@ const Index = () => {
     }
 
     switch (activeView) {
+      case AppView.MY_DASHBOARD:
+        return <MyDashboardView linkedEmployee={linkedEmployee} onNavigate={(view) => setActiveView(view)} />;
       case AppView.DASHBOARD:
         return <DashboardView roles={displayRoles} skills={displaySkills} employees={displayEmployees} onNavigate={(view) => setActiveView(view as AppView)} />;
       case AppView.ROLES:

@@ -11,17 +11,18 @@ import {
   Building2,
   Users,
   GraduationCap,
-  BookOpen,
   HelpCircle,
   FileCheck,
   UserSearch,
-  Code2
+  Code2,
+  Home
 } from 'lucide-react';
 import { AppView } from '@/types';
 import { cn } from '@/lib/utils';
 import { useState } from 'react';
 import { Sheet, SheetContent } from '@/components/ui/sheet';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface SidebarProps {
   activeView: AppView;
@@ -30,7 +31,7 @@ interface SidebarProps {
   onMobileClose?: () => void;
 }
 
-const menuItems = [
+const adminMenuItems = [
   { view: AppView.DASHBOARD, label: 'Dashboard', icon: LayoutDashboard },
   { view: AppView.ROLES, label: 'Cargos e Salários', icon: Briefcase },
   { view: AppView.SKILLS, label: 'Habilidades', icon: Sparkles },
@@ -41,10 +42,19 @@ const menuItems = [
   { view: AppView.PERFORMANCE, label: 'Avaliações', icon: ClipboardCheck },
   { view: AppView.TRAININGS, label: 'Treinamentos', icon: GraduationCap },
   { view: AppView.TESTS, label: 'Testes e Certificações', icon: FileCheck },
-  { view: AppView.RECRUITMENT, label: 'Recrutamento', icon: UserSearch },
+  { view: AppView.RECRUITMENT, label: 'Recrutamento e Seleção', icon: UserSearch },
   { view: AppView.TUTORIALS, label: 'Tutoriais', icon: HelpCircle },
   { view: AppView.API_DOCS, label: 'API & Importação', icon: Code2 },
   { view: AppView.SETTINGS, label: 'Configurações', icon: Settings },
+];
+
+const userMenuItems = [
+  { view: AppView.MY_DASHBOARD, label: 'Meu Painel', icon: Home },
+  { view: AppView.ROADMAP, label: 'Meu Roadmap', icon: Route },
+  { view: AppView.TRAININGS, label: 'Meus Treinamentos', icon: GraduationCap },
+  { view: AppView.TESTS, label: 'Meus Testes', icon: FileCheck },
+  { view: AppView.SKILLS, label: 'Minhas Habilidades', icon: Sparkles },
+  { view: AppView.PERFORMANCE, label: 'Autoavaliação', icon: ClipboardCheck },
 ];
 
 const SidebarContent = ({ 
@@ -60,6 +70,9 @@ const SidebarContent = ({
   setCollapsed: (v: boolean) => void;
   onItemClick?: () => void;
 }) => {
+  const { isUserRole } = useUserRole();
+  const menuItems = isUserRole ? userMenuItems : adminMenuItems;
+
   return (
     <>
       {/* Logo */}
@@ -71,10 +84,12 @@ const SidebarContent = ({
           <div className="animate-fade-in flex items-center gap-2">
             <div>
               <h1 className="text-lg font-bold text-foreground">GFloow</h1>
-              <p className="text-xs text-muted-foreground -mt-0.5">Talentos</p>
+              <p className="text-xs text-muted-foreground -mt-0.5">
+                {isUserRole ? 'Portal' : 'Talentos'}
+              </p>
             </div>
             <span className="px-2 py-0.5 text-[10px] font-semibold bg-brand-100 text-brand-700 rounded-full uppercase tracking-wide">
-              Nexus
+              {isUserRole ? 'Meu Perfil' : 'Nexus'}
             </span>
           </div>
         )}

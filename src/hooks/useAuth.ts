@@ -14,6 +14,19 @@ export const useAuth = () => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // On sign in, try to link user to employee
+        if (event === 'SIGNED_IN' && session?.user) {
+          setTimeout(() => {
+            supabase.rpc('link_user_to_employee_on_login', {
+              _user_id: session.user.id,
+              _email: session.user.email || '',
+            }).then(({ data, error }) => {
+              if (error) console.error('Error linking employee:', error);
+              else if (data && typeof data === 'object' && (data as any).linked) console.log('Employee linked:', (data as any).employee_name);
+            });
+          }, 0);
+        }
       }
     );
 

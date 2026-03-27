@@ -2,10 +2,18 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 
+export interface LinkedEmployee {
+  id: string;
+  nome: string;
+  email: string | null;
+  codigocargo: string | null;
+}
+
 export const useUserRole = () => {
   const { user, loading: authLoading } = useAuth();
   const [hasAccess, setHasAccess] = useState<boolean | null>(null);
   const [role, setRole] = useState<string | null>(null);
+  const [linkedEmployee, setLinkedEmployee] = useState<LinkedEmployee | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -15,6 +23,7 @@ export const useUserRole = () => {
       if (!user) {
         setHasAccess(false);
         setRole(null);
+        setLinkedEmployee(null);
         setLoading(false);
         return;
       }
@@ -33,8 +42,18 @@ export const useUserRole = () => {
         } else if (data) {
           setHasAccess(true);
           setRole(data.role);
+
+          // If user role, fetch linked employee
+          if (data.role === 'user') {
+            const { data: empData } = await supabase
+              .from('nexus_employees')
+              .select('id, nome, email, codigocargo')
+              .eq('linked_user_id', user.id)
+              .maybeSingle();
+            
+            setLinkedEmployee(empData as LinkedEmployee | null);
+          }
         } else {
-          // User has no role assigned
           setHasAccess(false);
           setRole(null);
         }
@@ -50,5 +69,5 @@ export const useUserRole = () => {
     checkUserRole();
   }, [user, authLoading]);
 
-  return { hasAccess, role, loading };
+  return { hasAccess, role, loading, linkedEmployee, isUserRole: role === 'user' };
 };

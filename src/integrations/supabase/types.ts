@@ -1816,6 +1816,7 @@ export type Database = {
           email: string | null
           gestor_id: string | null
           id: string
+          linked_user_id: string | null
           matricula: string | null
           nome: string
           owner_admin_id: string | null
@@ -1831,6 +1832,7 @@ export type Database = {
           email?: string | null
           gestor_id?: string | null
           id?: string
+          linked_user_id?: string | null
           matricula?: string | null
           nome: string
           owner_admin_id?: string | null
@@ -1846,6 +1848,7 @@ export type Database = {
           email?: string | null
           gestor_id?: string | null
           id?: string
+          linked_user_id?: string | null
           matricula?: string | null
           nome?: string
           owner_admin_id?: string | null
@@ -3029,13 +3032,21 @@ export type Database = {
         Returns: boolean
       }
       is_master_admin: { Args: { _user_id: string }; Returns: boolean }
+      link_employee_to_user: {
+        Args: { _email: string; _employee_id: string; _owner_admin_id: string }
+        Returns: undefined
+      }
+      link_user_to_employee_on_login: {
+        Args: { _email: string; _user_id: string }
+        Returns: Json
+      }
       mask_cpf: { Args: { cpf: string }; Returns: string }
       mask_email: { Args: { email: string }; Returns: string }
       mask_phone: { Args: { phone: string }; Returns: string }
       mask_salary: { Args: { salary: number }; Returns: string }
     }
     Enums: {
-      app_role: "admin" | "gestor" | "analista" | "visualizador"
+      app_role: "admin" | "gestor" | "analista" | "visualizador" | "user"
       pricing_profile_type:
         | "empresa_isolada"
         | "consultor_revenda"
@@ -3167,7 +3178,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      app_role: ["admin", "gestor", "analista", "visualizador"],
+      app_role: ["admin", "gestor", "analista", "visualizador", "user"],
       pricing_profile_type: [
         "empresa_isolada",
         "consultor_revenda",
