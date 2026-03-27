@@ -45,6 +45,7 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
       setBaseSalary(role.salaryRange?.min || 0);
     } else {
       setForm({
+        codigocargo: '',
         title: '',
         level: 'Pleno',
         department: 'Tecnologia',
