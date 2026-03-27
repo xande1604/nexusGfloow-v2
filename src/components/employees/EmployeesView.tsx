@@ -29,6 +29,7 @@ interface EmployeesViewProps {
 
 export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor, onCreateEmployee, onUpdateEmployee, onDeleteEmployee, isDemoMode, initialCostCenterFilter }: EmployeesViewProps) => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [costCenterFilter, setCostCenterFilter] = useState<string>(initialCostCenterFilter || '');
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingEmail, setEditingEmail] = useState('');
   const [editingGestorId, setEditingGestorId] = useState<string | null>(null);
@@ -43,10 +44,12 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
   const { costCenters } = useCostCenters();
   const { empresas } = useEmpresas();
 
-  const filteredEmployees = employees.filter(emp =>
-    emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    emp.email?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredEmployees = employees.filter(emp => {
+    const matchesSearch = emp.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      emp.email?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesCostCenter = !costCenterFilter || (emp as any).codcentrodecustos === costCenterFilter;
+    return matchesSearch && matchesCostCenter;
+  });
 
   const getRoleName = (roleId: string) => {
     const role = roles.find(r => r.id === roleId);
