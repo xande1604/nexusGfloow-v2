@@ -96,93 +96,58 @@ export const EmployeeDetailsModal = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[92vh] overflow-hidden flex flex-col p-0">
-        {/* Header */}
-        <div className="px-6 pt-6 pb-4 border-b border-border bg-muted/30">
-          <div className="flex items-start gap-4">
-            <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <User className="w-7 h-7 text-primary" />
+      <DialogContent className="sm:max-w-2xl md:max-w-3xl lg:max-w-4xl max-h-[90vh] overflow-hidden flex flex-col p-0 gap-0">
+        {/* Header com avatar e nome */}
+        <div className="px-8 pt-8 pb-6 bg-muted/20">
+          <div className="flex items-center gap-4 mb-6">
+            <div className="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center shrink-0">
+              <User className="w-8 h-8 text-primary" />
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-xl font-bold text-foreground leading-tight">{employee.name}</h2>
-              <p className="text-sm text-muted-foreground mt-0.5">{getRoleName(employee.roleId)}</p>
+              <h2 className="text-2xl font-bold text-foreground leading-tight tracking-tight">{employee.name}</h2>
+              <div className="flex items-center gap-2 mt-1">
+                <Briefcase className="w-4 h-4 text-muted-foreground" />
+                <span className="text-sm text-muted-foreground">{getRoleName(employee.roleId)}</span>
+              </div>
             </div>
           </div>
 
-          {/* Info Grid */}
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4 mt-5">
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Mail className="w-4 h-4 text-primary" />
+          {/* Info Cards em grid */}
+          <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+            {[
+              { icon: Mail, label: 'Email', value: employee.email || '—' },
+              { icon: Hash, label: 'Matrícula', value: empAny.matricula || '—' },
+              { icon: Calendar, label: 'Admissão', value: employee.admissionDate ? format(new Date(employee.admissionDate), "dd/MM/yyyy", { locale: ptBR }) : '—' },
+              { icon: Building2, label: 'Empresa', value: empAny.codempresa || '—' },
+              { icon: MapPin, label: 'C. Custos', value: empAny.codcentrodecustos || '—' },
+            ].map((item, i) => (
+              <div key={i} className="bg-background rounded-xl border border-border p-3 flex flex-col gap-1">
+                <div className="flex items-center gap-1.5">
+                  <item.icon className="w-3.5 h-3.5 text-muted-foreground" />
+                  <span className="text-[11px] text-muted-foreground uppercase tracking-wider font-semibold">{item.label}</span>
+                </div>
+                <p className="text-sm font-medium text-foreground truncate" title={item.value}>{item.value}</p>
               </div>
-              <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Email</p>
-                <p className="text-sm text-foreground truncate">{employee.email || '—'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Hash className="w-4 h-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Matrícula</p>
-                <p className="text-sm text-foreground truncate">{empAny.matricula || '—'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Calendar className="w-4 h-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Admissão</p>
-                <p className="text-sm text-foreground">
-                  {employee.admissionDate
-                    ? format(new Date(employee.admissionDate), "dd/MM/yyyy", { locale: ptBR })
-                    : '—'}
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <Building2 className="w-4 h-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Empresa</p>
-                <p className="text-sm text-foreground truncate">{empAny.codempresa || '—'}</p>
-              </div>
-            </div>
-
-            <div className="flex items-center gap-2.5 min-w-0">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                <MapPin className="w-4 h-4 text-primary" />
-              </div>
-              <div className="min-w-0">
-                <p className="text-[11px] text-muted-foreground uppercase tracking-wider font-medium">Centro Custos</p>
-                <p className="text-sm text-foreground truncate">{empAny.codcentrodecustos || '—'}</p>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="flex-1 overflow-hidden flex flex-col">
-          <div className="px-6 pt-3">
+          <div className="px-8 pt-4 border-t border-border">
             <TabsList className="grid w-full grid-cols-2 h-11">
-              <TabsTrigger value="skills" className="flex items-center gap-2 text-sm">
+              <TabsTrigger value="skills" className="flex items-center gap-2 text-sm font-medium">
                 <Award className="w-4 h-4" />
                 Habilidades ({skills.length})
               </TabsTrigger>
-              <TabsTrigger value="trainings" className="flex items-center gap-2 text-sm">
+              <TabsTrigger value="trainings" className="flex items-center gap-2 text-sm font-medium">
                 <BookOpen className="w-4 h-4" />
                 Treinamentos ({trainings.length})
               </TabsTrigger>
             </TabsList>
           </div>
 
-          <div className="flex-1 overflow-y-auto px-6 py-4">
+          <div className="flex-1 overflow-y-auto px-8 py-5">
             <TabsContent value="skills" className="mt-0 h-full">
               <EmployeeSkillsPanel
                 skills={skills}
@@ -197,13 +162,13 @@ export const EmployeeDetailsModal = ({
                   <Loader2 className="w-6 h-6 animate-spin text-primary" />
                 </div>
               ) : trainings.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <BookOpen className="w-12 h-12 text-muted-foreground/50 mb-4" />
-                  <h4 className="text-lg font-medium text-foreground mb-2">
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <BookOpen className="w-12 h-12 text-muted-foreground/40 mb-4" />
+                  <h4 className="text-lg font-semibold text-foreground mb-1">
                     Nenhum treinamento registrado
                   </h4>
-                  <p className="text-muted-foreground text-sm max-w-md">
-                    Os treinamentos do colaborador aparecerão aqui quando forem registrados.
+                  <p className="text-muted-foreground text-sm max-w-sm">
+                    Os treinamentos aparecerão aqui quando forem registrados.
                   </p>
                 </div>
               ) : (
@@ -211,32 +176,28 @@ export const EmployeeDetailsModal = ({
                   {trainings.map((training) => (
                     <div
                       key={training.id}
-                      className="p-4 rounded-lg border border-border bg-background hover:bg-secondary/30 transition-colors"
+                      className="p-4 rounded-xl border border-border bg-background hover:bg-secondary/30 transition-colors"
                     >
-                      <div className="flex items-start justify-between gap-3">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 flex-wrap mb-1">
-                            <span className="font-medium text-foreground">{training.nome_treinamento}</span>
-                            {getStatusBadge(training.status)}
-                          </div>
-                          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
-                            {training.instituicao && (
-                              <span className="flex items-center gap-1">
-                                <Building2 className="w-3.5 h-3.5" />
-                                {training.instituicao}
-                              </span>
-                            )}
-                            {training.carga_horaria && (
-                              <span>{training.carga_horaria}h</span>
-                            )}
-                            {training.data_conclusao && (
-                              <span className="flex items-center gap-1">
-                                <Calendar className="w-3.5 h-3.5" />
-                                {format(new Date(training.data_conclusao), "dd/MM/yyyy", { locale: ptBR })}
-                              </span>
-                            )}
-                          </div>
-                        </div>
+                      <div className="flex items-center gap-2 flex-wrap mb-2">
+                        <span className="font-medium text-foreground">{training.nome_treinamento}</span>
+                        {getStatusBadge(training.status)}
+                      </div>
+                      <div className="flex flex-wrap gap-4 text-sm text-muted-foreground">
+                        {training.instituicao && (
+                          <span className="flex items-center gap-1.5">
+                            <Building2 className="w-3.5 h-3.5" />
+                            {training.instituicao}
+                          </span>
+                        )}
+                        {training.carga_horaria && (
+                          <span>{training.carga_horaria}h</span>
+                        )}
+                        {training.data_conclusao && (
+                          <span className="flex items-center gap-1.5">
+                            <Calendar className="w-3.5 h-3.5" />
+                            {format(new Date(training.data_conclusao), "dd/MM/yyyy", { locale: ptBR })}
+                          </span>
+                        )}
                       </div>
                     </div>
                   ))}
