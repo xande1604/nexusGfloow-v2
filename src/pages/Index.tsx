@@ -270,7 +270,10 @@ const Index = () => {
       case AppView.RECRUITMENT:
         return <RecruitmentView isDemoMode={isDemoMode} />;
       case AppView.EMPRESAS:
-        return <EmpresasView />;
+        return <EmpresasView onNavigateToEmployees={(codempresa) => {
+          setEmployeeEmpresaFilter(codempresa);
+          setActiveView(AppView.EMPLOYEES);
+        }} />;
       case AppView.COST_CENTERS:
         return <CostCentersView onNavigateToEmployees={(ccCode) => {
           setEmployeeCostCenterFilter(ccCode);
