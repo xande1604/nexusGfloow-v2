@@ -564,8 +564,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
             const result = await onCreateEmployee(data);
             if (result.success) {
               toast({ title: 'Colaborador cadastrado', description: 'O colaborador foi cadastrado com sucesso.' });
-            } else {
-              toast({ title: 'Erro ao cadastrar', description: 'Não foi possível cadastrar o colaborador.', variant: 'destructive' });
+              <div className="mt-2 text-xs text-muted-foreground">{result.error ? getErrorMessage(result.error) : 'Verifique suas permissões de acesso no ambiente.'}</div>
             }
             return result;
           }}
