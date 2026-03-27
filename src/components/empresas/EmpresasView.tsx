@@ -31,6 +31,7 @@ import { demoEmpresas } from '@/components/demo/demoData';
 import { toast } from 'sonner';
 
 export const EmpresasView = () => {
+  const navigate = useNavigate();
   const { isDemoMode } = useDemo();
   const { empresas: realEmpresas, loading, saveEmpresa, deleteEmpresa } = useEmpresas();
   
