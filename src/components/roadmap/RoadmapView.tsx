@@ -596,7 +596,7 @@ export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerat
                 >
                   <option value="">Selecione...</option>
                   {roles.map(role => (
-                    <option key={role.id} value={role.title}>{role.title}</option>
+                    <option key={role.id} value={role.title}>{role.codigocargo ? `${role.codigocargo} - ${role.title}` : role.title}</option>
                   ))}
                 </select>
               </div>
@@ -616,7 +616,7 @@ export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerat
                 >
                   <option value="">Selecione...</option>
                   {roles.map(role => (
-                    <option key={role.id} value={role.title}>{role.title}</option>
+                    <option key={role.id} value={role.title}>{role.codigocargo ? `${role.codigocargo} - ${role.title}` : role.title}</option>
                   ))}
                 </select>
               </div>
