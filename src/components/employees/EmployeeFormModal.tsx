@@ -112,7 +112,7 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave, initialDa
               <SelectContent>
                 {roles.map(role => (
                   <SelectItem key={role.id} value={role.codigocargo || role.id}>
-                    {role.title}
+                    {role.codigocargo ? `${role.codigocargo} - ${role.title}` : role.title}
                   </SelectItem>
                 ))}
               </SelectContent>
