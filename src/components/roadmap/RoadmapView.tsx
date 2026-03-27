@@ -591,7 +591,7 @@ export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerat
                 <label className="block text-sm font-medium text-foreground mb-1.5">Cargo Atual</label>
                 <select
                   value={sourceRole}
-                  onChange={(e) => setSourceRole(e.target.value)}
+                  onChange={(e) => { setSourceRole(e.target.value); setEmployeeName(''); }}
                   className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
                 >
                   <option value="">Selecione...</option>
@@ -630,12 +630,27 @@ export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerat
                 className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
               >
                 <option value="">Selecione um colaborador...</option>
-                {employees.map(employee => (
-                  <option key={employee.id} value={employee.name}>
-                    {employee.name}
-                  </option>
-                ))}
+                {(() => {
+                  const sourceRoleObj = sourceRole ? roles.find(r => r.title === sourceRole) : null;
+                  const filteredEmployees = sourceRoleObj
+                    ? employees.filter(emp => emp.roleId === sourceRoleObj.id)
+                    : employees;
+                  return filteredEmployees.map(employee => (
+                    <option key={employee.id} value={employee.name}>
+                      {employee.name}
+                    </option>
+                  ));
+                })()}
               </select>
+              {sourceRole && (() => {
+                const sourceRoleObj = roles.find(r => r.title === sourceRole);
+                const count = sourceRoleObj ? employees.filter(emp => emp.roleId === sourceRoleObj.id).length : 0;
+                return count > 0 ? (
+                  <p className="text-xs text-muted-foreground mt-1">{count} colaborador(es) no cargo selecionado</p>
+                ) : (
+                  <p className="text-xs text-muted-foreground mt-1">Nenhum colaborador neste cargo. Mostrando todos.</p>
+                );
+              })()}
             </div>
 
             <button
