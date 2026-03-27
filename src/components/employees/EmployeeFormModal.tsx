@@ -59,9 +59,10 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave, initialDa
     }
   }, [open, initialData]);
 
-  const filteredCostCenters = codempresa
+  const filteredCostCenters = (codempresa
     ? costCenters.filter(cc => cc.codempresa === codempresa)
-    : costCenters;
+    : costCenters
+  ).sort((a, b) => (a.codcentrodecustos || '').localeCompare(b.codcentrodecustos || ''));
 
   const handleSave = async () => {
     if (!nome.trim()) return;
