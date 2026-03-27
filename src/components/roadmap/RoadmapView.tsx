@@ -644,7 +644,7 @@ export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerat
               </select>
               {sourceRole && (() => {
                 const sourceRoleObj = roles.find(r => r.title === sourceRole);
-                const count = sourceRoleObj ? employees.filter(emp => emp.roleId === sourceRoleObj.id).length : 0;
+                const count = sourceRoleObj ? employees.filter(emp => emp.roleId === sourceRoleObj.codigocargo || emp.roleId === sourceRoleObj.id).length : 0;
                 return count > 0 ? (
                   <p className="text-xs text-muted-foreground mt-1">{count} colaborador(es) no cargo selecionado</p>
                 ) : (
