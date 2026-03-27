@@ -74,6 +74,9 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
     return gestor?.name || null;
   };
 
+  const getErrorMessage = (error: any) =>
+    error?.message || error?.details || error?.hint || (typeof error === 'string' ? error : 'Não foi possível concluir a operação.');
+
   const handleEditGestorStart = (employee: Employee & { gestorId?: string }) => {
     setEditingGestorId(employee.id);
     setSelectedGestor(employee.gestorId || '');
@@ -562,7 +565,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
             if (result.success) {
               toast({ title: 'Colaborador cadastrado', description: 'O colaborador foi cadastrado com sucesso.' });
             } else {
-              toast({ title: 'Erro ao cadastrar', description: 'Não foi possível cadastrar o colaborador.', variant: 'destructive' });
+              toast({ title: 'Erro ao cadastrar', description: getErrorMessage(result.error), variant: 'destructive' });
             }
             return result;
           }}
@@ -583,7 +586,7 @@ export const EmployeesView = ({ employees, roles, onUpdateEmail, onUpdateGestor,
               toast({ title: 'Colaborador atualizado', description: 'Os dados foram atualizados com sucesso.' });
               setEditingEmployee(null);
             } else {
-              toast({ title: 'Erro ao atualizar', description: 'Não foi possível atualizar o colaborador.', variant: 'destructive' });
+              toast({ title: 'Erro ao atualizar', description: getErrorMessage(result.error), variant: 'destructive' });
             }
             return result;
           }}
