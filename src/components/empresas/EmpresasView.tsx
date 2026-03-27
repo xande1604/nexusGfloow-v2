@@ -255,7 +255,15 @@ export const EmpresasView = () => {
                         {getRiskBadge(emp.grau_risco)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <Badge variant={emp.employeeCount > 0 ? "default" : "outline"} className="gap-1">
+                        <Badge 
+                          variant={emp.employeeCount > 0 ? "default" : "outline"} 
+                          className={`gap-1 ${emp.employeeCount > 0 ? 'cursor-pointer hover:opacity-80' : ''}`}
+                          onClick={() => {
+                            if (emp.employeeCount > 0) {
+                              navigate('/app', { state: { view: 'employees', filterEmpresa: emp.codempresa } });
+                            }
+                          }}
+                        >
                           <Users className="w-3 h-3" />
                           {emp.employeeCount}
                         </Badge>
