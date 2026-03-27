@@ -21,7 +21,7 @@ export const useCostCenters = () => {
       
       // Fetch cost centers
       const ccData = await fetchAllRows('centrodecustos', {
-        select: 'id, codcentrodecustos, nomecentrodecustos, codempresa',
+        select: 'id, codcentrodecustos, nomecentrodecustos, codempresa, is_active',
         order: { column: 'nomecentrodecustos', ascending: true },
       });
 
