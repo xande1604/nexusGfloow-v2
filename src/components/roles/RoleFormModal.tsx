@@ -133,7 +133,8 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
       hardSkills: form.hardSkills,
       softSkills: form.softSkills,
       keyDeliverables: form.keyDeliverables,
-    });
+      is_active: form.is_active,
+    } as any);
   };
 
   if (!isOpen) return null;
