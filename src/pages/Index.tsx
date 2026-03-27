@@ -48,6 +48,7 @@ const initialContext: CompanyContext = {
 };
 
 const Index = () => {
+  const { hasAccess, loading: roleLoading, isUserRole, linkedEmployee } = useUserRole();
   const [activeView, setActiveView] = useState<AppView>(AppView.DASHBOARD);
   const [companyContext, setCompanyContext] = useState<CompanyContext>(initialContext);
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
