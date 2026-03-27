@@ -10,6 +10,7 @@ interface RolesViewProps {
   employees?: Employee[];
   onSaveRole: (role: JobRole) => void;
   onDeleteRole: (id: string) => void;
+  onNavigateToEmployees?: (codigocargo: string) => void;
 }
 
 const levels = ['Estagiário', 'Trainee', 'Júnior', 'Pleno', 'Sênior', 'Master', 'Especialista', 'Tech Lead', 'Coordenador', 'Gerente', 'Diretor', 'C-Level'];
