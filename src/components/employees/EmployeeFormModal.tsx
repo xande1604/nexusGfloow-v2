@@ -131,7 +131,7 @@ export const EmployeeFormModal = ({ open, onOpenChange, roles, onSave, initialDa
               <SelectContent>
                 {empresas.map(emp => (
                   <SelectItem key={emp.id} value={emp.codempresa}>
-                    {emp.nomeempresa}
+                    {emp.codempresa} - {emp.nomeempresa}
                   </SelectItem>
                 ))}
               </SelectContent>
