@@ -55,6 +55,7 @@ const Index = () => {
   const [showAccessRequest, setShowAccessRequest] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const [employeeCostCenterFilter, setEmployeeCostCenterFilter] = useState<string>('');
+  const [employeeEmpresaFilter, setEmployeeEmpresaFilter] = useState<string>('');
   const [prefilledRoadmapData, setPrefilledRoadmapData] = useState<{
     employeeId: string;
     skills: string[];
