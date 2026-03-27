@@ -377,6 +377,16 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
             </div>
           </div>
 
+          {/* Active Flag */}
+          <div className="flex items-center justify-between pt-3 border-t border-border">
+            <Label htmlFor="role-is-active" className="text-sm font-medium">Cargo Ativo</Label>
+            <Switch
+              id="role-is-active"
+              checked={form.is_active !== false}
+              onCheckedChange={(checked) => setForm(prev => ({ ...prev, is_active: checked }))}
+            />
+          </div>
+
           {/* Actions */}
           <div className="flex justify-end gap-3 pt-3 border-t border-border">
             <button
