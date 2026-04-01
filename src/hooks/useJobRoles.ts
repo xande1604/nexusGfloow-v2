@@ -37,6 +37,7 @@ export const useJobRoles = () => {
         softSkills: row.soft_skills || undefined,
         titulolongocargo: row.titulolongocargo || undefined,
         entregas: row.entregas || undefined,
+        keyDeliverables: row.entregas || undefined,
         tags: row.tags || undefined,
       }));
 
