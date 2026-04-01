@@ -415,7 +415,22 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
             </div>
           </div>
 
-          {/* Active Flag */}
+          {/* Tags for Roadmap */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Tags (para Roadmap e filtros)</label>
+            <input
+              type="text"
+              value={(form.tags || []).join(', ')}
+              onChange={(e) => setForm(prev => ({ 
+                ...prev, 
+                tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) 
+              }))}
+              className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+              placeholder="Ex: tecnologia, liderança, operacional (separe por vírgula)"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Separe as tags por vírgula</p>
+          </div>
+
           <div className="flex items-center justify-between pt-3 border-t border-border">
             <Label htmlFor="role-is-active" className="text-sm font-medium">Cargo Ativo</Label>
             <Switch
