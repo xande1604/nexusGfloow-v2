@@ -34,6 +34,9 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
     hardSkills: '',
     softSkills: '',
     keyDeliverables: '',
+    titulolongocargo: '',
+    entregas: '',
+    tags: [],
     is_active: true,
   });
 
