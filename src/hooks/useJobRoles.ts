@@ -35,6 +35,9 @@ export const useJobRoles = () => {
         technicalKnowledge: row.technical_knowledge || undefined,
         hardSkills: row.hard_skills || undefined,
         softSkills: row.soft_skills || undefined,
+        titulolongocargo: row.titulolongocargo || undefined,
+        entregas: row.entregas || undefined,
+        tags: row.tags || undefined,
       }));
 
       setRoles(mappedRoles);
