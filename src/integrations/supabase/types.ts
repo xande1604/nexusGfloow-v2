@@ -519,6 +519,7 @@ export type Database = {
           cbo2002: string | null
           codigocargo: string
           created_at: string | null
+          entregas: string | null
           faz_parte_cota_aprendiz: boolean
           hard_skills: string | null
           id: string
@@ -528,7 +529,9 @@ export type Database = {
           salary_max: number | null
           salary_min: number | null
           soft_skills: string | null
+          tags: string[] | null
           technical_knowledge: string | null
+          titulolongocargo: string | null
           tituloreduzido: string
           updated_at: string | null
         }
@@ -536,6 +539,7 @@ export type Database = {
           cbo2002?: string | null
           codigocargo: string
           created_at?: string | null
+          entregas?: string | null
           faz_parte_cota_aprendiz?: boolean
           hard_skills?: string | null
           id?: string
@@ -545,7 +549,9 @@ export type Database = {
           salary_max?: number | null
           salary_min?: number | null
           soft_skills?: string | null
+          tags?: string[] | null
           technical_knowledge?: string | null
+          titulolongocargo?: string | null
           tituloreduzido: string
           updated_at?: string | null
         }
@@ -553,6 +559,7 @@ export type Database = {
           cbo2002?: string | null
           codigocargo?: string
           created_at?: string | null
+          entregas?: string | null
           faz_parte_cota_aprendiz?: boolean
           hard_skills?: string | null
           id?: string
@@ -562,7 +569,9 @@ export type Database = {
           salary_max?: number | null
           salary_min?: number | null
           soft_skills?: string | null
+          tags?: string[] | null
           technical_knowledge?: string | null
+          titulolongocargo?: string | null
           tituloreduzido?: string
           updated_at?: string | null
         }
