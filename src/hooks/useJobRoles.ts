@@ -74,6 +74,9 @@ export const useJobRoles = () => {
         salary_max: role.salaryRange?.max || 0,
         owner_admin_id: ownerAdminId,
         is_active: (role as any).is_active !== false,
+        titulolongocargo: role.titulolongocargo || null,
+        entregas: role.entregas || null,
+        tags: role.tags || null,
       };
 
       // Check if role already exists

@@ -19,6 +19,9 @@ export interface JobRole {
   hardSkills?: string;
   softSkills?: string;
   keyDeliverables?: string;
+  titulolongocargo?: string;
+  entregas?: string;
+  tags?: string[];
 }
 
 export interface Skill {
