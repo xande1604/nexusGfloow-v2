@@ -70,7 +70,7 @@ export const useJobRoles = () => {
         technical_knowledge: role.technicalKnowledge || null,
         hard_skills: role.hardSkills || null,
         soft_skills: role.softSkills || null,
-        salary_min: role.salaryRange?.min || 0,
+        entregas: role.keyDeliverables || role.entregas || null,
         salary_max: role.salaryRange?.max || 0,
         owner_admin_id: ownerAdminId,
         is_active: (role as any).is_active !== false,
