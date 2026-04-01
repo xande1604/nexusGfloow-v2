@@ -71,11 +71,11 @@ export const useJobRoles = () => {
         hard_skills: role.hardSkills || null,
         soft_skills: role.softSkills || null,
         entregas: role.keyDeliverables || role.entregas || null,
+        salary_min: role.salaryRange?.min || 0,
         salary_max: role.salaryRange?.max || 0,
         owner_admin_id: ownerAdminId,
         is_active: (role as any).is_active !== false,
         titulolongocargo: role.titulolongocargo || null,
-        entregas: role.entregas || null,
         tags: role.tags || null,
       };
 
