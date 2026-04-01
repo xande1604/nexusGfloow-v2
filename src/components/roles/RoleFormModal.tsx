@@ -34,6 +34,9 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
     hardSkills: '',
     softSkills: '',
     keyDeliverables: '',
+    titulolongocargo: '',
+    entregas: '',
+    tags: [],
     is_active: true,
   });
 
@@ -57,6 +60,9 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
         hardSkills: '',
         softSkills: '',
         keyDeliverables: '',
+        titulolongocargo: '',
+        entregas: '',
+        tags: [],
       });
       setBaseSalary(0);
     }
@@ -136,6 +142,9 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
       hardSkills: form.hardSkills,
       softSkills: form.softSkills,
       keyDeliverables: form.keyDeliverables,
+      titulolongocargo: form.titulolongocargo,
+      entregas: form.entregas,
+      tags: form.tags,
       is_active: form.is_active,
     } as any);
   };
@@ -175,7 +184,7 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
               />
             </div>
             <div className="col-span-2">
-              <label className="block text-sm font-medium text-foreground mb-1.5">Título do Cargo *</label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Título Reduzido *</label>
               <input
                 type="text"
                 value={form.title}
@@ -185,6 +194,21 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
                 required
               />
             </div>
+          </div>
+
+          {/* Título Longo */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Título Longo do Cargo</label>
+            <input
+              type="text"
+              value={form.titulolongocargo || ''}
+              onChange={(e) => setForm(prev => ({ ...prev, titulolongocargo: e.target.value }))}
+              className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+              placeholder="Ex: Desenvolvedor Full Stack Sênior - Equipe de Plataforma"
+            />
+          </div>
+
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">Nível Senioridade</label>
               <select
@@ -391,7 +415,22 @@ export const RoleFormModal = ({ isOpen, onClose, onSave, role, skills }: RoleFor
             </div>
           </div>
 
-          {/* Active Flag */}
+          {/* Tags for Roadmap */}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Tags (para Roadmap e filtros)</label>
+            <input
+              type="text"
+              value={(form.tags || []).join(', ')}
+              onChange={(e) => setForm(prev => ({ 
+                ...prev, 
+                tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) 
+              }))}
+              className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+              placeholder="Ex: tecnologia, liderança, operacional (separe por vírgula)"
+            />
+            <p className="text-xs text-muted-foreground mt-1">Separe as tags por vírgula</p>
+          </div>
+
           <div className="flex items-center justify-between pt-3 border-t border-border">
             <Label htmlFor="role-is-active" className="text-sm font-medium">Cargo Ativo</Label>
             <Switch

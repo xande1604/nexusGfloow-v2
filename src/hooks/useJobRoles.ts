@@ -35,6 +35,10 @@ export const useJobRoles = () => {
         technicalKnowledge: row.technical_knowledge || undefined,
         hardSkills: row.hard_skills || undefined,
         softSkills: row.soft_skills || undefined,
+        titulolongocargo: row.titulolongocargo || undefined,
+        entregas: row.entregas || undefined,
+        keyDeliverables: row.entregas || undefined,
+        tags: row.tags || undefined,
       }));
 
       setRoles(mappedRoles);
@@ -67,10 +71,13 @@ export const useJobRoles = () => {
         technical_knowledge: role.technicalKnowledge || null,
         hard_skills: role.hardSkills || null,
         soft_skills: role.softSkills || null,
+        entregas: role.keyDeliverables || role.entregas || null,
         salary_min: role.salaryRange?.min || 0,
         salary_max: role.salaryRange?.max || 0,
         owner_admin_id: ownerAdminId,
         is_active: (role as any).is_active !== false,
+        titulolongocargo: role.titulolongocargo || null,
+        tags: role.tags || null,
       };
 
       // Check if role already exists
