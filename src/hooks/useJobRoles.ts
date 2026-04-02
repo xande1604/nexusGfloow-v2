@@ -16,6 +16,15 @@ export const useJobRoles = () => {
         order: { column: 'tituloreduzido', ascending: true },
       });
 
+      // Debug: log first 3 rows to verify titulolongocargo arrives from DB
+      if (data && data.length > 0) {
+        console.log('[useJobRoles] Sample raw rows:', data.slice(0, 3).map((r: any) => ({
+          codigocargo: r.codigocargo,
+          tituloreduzido: r.tituloreduzido,
+          titulolongocargo: r.titulolongocargo,
+        })));
+      }
+
       const mappedRoles: JobRole[] = (data || []).map(row => ({
         id: row.id,
         codigocargo: row.codigocargo,
