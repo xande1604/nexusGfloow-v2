@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Briefcase, DollarSign, Users, LayoutGrid, List, Filter, ChevronDown } from 'lucide-react';
 import { JobRole, Skill, Employee } from '@/types';
 import { RoleFormModal } from './RoleFormModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ExtendedEmployee extends Employee {
   codcentrodecustos?: string;
