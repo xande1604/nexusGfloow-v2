@@ -212,7 +212,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
               className="w-full h-9 px-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             >
               <option value="">Todos</option>
-              {costCenterOptions.map(c => <option key={c} value={c}>{c}</option>)}
+              {costCenterOptions.map(c => <option key={c} value={c}>{ccLabels.get(c) || c}</option>)}
             </select>
           </div>
           {activeFiltersCount > 0 && (
