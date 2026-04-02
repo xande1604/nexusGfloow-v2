@@ -15,6 +15,7 @@ export const useJobRoles = () => {
         order: { column: 'tituloreduzido', ascending: true },
       });
 
+      console.log('[useJobRoles] sample row:', data?.[0] ? { id: data[0].id, tituloreduzido: data[0].tituloreduzido, titulolongocargo: data[0].titulolongocargo } : 'no data');
       const mappedRoles: JobRole[] = (data || []).map(row => ({
         id: row.id,
         codigocargo: row.codigocargo,
