@@ -1,7 +1,8 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Plus, Search, Edit2, Trash2, Briefcase, DollarSign, Users, LayoutGrid, List, Filter, ChevronDown } from 'lucide-react';
 import { JobRole, Skill, Employee } from '@/types';
 import { RoleFormModal } from './RoleFormModal';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ExtendedEmployee extends Employee {
   codcentrodecustos?: string;
@@ -31,6 +32,22 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
   const [editingRole, setEditingRole] = useState<JobRole | null>(null);
 
   const extEmployees = employees as ExtendedEmployee[];
+
+  // Fetch CC and empresa labels
+  const [ccLabels, setCcLabels] = useState<Map<string, string>>(new Map());
+  const [empresaLabels, setEmpresaLabels] = useState<Map<string, string>>(new Map());
+
+  useEffect(() => {
+    const fetchLabels = async () => {
+      const [{ data: ccData }, { data: empData }] = await Promise.all([
+        supabase.from('centrodecustos').select('codcentrodecustos, nomecentrodecustos'),
+        supabase.from('empresas').select('codempresa, nomeempresa'),
+      ]);
+      if (ccData) setCcLabels(new Map(ccData.map(c => [c.codcentrodecustos, `${c.codcentrodecustos} - ${c.nomecentrodecustos}`])));
+      if (empData) setEmpresaLabels(new Map(empData.map(e => [e.codempresa, `${e.codempresa} - ${e.nomeempresa}`])));
+    };
+    fetchLabels();
+  }, []);
 
   // Employee count per role
   const employeeCountByRole = useMemo(() => {
@@ -184,7 +201,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
               className="w-full h-9 px-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             >
               <option value="">Todas</option>
-              {empresaOptions.map(e => <option key={e} value={e}>{e}</option>)}
+              {empresaOptions.map(e => <option key={e} value={e}>{empresaLabels.get(e) || e}</option>)}
             </select>
           </div>
           <div>
@@ -195,7 +212,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
               className="w-full h-9 px-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             >
               <option value="">Todos</option>
-              {costCenterOptions.map(c => <option key={c} value={c}>{c}</option>)}
+              {costCenterOptions.map(c => <option key={c} value={c}>{ccLabels.get(c) || c}</option>)}
             </select>
           </div>
           {activeFiltersCount > 0 && (
