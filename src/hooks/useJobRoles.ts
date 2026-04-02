@@ -12,10 +12,10 @@ export const useJobRoles = () => {
   const fetchRoles = async () => {
     try {
       const data = await fetchAllRows('cargos', {
+        select: 'id,codigocargo,tituloreduzido,cbo2002,technical_knowledge,hard_skills,soft_skills,salary_min,salary_max,is_active,titulolongocargo,entregas,tags',
         order: { column: 'tituloreduzido', ascending: true },
       });
 
-      console.log('[useJobRoles] sample row:', data?.[0] ? { id: data[0].id, tituloreduzido: data[0].tituloreduzido, titulolongocargo: data[0].titulolongocargo } : 'no data');
       const mappedRoles: JobRole[] = (data || []).map(row => ({
         id: row.id,
         codigocargo: row.codigocargo,
