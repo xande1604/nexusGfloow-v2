@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Save, Building2, Target, Heart, Plus, X, CheckCircle, Loader2, BarChart3, ExternalLink } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Save, Building2, Target, Heart, Plus, X, CheckCircle, Loader2, BarChart3, ExternalLink, Copy, Info } from 'lucide-react';
 import { CompanyContext } from '@/types';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -9,6 +9,7 @@ import { RequestAccessCard } from './RequestAccessCard';
 import { useMasterAdminData } from '@/hooks/useMasterAdminData';
 import { RedeemAccessKeyCard } from './RedeemAccessKeyCard';
 import { useUserRole } from '@/hooks/useUserRole';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SettingsViewProps {
   companyContext: CompanyContext;
@@ -22,6 +23,25 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
   
   const { isMasterAdmin, users, accessKeys, environments, pricingResponses, pricingQuestions, loading: masterLoading, refreshData } = useMasterAdminData();
   const { role, loading: roleLoading } = useUserRole();
+
+  // Tenant info state
+  const [tenantInfo, setTenantInfo] = useState<{ userId: string; email: string; ownerAdminId: string; role: string } | null>(null);
+
+  useEffect(() => {
+    const fetchTenantInfo = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+      const { data: ownerData } = await supabase.rpc('get_owner_admin_id', { _user_id: user.id });
+      const { data: roleData } = await supabase.from('user_roles').select('role').eq('user_id', user.id).limit(1).maybeSingle();
+      setTenantInfo({
+        userId: user.id,
+        email: user.email || '',
+        ownerAdminId: ownerData || user.id,
+        role: roleData?.role || 'sem papel',
+      });
+    };
+    fetchTenantInfo();
+  }, []);
 
   const handleSave = async () => {
     setIsSaving(true);
