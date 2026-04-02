@@ -92,6 +92,46 @@ export const SettingsView = ({ companyContext, onSaveContext }: SettingsViewProp
         </div>
       </button>
 
+      {/* Tenant Info Card */}
+      {tenantInfo && (
+        <div className="bg-card rounded-xl p-5 shadow-medium border border-border">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
+              <Info className="w-5 h-5 text-muted-foreground" />
+            </div>
+            <div>
+              <h3 className="text-sm font-semibold text-foreground">Informações do Ambiente</h3>
+              <p className="text-xs text-muted-foreground">Dados técnicos para suporte e integrações</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            {[
+              { label: 'Email', value: tenantInfo.email },
+              { label: 'Papel', value: tenantInfo.role },
+              { label: 'User ID', value: tenantInfo.userId },
+              { label: 'Owner Admin ID', value: tenantInfo.ownerAdminId },
+            ].map(item => (
+              <div key={item.label} className="flex flex-col gap-1 bg-muted/50 rounded-lg px-3 py-2">
+                <span className="text-xs font-medium text-muted-foreground">{item.label}</span>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-xs text-foreground font-mono truncate flex-1">{item.value}</span>
+                  <button
+                    onClick={() => {
+                      navigator.clipboard.writeText(item.value);
+                      toast.success(`${item.label} copiado!`);
+                    }}
+                    className="text-muted-foreground hover:text-foreground transition-colors flex-shrink-0"
+                    title="Copiar"
+                  >
+                    <Copy className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Redeem Access Key Card - only for users with NO role yet */}
       {!roleLoading && !role && (
         <RedeemAccessKeyCard onSuccess={refreshData} />
