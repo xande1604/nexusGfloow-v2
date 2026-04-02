@@ -110,7 +110,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
   const activeFiltersCount = [selectedDepartment, selectedLevel, selectedEmpresa, selectedCostCenter].filter(Boolean).length;
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in" data-view="roles-v2">
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-1 gap-3 w-full sm:w-auto items-center">
