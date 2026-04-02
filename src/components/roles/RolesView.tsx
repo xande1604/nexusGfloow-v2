@@ -336,9 +336,9 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
                       <td className="px-4 py-3 text-sm font-mono text-muted-foreground">{role.codigocargo || '-'}</td>
                       <td className="px-4 py-3">
                         <div>
-                          <span className="text-sm font-medium text-foreground">{role.title}</span>
+                          <span className="text-sm font-medium text-foreground">{role.titulolongocargo || role.title}</span>
                           {role.titulolongocargo && role.titulolongocargo !== role.title && (
-                            <p className="text-xs text-muted-foreground line-clamp-1">{role.titulolongocargo}</p>
+                            <p className="text-xs text-muted-foreground line-clamp-1">Reduzido: {role.title}</p>
                           )}
                         </div>
                       </td>
