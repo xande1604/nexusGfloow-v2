@@ -12,6 +12,7 @@ export const useJobRoles = () => {
   const fetchRoles = async () => {
     try {
       const data = await fetchAllRows('cargos', {
+        select: 'id,codigocargo,tituloreduzido,cbo2002,technical_knowledge,hard_skills,soft_skills,salary_min,salary_max,is_active,titulolongocargo,entregas,tags',
         order: { column: 'tituloreduzido', ascending: true },
       });
 
