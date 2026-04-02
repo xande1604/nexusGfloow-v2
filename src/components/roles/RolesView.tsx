@@ -276,8 +276,10 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
               </div>
 
               <h3 className="text-lg font-semibold text-foreground mb-0.5">{role.codigocargo ? `${role.codigocargo} - ` : ''}{role.title}</h3>
-              {role.titulolongocargo && (
-                <p className="text-xs text-muted-foreground mb-1 line-clamp-1">{role.titulolongocargo}</p>
+              {role.titulolongocargo && role.titulolongocargo !== role.title && (
+                <p className="text-xs text-muted-foreground mb-1 line-clamp-1">
+                  <span className="font-medium">Título completo:</span> {role.titulolongocargo}
+                </p>
               )}
               <div className="flex items-center gap-2 mb-3">
                 <span className="text-xs px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full font-medium">{role.level}</span>
@@ -335,7 +337,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
                       <td className="px-4 py-3">
                         <div>
                           <span className="text-sm font-medium text-foreground">{role.title}</span>
-                          {role.titulolongocargo && (
+                          {role.titulolongocargo && role.titulolongocargo !== role.title && (
                             <p className="text-xs text-muted-foreground line-clamp-1">{role.titulolongocargo}</p>
                           )}
                         </div>
