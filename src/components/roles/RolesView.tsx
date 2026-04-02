@@ -201,7 +201,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
               className="w-full h-9 px-2 bg-background border border-border rounded-lg text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-brand-500/20"
             >
               <option value="">Todas</option>
-              {empresaOptions.map(e => <option key={e} value={e}>{e}</option>)}
+              {empresaOptions.map(e => <option key={e} value={e}>{empresaLabels.get(e) || e}</option>)}
             </select>
           </div>
           <div>
