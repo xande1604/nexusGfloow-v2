@@ -91,9 +91,11 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
   const departments = [...new Set(roles.map(r => r.department))];
 
   const filteredRoles = roles.filter(role => {
-    const matchesSearch = role.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (role.codigocargo || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
-      role.department.toLowerCase().includes(searchTerm.toLowerCase());
+    const searchLower = searchTerm.toLowerCase();
+    const matchesSearch = role.title.toLowerCase().includes(searchLower) ||
+      (role.titulolongocargo || '').toLowerCase().includes(searchLower) ||
+      (role.codigocargo || '').toLowerCase().includes(searchLower) ||
+      role.department.toLowerCase().includes(searchLower);
     const matchesDept = !selectedDepartment || role.department === selectedDepartment;
     const matchesLevel = !selectedLevel || role.level === selectedLevel;
     const matchesEmpresa = !roleCodigosInEmpresa || roleCodigosInEmpresa.has(role.codigocargo || '');
