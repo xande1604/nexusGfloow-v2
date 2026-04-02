@@ -316,7 +316,12 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
                     <tr key={role.id} className="border-b border-border last:border-0 hover:bg-muted/30 transition-colors">
                       <td className="px-4 py-3 text-sm font-mono text-muted-foreground">{role.codigocargo || '-'}</td>
                       <td className="px-4 py-3">
-                        <span className="text-sm font-medium text-foreground">{role.title}</span>
+                        <div>
+                          <span className="text-sm font-medium text-foreground">{role.title}</span>
+                          {role.titulolongocargo && (
+                            <p className="text-xs text-muted-foreground line-clamp-1">{role.titulolongocargo}</p>
+                          )}
+                        </div>
                       </td>
                       <td className="px-4 py-3">
                         <span className="text-xs px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full font-medium">{role.level}</span>
