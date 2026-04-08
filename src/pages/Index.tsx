@@ -1,5 +1,5 @@
-import { useState, useEffect, lazy, Suspense } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { Sidebar } from '@/components/layout/Sidebar';
 import { Header } from '@/components/layout/Header';
 import { DemoBanner } from '@/components/demo/DemoBanner';
@@ -49,7 +49,16 @@ const initialContext: CompanyContext = {
 
 const Index = () => {
   const { hasAccess, loading: roleLoading, isUserRole, linkedEmployee } = useUserRole();
-  const [activeView, setActiveView] = useState<AppView>(AppView.DASHBOARD);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const viewFromUrl = searchParams.get('view') as AppView | null;
+  const [activeView, setActiveViewState] = useState<AppView>(
+    viewFromUrl && Object.values(AppView).includes(viewFromUrl) ? viewFromUrl : AppView.DASHBOARD
+  );
+
+  const setActiveView = useCallback((view: AppView) => {
+    setActiveViewState(view);
+    setSearchParams({ view }, { replace: true });
+  }, [setSearchParams]);
   const [companyContext, setCompanyContext] = useState<CompanyContext>(initialContext);
   const [isGeneratingRoadmap, setIsGeneratingRoadmap] = useState(false);
   const [showAccessRequest, setShowAccessRequest] = useState(false);
