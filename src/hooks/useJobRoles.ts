@@ -95,10 +95,12 @@ export const useJobRoles = () => {
       const existing = roles.find(r => r.id === role.id);
 
       if (existing) {
-        const { error } = await supabase
+        console.log('[useJobRoles] UPDATE dbFields:', JSON.stringify(dbFields, null, 2));
+        const { error, count } = await supabase
           .from('cargos')
           .update(dbFields)
           .eq('id', role.id);
+        console.log('[useJobRoles] UPDATE result - error:', error, 'count:', count);
         if (error) throw error;
       } else {
         const { error } = await supabase
