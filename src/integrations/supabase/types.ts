@@ -525,6 +525,7 @@ export type Database = {
           id: string
           idlancamento: string | null
           is_active: boolean
+          nivel_senioridade: string | null
           owner_admin_id: string | null
           salary_max: number | null
           salary_min: number | null
@@ -545,6 +546,7 @@ export type Database = {
           id?: string
           idlancamento?: string | null
           is_active?: boolean
+          nivel_senioridade?: string | null
           owner_admin_id?: string | null
           salary_max?: number | null
           salary_min?: number | null
@@ -565,6 +567,7 @@ export type Database = {
           id?: string
           idlancamento?: string | null
           is_active?: boolean
+          nivel_senioridade?: string | null
           owner_admin_id?: string | null
           salary_max?: number | null
           salary_min?: number | null

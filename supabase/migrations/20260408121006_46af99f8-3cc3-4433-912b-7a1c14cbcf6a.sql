@@ -1,0 +1,1 @@
+ALTER TABLE public.cargos ADD COLUMN nivel_senioridade text DEFAULT 'Pleno';
