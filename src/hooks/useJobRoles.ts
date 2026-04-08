@@ -12,7 +12,7 @@ export const useJobRoles = () => {
   const fetchRoles = async () => {
     try {
       const data = await fetchAllRows('cargos', {
-        select: 'id,codigocargo,tituloreduzido,cbo2002,technical_knowledge,hard_skills,soft_skills,salary_min,salary_max,is_active,titulolongocargo,entregas,tags',
+        select: 'id,codigocargo,tituloreduzido,cbo2002,technical_knowledge,hard_skills,soft_skills,salary_min,salary_max,is_active,titulolongocargo,entregas,tags,nivel_senioridade',
         order: { column: 'tituloreduzido', ascending: true },
       });
 
@@ -29,7 +29,7 @@ export const useJobRoles = () => {
         id: row.id,
         codigocargo: row.codigocargo,
         title: row.tituloreduzido,
-        level: 'Pleno' as JobRole['level'],
+        level: (row.nivel_senioridade || 'Pleno') as JobRole['level'],
         department: 'Geral',
         cbo: row.cbo2002 || undefined,
         description: [
@@ -88,6 +88,7 @@ export const useJobRoles = () => {
         is_active: (role as any).is_active !== false,
         titulolongocargo: role.titulolongocargo || null,
         tags: role.tags || null,
+        nivel_senioridade: role.level || 'Pleno',
       };
 
       // Check if role already exists
