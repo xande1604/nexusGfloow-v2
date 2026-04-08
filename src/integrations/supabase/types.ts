@@ -519,6 +519,7 @@ export type Database = {
           cbo2002: string | null
           codigocargo: string
           created_at: string | null
+          description: string | null
           entregas: string | null
           faz_parte_cota_aprendiz: boolean
           hard_skills: string | null
@@ -540,6 +541,7 @@ export type Database = {
           cbo2002?: string | null
           codigocargo: string
           created_at?: string | null
+          description?: string | null
           entregas?: string | null
           faz_parte_cota_aprendiz?: boolean
           hard_skills?: string | null
@@ -561,6 +563,7 @@ export type Database = {
           cbo2002?: string | null
           codigocargo?: string
           created_at?: string | null
+          description?: string | null
           entregas?: string | null
           faz_parte_cota_aprendiz?: boolean
           hard_skills?: string | null
