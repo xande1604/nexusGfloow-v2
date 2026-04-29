@@ -104,11 +104,14 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
     }
 
     // Find the role details and auto-select cargo
+    console.log('[DEBUG] employee.roleId:', employee.roleId);
+    console.log('[DEBUG] roles sample:', roles.slice(0, 3).map(r => ({ id: r.id, codigocargo: r.codigocargo, title: r.title })));
     const role = roles.find(r =>
       r.id === employee.roleId ||
       r.title === employee.roleId ||
-      r.codigocargo === employee.roleId
+      String(r.codigocargo).trim() === String(employee.roleId).trim()
     );
+    console.log('[DEBUG] role found:', role ? `${role.codigocargo} - ${role.title}` : 'NOT FOUND');
     setSelectedRoleId(role?.id || '');
     
     setIsGeneratingQuestions(true);
