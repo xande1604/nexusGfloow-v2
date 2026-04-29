@@ -1,19 +1,24 @@
 import { useState } from 'react';
-import { ArrowLeft, Star, Calendar, User, CheckCircle, Clock, Save, Loader2, Download } from 'lucide-react';
+import { ArrowLeft, Star, Calendar, User, CheckCircle, Clock, Save, Loader2, Download, Mail } from 'lucide-react';
 import { PerformanceReview, ReviewResponse } from '@/hooks/usePerformanceReviews';
+import { Employee } from '@/types';
 import { cn } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 import jsPDF from 'jspdf';
 
 interface ReviewDetailViewProps {
   review: PerformanceReview;
   onBack: () => void;
   onUpdate: (id: string, updates: Partial<PerformanceReview>) => Promise<void>;
+  employees?: Employee[];
 }
 
-export const ReviewDetailView = ({ review, onBack, onUpdate }: ReviewDetailViewProps) => {
+export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: ReviewDetailViewProps) => {
   const [responses, setResponses] = useState<ReviewResponse[]>(review.responses || []);
   const [overallFeedback, setOverallFeedback] = useState(review.overallFeedback || '');
   const [isSaving, setIsSaving] = useState(false);
+  const [isSendingInvite, setIsSendingInvite] = useState(false);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -75,6 +80,35 @@ export const ReviewDetailView = ({ review, onBack, onUpdate }: ReviewDetailViewP
 
   const handleComplete = () => {
     handleSave('Completed');
+  };
+
+  const handleSendInvite = async () => {
+    const employee = employees.find(e => e.id === review.employeeId);
+    if (!employee?.email) {
+      toast.error('Colaborador sem email cadastrado. Cadastre o email antes de enviar o convite.');
+      return;
+    }
+
+    setIsSendingInvite(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-evaluation-invite', {
+        body: {
+          type: 'self_assessment',
+          reviewType: 'standalone',
+          employeeName: review.employeeName || employee.name,
+          employeeEmail: employee.email,
+          performanceReviewId: review.id,
+        }
+      });
+
+      if (error) throw error;
+      toast.success(`Convite de auto-avaliação enviado para ${employee.email}`);
+    } catch (error) {
+      console.error('Error sending invite:', error);
+      toast.error('Erro ao enviar convite. Tente novamente.');
+    } finally {
+      setIsSendingInvite(false);
+    }
   };
 
   const exportToPDF = () => {
@@ -353,6 +387,21 @@ export const ReviewDetailView = ({ review, onBack, onUpdate }: ReviewDetailViewP
 
       {/* Actions */}
       <div className="flex justify-end gap-3">
+        {review.status === 'PendingSelf' && (
+          <button
+            onClick={handleSendInvite}
+            disabled={isSendingInvite}
+            className="flex items-center gap-2 h-11 px-5 bg-brand-600 text-white rounded-lg font-medium text-sm hover:bg-brand-700 transition-colors disabled:opacity-50"
+          >
+            {isSendingInvite ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Mail className="w-4 h-4" />
+            )}
+            Enviar Convite de Auto-avaliação
+          </button>
+        )}
+
         {review.status === 'Completed' && (
           <button
             onClick={exportToPDF}

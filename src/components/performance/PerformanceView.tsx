@@ -92,6 +92,7 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
           // Update the local selected review with new data
           setSelectedReview(prev => prev ? { ...prev, ...updates } : null);
         }}
+        employees={employees}
       />
     );
   }

@@ -8,13 +8,15 @@ const corsHeaders = {
 
 interface InviteRequest {
   type: 'self_assessment' | 'manager_evaluation';
+  reviewType?: 'cycle' | 'standalone';
   employeeName: string;
   employeeEmail: string;
   managerName?: string;
   managerEmail?: string;
-  cycleTitle: string;
-  cycleId: string;
-  evaluationId: string;
+  cycleTitle?: string;
+  cycleId?: string;
+  evaluationId?: string;
+  performanceReviewId?: string;
   cycleEndDate?: string;
 }
 
@@ -35,11 +37,15 @@ serve(async (req) => {
     }
 
     const payload: InviteRequest = await req.json();
-    
+
+    const isStandalone = payload.reviewType === 'standalone';
+    const contextTitle = payload.cycleTitle || 'Avaliação Avulsa';
+
     console.log('Sending evaluation invite to n8n webhook:', {
       type: payload.type,
+      reviewType: payload.reviewType || 'cycle',
       employeeName: payload.employeeName,
-      cycleTitle: payload.cycleTitle
+      cycleTitle: contextTitle
     });
 
     // Format deadline
@@ -56,10 +62,23 @@ serve(async (req) => {
     let subject: string;
     
     if (payload.type === 'self_assessment') {
-      subject = `Autoavaliação Pendente - Ciclo ${payload.cycleTitle}`;
-      personalizedMessage = `Olá ${payload.employeeName},
+      subject = isStandalone
+        ? `Autoavaliação Pendente - Avaliação Avulsa`
+        : `Autoavaliação Pendente - Ciclo ${contextTitle}`;
+      personalizedMessage = isStandalone
+        ? `Olá ${payload.employeeName},
 
-Você tem uma autoavaliação pendente no ciclo de avaliação "${payload.cycleTitle}".
+Você tem uma autoavaliação pendente.
+
+Por favor, acesse o portal de autoavaliação e complete sua avaliação.
+
+Sua participação é essencial para o processo de avaliação de desempenho.
+
+Atenciosamente,
+Equipe de RH`
+        : `Olá ${payload.employeeName},
+
+Você tem uma autoavaliação pendente no ciclo de avaliação "${contextTitle}".
 
 Por favor, acesse o portal de autoavaliação e complete sua avaliação até ${deadline}.
 
@@ -68,14 +87,14 @@ Sua participação é essencial para o processo de avaliação de desempenho.
 Atenciosamente,
 Equipe de RH`;
     } else {
-      subject = `Avaliação de Colaborador Pendente - Ciclo ${payload.cycleTitle}`;
+      subject = isStandalone
+        ? `Avaliação de Colaborador Pendente - Avaliação Avulsa`
+        : `Avaliação de Colaborador Pendente - Ciclo ${contextTitle}`;
       personalizedMessage = `Olá ${payload.managerName || 'Gestor'},
 
-O colaborador ${payload.employeeName} (${payload.employeeEmail}) já completou sua autoavaliação no ciclo "${payload.cycleTitle}" e aguarda sua avaliação como gestor.
+O colaborador ${payload.employeeName} (${payload.employeeEmail}) já completou sua autoavaliação${isStandalone ? '' : ` no ciclo "${contextTitle}"`} e aguarda sua avaliação como gestor.
 
-Prazo para conclusão: ${deadline}
-
-Por favor, acesse o sistema para realizar a avaliação do colaborador.
+${isStandalone ? '' : `Prazo para conclusão: ${deadline}\n\n`}Por favor, acesse o sistema para realizar a avaliação do colaborador.
 
 Atenciosamente,
 Equipe de RH`;
@@ -155,8 +174,8 @@ Equipe de RH`;
       }
     }
 
-    // Log the invite to the database
-    if (webhookSuccess) {
+    // Log the invite to the database (apenas para avaliações de ciclo)
+    if (webhookSuccess && !isStandalone && payload.evaluationId) {
       try {
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
         const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
