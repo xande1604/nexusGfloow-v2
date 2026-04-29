@@ -127,19 +127,20 @@ export const useEvaluationCycles = () => {
       owner_admin_id: ownerAdminId
     }));
 
-    const { error } = await supabase
+    const { data: insertedEvaluations, error } = await supabase
       .from('employee_evaluations')
-      .insert(evaluationsToInsert);
+      .insert(evaluationsToInsert)
+      .select();
 
     if (error) {
       console.error('Error adding employees to cycle:', error);
       toast.error('Erro ao adicionar colaboradores');
-      return false;
+      return null;
     }
 
     toast.success(`${employeeIds.length} colaborador(es) adicionado(s) ao ciclo`);
     await fetchEvaluations(cycleId);
-    return true;
+    return insertedEvaluations;
   };
 
   const submitManagerEvaluation = async (

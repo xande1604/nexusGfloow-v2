@@ -139,9 +139,33 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
 
   const handleAddEmployeeWithQuestions = async () => {
     if (!selectedCycle || !selectedEmployeeId || generatedQuestions.length === 0) return;
-    
-    await addEmployeesToCycle(selectedCycle.id, [selectedEmployeeId], generatedQuestions);
-    
+
+    const newEvaluations = await addEmployeesToCycle(selectedCycle.id, [selectedEmployeeId], generatedQuestions);
+
+    // Auto-send self-assessment invite if employee has email
+    if (newEvaluations && newEvaluations.length > 0) {
+      const employee = employees.find(e => e.id === selectedEmployeeId);
+      if (employee?.email) {
+        try {
+          await supabase.functions.invoke('send-evaluation-invite', {
+            body: {
+              type: 'self_assessment',
+              employeeName: employee.name,
+              employeeEmail: employee.email,
+              cycleTitle: selectedCycle.title,
+              cycleId: selectedCycle.id,
+              evaluationId: newEvaluations[0].id,
+              cycleEndDate: selectedCycle.end_date || null
+            }
+          });
+          toast.success('Convite de autoavaliação enviado para ' + employee.name + '!');
+        } catch (err) {
+          console.error('Error sending invite:', err);
+          toast.warning('Colaborador adicionado. Falha ao enviar convite — use "Reenviar convite" manualmente.');
+        }
+      }
+    }
+
     setIsAddEmployeesModalOpen(false);
     setSelectedEmployeeId('');
     setGeneratedQuestions([]);
