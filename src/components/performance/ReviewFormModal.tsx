@@ -276,7 +276,16 @@ export const ReviewFormModal = ({
               <label className="block text-sm font-medium text-foreground mb-1.5">Colaborador *</label>
               <select
                 value={employeeId}
-                onChange={(e) => setEmployeeId(e.target.value)}
+                onChange={(e) => {
+                  const selectedId = e.target.value;
+                  setEmployeeId(selectedId);
+                  if (selectedId) {
+                    const selectedEmployee = employees.find(emp => emp.id === selectedId);
+                    if (selectedEmployee?.roleId) {
+                      setSelectedRoleId(selectedEmployee.roleId);
+                    }
+                  }
+                }}
                 className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
               >
                 <option value="">Selecione...</option>

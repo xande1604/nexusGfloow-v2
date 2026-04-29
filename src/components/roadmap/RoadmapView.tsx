@@ -626,7 +626,21 @@ export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerat
               <label className="block text-sm font-medium text-foreground mb-1.5">Colaborador (opcional)</label>
               <select
                 value={employeeName}
-                onChange={(e) => setEmployeeName(e.target.value)}
+                onChange={(e) => {
+                  const selectedName = e.target.value;
+                  setEmployeeName(selectedName);
+                  if (selectedName) {
+                    const selectedEmployee = employees.find(emp => emp.name === selectedName);
+                    if (selectedEmployee) {
+                      const employeeRole = roles.find(
+                        r => r.codigocargo === selectedEmployee.roleId || r.id === selectedEmployee.roleId
+                      );
+                      if (employeeRole) {
+                        setSourceRole(employeeRole.title);
+                      }
+                    }
+                  }
+                }}
                 className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
               >
                 <option value="">Selecione um colaborador...</option>
