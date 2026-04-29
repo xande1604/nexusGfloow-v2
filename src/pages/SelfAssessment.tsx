@@ -44,7 +44,7 @@ export default function SelfAssessment() {
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
   useEffect(() => {
-    const storedEmployee = sessionStorage.getItem('employee_session');
+    const storedEmployee = localStorage.getItem('employee_session');
     if (storedEmployee) {
       const data = JSON.parse(storedEmployee);
       setEmployee(data.employee);
@@ -70,7 +70,7 @@ export default function SelfAssessment() {
       toast.success(authMode === 'login' ? 'Login realizado!' : 'Cadastro realizado!');
       setEmployee(data.employee);
       setPendingEvaluations(data.pendingEvaluations || []);
-      sessionStorage.setItem('employee_session', JSON.stringify(data));
+      localStorage.setItem('employee_session', JSON.stringify(data));
     } catch (error) {
       console.error('Auth error:', error);
       toast.error('Erro ao processar solicitação');
@@ -80,7 +80,7 @@ export default function SelfAssessment() {
   };
 
   const handleLogout = () => {
-    sessionStorage.removeItem('employee_session');
+    localStorage.removeItem('employee_session');
     setEmployee(null);
     setPendingEvaluations([]);
     setSelectedEvaluation(null);
@@ -134,9 +134,9 @@ export default function SelfAssessment() {
       setResponses({});
 
       // Update session storage
-      const stored = JSON.parse(sessionStorage.getItem('employee_session') || '{}');
+      const stored = JSON.parse(localStorage.getItem('employee_session') || '{}');
       stored.pendingEvaluations = stored.pendingEvaluations?.filter((e: PendingEvaluation) => e.id !== selectedEvaluation.id);
-      sessionStorage.setItem('employee_session', JSON.stringify(stored));
+      localStorage.setItem('employee_session', JSON.stringify(stored));
     } catch (error) {
       console.error('Submit error:', error);
       toast.error('Erro ao enviar avaliação');
