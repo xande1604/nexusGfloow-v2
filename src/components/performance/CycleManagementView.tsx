@@ -152,15 +152,15 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
     setIsEvaluationModalOpen(true);
   };
 
-  const handleSubmitManagerEvaluation = async (closeOnly: boolean = false) => {
+  const handleSubmitManagerEvaluation = async () => {
     if (!selectedEvaluation) return;
-    
-    const responses = closeOnly ? null : selectedEvaluation.questions.map(q => ({
+
+    const responses = selectedEvaluation.questions.map(q => ({
       questionId: q.id,
       ...managerResponses[q.id]
     }));
-    
-    await submitManagerEvaluation(selectedEvaluation.id, responses, closeOnly ? null : managerFeedback, closeOnly);
+
+    await submitManagerEvaluation(selectedEvaluation.id, responses, managerFeedback, false);
     setIsEvaluationModalOpen(false);
     setSelectedEvaluation(null);
     if (selectedCycle) await fetchEvaluations(selectedCycle.id);
@@ -758,14 +758,9 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                 {selectedEvaluation?.status === 'completed' ? 'Fechar' : 'Cancelar'}
               </Button>
               {selectedEvaluation?.status !== 'completed' && (
-                <>
-                  <Button variant="secondary" onClick={() => handleSubmitManagerEvaluation(true)} className="w-full sm:w-auto">
-                    Apenas Fechar Ciclo
-                  </Button>
-                  <Button onClick={() => handleSubmitManagerEvaluation(false)} className="w-full sm:w-auto">
-                    Salvar Avaliação e Fechar
-                  </Button>
-                </>
+                <Button onClick={() => handleSubmitManagerEvaluation(false)} className="w-full sm:w-auto">
+                  Salvar Avaliação
+                </Button>
               )}
             </DialogFooter>
           </DialogContent>
