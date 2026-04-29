@@ -68,6 +68,9 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
   const [editingQuestionId, setEditingQuestionId] = useState<string | null>(null);
   const [editingQuestionText, setEditingQuestionText] = useState('');
   
+  // Close cycle confirmation
+  const [isCloseCycleConfirmOpen, setIsCloseCycleConfirmOpen] = useState(false);
+
   // Manager evaluation form
   const [managerResponses, setManagerResponses] = useState<Record<string, { rating?: number; response?: string }>>({});
   const [managerFeedback, setManagerFeedback] = useState('');
@@ -322,7 +325,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                   <span className="hidden sm:inline">Adicionar Colaboradores</span>
                   <span className="sm:hidden">Adicionar</span>
                 </Button>
-                <Button variant="destructive" size="sm" className="flex-1 sm:flex-none" onClick={() => closeCycle(selectedCycle.id)}>
+                <Button variant="destructive" size="sm" className="flex-1 sm:flex-none" onClick={() => setIsCloseCycleConfirmOpen(true)}>
                   <Lock className="w-4 h-4 mr-2" />
                   <span className="hidden sm:inline">Fechar Ciclo</span>
                   <span className="sm:hidden">Fechar</span>
@@ -498,6 +501,73 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
             )}
           </CardContent>
         </Card>
+
+        {/* Fechar Ciclo - Confirmação */}
+        <Dialog open={isCloseCycleConfirmOpen} onOpenChange={setIsCloseCycleConfirmOpen}>
+          <DialogContent className="max-w-md">
+            <DialogHeader>
+              <DialogTitle className="flex items-center gap-2">
+                <Lock className="w-5 h-5 text-destructive" />
+                Fechar Ciclo de Avaliação
+              </DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4 py-2">
+              {(pendingCount > 0 || selfDoneCount > 0) ? (
+                <div className="rounded-lg border border-amber-300 bg-amber-50 p-4 space-y-2">
+                  <div className="flex items-center gap-2 text-amber-700 font-medium">
+                    <AlertCircle className="w-4 h-4" />
+                    Avaliações incompletas
+                  </div>
+                  <p className="text-sm text-amber-700">
+                    Este ciclo ainda possui avaliações em andamento:
+                  </p>
+                  <ul className="text-sm text-amber-800 space-y-1 ml-2">
+                    {pendingCount > 0 && (
+                      <li>• <strong>{pendingCount}</strong> aguardando autoavaliação do colaborador</li>
+                    )}
+                    {selfDoneCount > 0 && (
+                      <li>• <strong>{selfDoneCount}</strong> aguardando avaliação do gestor</li>
+                    )}
+                    {completedCount > 0 && (
+                      <li>• <strong>{completedCount}</strong> concluída(s)</li>
+                    )}
+                  </ul>
+                  <p className="text-sm text-amber-700 mt-2">
+                    Ao fechar, as avaliações pendentes serão encerradas sem dados.
+                  </p>
+                </div>
+              ) : (
+                <div className="rounded-lg border border-green-300 bg-green-50 p-4 space-y-1">
+                  <div className="flex items-center gap-2 text-green-700 font-medium">
+                    <CheckCircle className="w-4 h-4" />
+                    Todas as avaliações concluídas
+                  </div>
+                  <p className="text-sm text-green-700">
+                    {completedCount} avaliação(ões) completa(s). O ciclo pode ser fechado com segurança.
+                  </p>
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">
+                Após fechar, o ciclo não poderá ser reaberto.
+              </p>
+            </div>
+            <DialogFooter className="gap-2">
+              <Button variant="outline" onClick={() => setIsCloseCycleConfirmOpen(false)}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={async () => {
+                  await closeCycle(selectedCycle.id);
+                  setIsCloseCycleConfirmOpen(false);
+                }}
+              >
+                <Lock className="w-4 h-4 mr-2" />
+                Confirmar Fechamento
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Add Employee Modal */}
         <Dialog open={isAddEmployeesModalOpen} onOpenChange={(open) => {
