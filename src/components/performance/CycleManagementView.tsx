@@ -60,6 +60,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
   
   // Add employee form (single selection with AI questions)
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
+  const [selectedRoleId, setSelectedRoleId] = useState<string>('');
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
   
@@ -91,15 +92,17 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
   const handleEmployeeSelect = async (employeeId: string) => {
     setSelectedEmployeeId(employeeId);
     setGeneratedQuestions([]);
-    
+
     const employee = employees.find(e => e.id === employeeId);
     if (!employee?.roleId) {
+      setSelectedRoleId('');
       toast.info('Colaborador sem cargo definido. Selecione outro ou defina o cargo.');
       return;
     }
-    
-    // Find the role details
+
+    // Find the role details and auto-select cargo
     const role = roles.find(r => r.id === employee.roleId || r.title === employee.roleId);
+    setSelectedRoleId(role?.id || employee.roleId);
     
     setIsGeneratingQuestions(true);
     try {
@@ -501,6 +504,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
           setIsAddEmployeesModalOpen(open);
           if (!open) {
             setSelectedEmployeeId('');
+            setSelectedRoleId('');
             setGeneratedQuestions([]);
           }
         }}>
@@ -539,6 +543,25 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                     <p className="text-xs text-amber-700">Colaborador precisa cadastrar email para participar</p>
                   </div>
                 )}
+              </div>
+
+              <div>
+                <Label className="mb-3 block">Cargo atual</Label>
+                <Select
+                  value={selectedRoleId}
+                  onValueChange={(value) => setSelectedRoleId(value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione um cargo..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {roles.map(role => (
+                      <SelectItem key={role.id} value={role.id}>
+                        {role.codigocargo ? `${role.codigocargo} - ${role.title}` : role.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {isGeneratingQuestions && (
