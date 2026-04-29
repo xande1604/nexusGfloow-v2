@@ -123,7 +123,7 @@ export const RoadmapUpdateModal = ({
           evaluation_cycles (title)
         `)
         .eq('employee_id', roadmap.employeeId)
-        .in('status', ['self_assessment_completed', 'manager_completed', 'completed'])
+        .in('status', ['self_assessment_done', 'completed'])
         .order('created_at', { ascending: false });
 
       if (cycleEvaluationsError) throw cycleEvaluationsError;
