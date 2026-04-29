@@ -57,7 +57,7 @@ export const useEvaluationCycles = () => {
       const data = await fetchAllRows('employee_evaluations', {
         select: `
           *,
-          employee:employees(id, nome, email, codigocargo)
+          employee:nexus_employees(id, nome, email, codigocargo, gestor_id)
         `,
         order: { column: 'created_at', ascending: false },
         filters: cycleId ? (q: any) => q.eq('cycle_id', cycleId) : undefined,
@@ -71,9 +71,14 @@ export const useEvaluationCycles = () => {
   };
 
   const createCycle = async (cycle: Omit<EvaluationCycle, 'id' | 'created_at'>) => {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: userId });
+    const ownerAdminId = ownerIdData ?? userId;
+
     const { data, error } = await supabase
       .from('evaluation_cycles')
-      .insert(cycle)
+      .insert({ ...cycle, owner_admin_id: ownerAdminId })
       .select()
       .single();
 
@@ -105,15 +110,21 @@ export const useEvaluationCycles = () => {
   };
 
   const addEmployeesToCycle = async (
-    cycleId: string, 
-    employeeIds: string[], 
+    cycleId: string,
+    employeeIds: string[],
     questions: Array<{ id: string; question: string; category: string; type: string }>
   ) => {
+    const { data: userData } = await supabase.auth.getUser();
+    const userId = userData?.user?.id;
+    const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: userId });
+    const ownerAdminId = ownerIdData ?? userId;
+
     const evaluationsToInsert = employeeIds.map(employeeId => ({
       cycle_id: cycleId,
       employee_id: employeeId,
       questions,
-      status: 'pending'
+      status: 'pending',
+      owner_admin_id: ownerAdminId
     }));
 
     const { error } = await supabase
