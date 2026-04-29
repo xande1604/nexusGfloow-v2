@@ -282,7 +282,12 @@ export const ReviewFormModal = ({
                   if (selectedId) {
                     const selectedEmployee = employees.find(emp => emp.id === selectedId);
                     if (selectedEmployee?.roleId) {
-                      setSelectedRoleId(selectedEmployee.roleId);
+                      const employeeRole = roles.find(r =>
+                        r.id === selectedEmployee.roleId ||
+                        r.codigocargo === selectedEmployee.roleId ||
+                        r.title === selectedEmployee.roleId
+                      );
+                      setSelectedRoleId(employeeRole?.id || '');
                     }
                   }
                 }}

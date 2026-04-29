@@ -104,8 +104,12 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
     }
 
     // Find the role details and auto-select cargo
-    const role = roles.find(r => r.id === employee.roleId || r.title === employee.roleId);
-    setSelectedRoleId(role?.id || employee.roleId);
+    const role = roles.find(r =>
+      r.id === employee.roleId ||
+      r.title === employee.roleId ||
+      r.codigocargo === employee.roleId
+    );
+    setSelectedRoleId(role?.id || '');
     
     setIsGeneratingQuestions(true);
     try {
