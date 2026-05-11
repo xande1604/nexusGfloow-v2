@@ -6,6 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+const APP_URL = 'https://nexus.gfloow.com.br/autoavaliacao';
+
 interface InviteRequest {
   type: 'self_assessment' | 'manager_evaluation';
   reviewType?: 'cycle' | 'standalone';
@@ -37,14 +39,28 @@ serve(async (req) => {
       );
     }
 
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
+    const supabase = createClient(supabaseUrl, supabaseKey);
+
     const payload: InviteRequest = await req.json();
     const isStandalone = payload.reviewType === 'standalone';
     const contextTitle = payload.cycleTitle || 'Avaliação Avulsa';
+
+    // Check if employee already has an account
+    const { data: empData } = await supabase
+      .from('nexus_employees')
+      .select('linked_user_id')
+      .eq('email', payload.employeeEmail)
+      .maybeSingle();
+
+    const hasAccount = !!empData?.linked_user_id;
 
     console.log('Sending evaluation invite via Resend:', {
       type: payload.type,
       reviewType: payload.reviewType || 'cycle',
       employeeName: payload.employeeName,
+      hasAccount,
     });
 
     // Format deadline
@@ -56,7 +72,7 @@ serve(async (req) => {
         })
       : null;
 
-    // Determine recipient and subject
+    // Determine recipient
     const recipientName = payload.type === 'self_assessment'
       ? payload.employeeName
       : (payload.managerName || 'Gestor');
@@ -72,44 +88,78 @@ serve(async (req) => {
         ? `Autoavaliação Pendente`
         : `Autoavaliação Pendente — ${contextTitle}`;
 
+      const cycleInfo = isStandalone
+        ? ''
+        : `<p style="color:#374151;">Ciclo: <strong>${contextTitle}</strong>${deadline ? ` · Prazo: <strong>${deadline}</strong>` : ''}</p>`;
+
+      const accessBlock = hasAccount
+        ? `
+          <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+            <p style="color:#1e40af;margin:0 0 12px;font-size:15px;">Você já possui cadastro. Clique no botão abaixo para acessar:</p>
+            <a href="${APP_URL}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:bold;font-size:15px;">
+              Acessar Autoavaliação
+            </a>
+            <p style="color:#6b7280;font-size:12px;margin:12px 0 0;">Ou acesse diretamente: <a href="${APP_URL}" style="color:#4f46e5;">${APP_URL}</a></p>
+          </div>`
+        : `
+          <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:20px;margin:20px 0;">
+            <p style="color:#92400e;font-weight:bold;margin:0 0 8px;">⚠️ Primeiro acesso — cadastro necessário</p>
+            <p style="color:#78350f;margin:0 0 12px;font-size:14px;">Você ainda não possui cadastro na plataforma. Para realizar sua autoavaliação, siga os passos abaixo:</p>
+            <ol style="color:#78350f;font-size:14px;margin:0 0 12px;padding-left:20px;">
+              <li>Acesse <a href="${APP_URL}" style="color:#4f46e5;font-weight:bold;">${APP_URL}</a></li>
+              <li>Clique em <strong>"Criar conta"</strong></li>
+              <li>Use este e-mail (<strong>${payload.employeeEmail}</strong>) para se cadastrar</li>
+              <li>Após criar a conta, sua avaliação pendente aparecerá automaticamente</li>
+            </ol>
+            <div style="text-align:center;">
+              <a href="${APP_URL}" style="display:inline-block;background:#f59e0b;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:bold;font-size:15px;">
+                Criar Conta e Avaliar
+              </a>
+            </div>
+          </div>`;
+
       htmlBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-          <div style="background: #4f46e5; border-radius: 8px 8px 0 0; padding: 24px;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 20px;">Autoavaliação Pendente</h1>
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+          <div style="background:#4f46e5;border-radius:8px 8px 0 0;padding:28px 24px;">
+            <h1 style="color:#ffffff;margin:0;font-size:22px;">📋 Autoavaliação Pendente</h1>
           </div>
-          <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; padding: 24px;">
-            <p style="color: #111827; font-size: 16px;">Olá, <strong>${payload.employeeName}</strong>!</p>
-            <p style="color: #374151;">Você tem uma autoavaliação pendente${isStandalone ? '' : ` no ciclo <strong>${contextTitle}</strong>`}.</p>
-            <p style="color: #374151;">Acesse o portal e complete sua autoavaliação${deadline ? ` até <strong>${deadline}</strong>` : ''}.</p>
-            <p style="color: #374151;">Sua participação é essencial para o processo de avaliação de desempenho.</p>
-            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-            <p style="color: #6b7280; font-size: 13px;">Atenciosamente,<br/>Equipe de RH</p>
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;padding:24px;">
+            <p style="color:#111827;font-size:16px;margin-top:0;">Olá, <strong>${payload.employeeName}</strong>!</p>
+            <p style="color:#374151;">Você tem uma autoavaliação pendente${isStandalone ? '' : ` no ciclo <strong>${contextTitle}</strong>`}. Sua participação é essencial para o processo de desenvolvimento.</p>
+            ${cycleInfo}
+            ${accessBlock}
+            <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+            <p style="color:#6b7280;font-size:13px;margin:0;">Atenciosamente,<br/><strong>Equipe de RH — Gfloow</strong></p>
           </div>
-        </div>
-      `;
+        </div>`;
+
     } else {
       subject = isStandalone
         ? `Avaliação de Colaborador Pendente`
         : `Avaliação de Colaborador Pendente — ${contextTitle}`;
 
       htmlBody = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 24px;">
-          <div style="background: #4f46e5; border-radius: 8px 8px 0 0; padding: 24px;">
-            <h1 style="color: #ffffff; margin: 0; font-size: 20px;">Avaliação de Colaborador Pendente</h1>
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+          <div style="background:#4f46e5;border-radius:8px 8px 0 0;padding:28px 24px;">
+            <h1 style="color:#ffffff;margin:0;font-size:22px;">⭐ Avaliação de Colaborador Pendente</h1>
           </div>
-          <div style="background: #f9fafb; border: 1px solid #e5e7eb; border-top: none; border-radius: 0 0 8px 8px; padding: 24px;">
-            <p style="color: #111827; font-size: 16px;">Olá, <strong>${payload.managerName || 'Gestor'}</strong>!</p>
-            <p style="color: #374151;">O colaborador <strong>${payload.employeeName}</strong> já completou sua autoavaliação${isStandalone ? '' : ` no ciclo <strong>${contextTitle}</strong>`} e aguarda sua avaliação como gestor.</p>
-            ${deadline ? `<p style="color: #374151;">Prazo para conclusão: <strong>${deadline}</strong></p>` : ''}
-            <p style="color: #374151;">Acesse o sistema para realizar a avaliação do colaborador.</p>
-            <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;" />
-            <p style="color: #6b7280; font-size: 13px;">Atenciosamente,<br/>Equipe de RH</p>
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;padding:24px;">
+            <p style="color:#111827;font-size:16px;margin-top:0;">Olá, <strong>${payload.managerName || 'Gestor'}</strong>!</p>
+            <p style="color:#374151;">O colaborador <strong>${payload.employeeName}</strong> já completou sua autoavaliação${isStandalone ? '' : ` no ciclo <strong>${contextTitle}</strong>`} e aguarda sua avaliação como gestor.</p>
+            ${deadline ? `<p style="color:#374151;">Prazo para conclusão: <strong>${deadline}</strong></p>` : ''}
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
+              <a href="${APP_URL}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:bold;font-size:15px;">
+                Acessar Sistema
+              </a>
+              <p style="color:#6b7280;font-size:12px;margin:12px 0 0;"><a href="${APP_URL}" style="color:#4f46e5;">${APP_URL}</a></p>
+            </div>
+            <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
+            <p style="color:#6b7280;font-size:13px;margin:0;">Atenciosamente,<br/><strong>Equipe de RH — Gfloow</strong></p>
           </div>
-        </div>
-      `;
+        </div>`;
     }
 
-    // Send via Resend API
+    // Send via Resend
     const resendResponse = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -134,15 +184,11 @@ serve(async (req) => {
     }
 
     const resendData = await resendResponse.json();
-    console.log('Email sent via Resend:', resendData.id);
+    console.log('Email sent via Resend:', resendData.id, '| hasAccount:', hasAccount);
 
-    // Log the invite to the database (apenas para avaliações de ciclo)
+    // Log invite history (apenas para avaliações de ciclo)
     if (!isStandalone && payload.evaluationId) {
       try {
-        const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
-        const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
-        const supabase = createClient(supabaseUrl, supabaseKey);
-
         await supabase.from('evaluation_invite_history').insert({
           evaluation_id: payload.evaluationId,
           type: payload.type,
@@ -156,7 +202,7 @@ serve(async (req) => {
     }
 
     return new Response(
-      JSON.stringify({ success: true, emailId: resendData.id }),
+      JSON.stringify({ success: true, emailId: resendData.id, hasAccount }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
