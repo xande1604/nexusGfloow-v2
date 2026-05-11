@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ClipboardCheck, Plus, Calendar, User, Star, ChevronRight, Search, Trash2, Loader2, RefreshCcw } from 'lucide-react';
+import { ClipboardCheck, Plus, Calendar, User, Star, ChevronRight, Search, Trash2, Loader2, RefreshCcw, Mail } from 'lucide-react';
 import { Employee, JobRole } from '@/types';
 import { PerformanceReview, usePerformanceReviews } from '@/hooks/usePerformanceReviews';
 import { ReviewFormModal } from './ReviewFormModal';
@@ -23,6 +23,7 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
   const [statusFilter, setStatusFilter] = useState<string>('');
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedReview, setSelectedReview] = useState<PerformanceReview | null>(null);
+  const [sendingInvite, setSendingInvite] = useState<string | null>(null);
 
   const { isDemoMode } = useDemo();
   const { reviews: realReviews, loading, saveReview, updateReview, deleteReview, defaultQuestions } = usePerformanceReviews();
@@ -86,6 +87,32 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
           toast.warning('Avaliação criada, mas falha ao enviar convite. Use o botão "Enviar Convite" na tela de detalhe.');
         }
       }
+    }
+  };
+
+  const handleResendInvite = async (review: PerformanceReview, e: React.MouseEvent) => {
+    e.stopPropagation();
+    const employee = employees.find(emp => emp.id === review.employeeId);
+    if (!employee?.email) {
+      toast.error('Colaborador sem e-mail cadastrado.');
+      return;
+    }
+    setSendingInvite(review.id);
+    try {
+      await supabase.functions.invoke('send-evaluation-invite', {
+        body: {
+          type: 'self_assessment',
+          reviewType: 'standalone',
+          employeeName: employee.name,
+          employeeEmail: employee.email,
+          performanceReviewId: review.id,
+        }
+      });
+      toast.success(`Convite reenviado para ${employee.name}!`);
+    } catch {
+      toast.error('Falha ao enviar convite. Tente novamente.');
+    } finally {
+      setSendingInvite(null);
     }
   };
 
@@ -254,6 +281,20 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
                   )}>
                     {statusBadge.label}
                   </span>
+
+                  {review.status === 'PendingSelf' && (
+                    <button
+                      onClick={(e) => handleResendInvite(review, e)}
+                      disabled={sendingInvite === review.id}
+                      title="Reenviar convite de auto-avaliação"
+                      className="p-2 hover:bg-brand-100 rounded-lg text-muted-foreground hover:text-brand-600 transition-colors disabled:opacity-50"
+                    >
+                      {sendingInvite === review.id
+                        ? <Loader2 className="w-4 h-4 animate-spin" />
+                        : <Mail className="w-4 h-4" />
+                      }
+                    </button>
+                  )}
 
                   <button
                     onClick={(e) => handleDeleteReview(review.id, e)}
