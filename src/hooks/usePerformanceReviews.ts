@@ -83,14 +83,14 @@ export const usePerformanceReviews = () => {
     }
   };
 
-  const saveReview = async (review: Omit<PerformanceReview, 'id' | 'createdAt'>) => {
+  const saveReview = async (review: Omit<PerformanceReview, 'id' | 'createdAt'>): Promise<PerformanceReview | null> => {
     try {
       const { data: userData } = await supabase.auth.getUser();
       const userId = userData?.user?.id;
       const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: userId });
       const ownerAdminId = ownerIdData ?? userId;
 
-      const { error } = await supabase
+      const { data: inserted, error } = await supabase
         .from('performance_reviews')
         .insert({
           employee_id: review.employeeId,
@@ -100,7 +100,9 @@ export const usePerformanceReviews = () => {
           responses: review.responses as any,
           overall_feedback: review.overallFeedback,
           owner_admin_id: ownerAdminId,
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
 
@@ -110,6 +112,7 @@ export const usePerformanceReviews = () => {
       });
 
       await fetchReviews();
+      return { ...review, id: inserted.id, createdAt: inserted.created_at ?? new Date().toISOString() };
     } catch (error) {
       console.error('Error saving review:', error);
       toast({
@@ -117,6 +120,7 @@ export const usePerformanceReviews = () => {
         description: 'Não foi possível salvar a avaliação.',
         variant: 'destructive',
       });
+      return null;
     }
   };
 

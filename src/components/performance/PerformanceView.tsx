@@ -10,6 +10,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { cn } from '@/lib/utils';
 import { useDemo } from '@/contexts/DemoContext';
 import { demoPerformanceReviews, demoEvaluationCycles, demoEvaluations } from '@/components/demo/demoData';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface PerformanceViewProps {
   employees: Employee[];
@@ -62,8 +64,29 @@ export const PerformanceView = ({ employees, roles }: PerformanceViewProps) => {
     : '0.0';
 
   const handleSaveReview = async (data: Parameters<typeof saveReview>[0]) => {
-    await saveReview(data);
+    const created = await saveReview(data);
     setIsModalOpen(false);
+
+    // Auto-send self-assessment invite if employee has email
+    if (created) {
+      const employee = employees.find(e => e.id === data.employeeId);
+      if (employee?.email) {
+        try {
+          await supabase.functions.invoke('send-evaluation-invite', {
+            body: {
+              type: 'self_assessment',
+              reviewType: 'standalone',
+              employeeName: employee.name,
+              employeeEmail: employee.email,
+              performanceReviewId: created.id,
+            }
+          });
+          toast.success(`Convite de auto-avaliação enviado para ${employee.name}!`);
+        } catch {
+          toast.warning('Avaliação criada, mas falha ao enviar convite. Use o botão "Enviar Convite" na tela de detalhe.');
+        }
+      }
+    }
   };
 
   const handleDeleteReview = async (id: string, e: React.MouseEvent) => {
