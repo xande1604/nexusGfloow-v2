@@ -53,7 +53,7 @@ export const usePerformanceReviews = () => {
           responses,
           overall_feedback,
           created_at,
-          nexus_employees!performance_reviews_employee_id_fkey (nome)
+          nexus_employees(nome)
         `,
         order: { column: 'created_at', ascending: false },
       });
@@ -61,7 +61,7 @@ export const usePerformanceReviews = () => {
       const mappedReviews: PerformanceReview[] = (data || []).map(review => ({
         id: review.id,
         employeeId: review.employee_id,
-        employeeName: (review.nexus_employees as any)?.nome || 'Colaborador',
+        employeeName: (review as any).nexus_employees?.nome || 'Colaborador',
         date: review.date || new Date().toISOString().split('T')[0],
         status: review.status as PerformanceReview['status'],
         questions: (review.questions as unknown as ReviewQuestion[]) || DEFAULT_QUESTIONS,
