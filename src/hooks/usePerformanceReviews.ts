@@ -53,7 +53,7 @@ export const usePerformanceReviews = () => {
           responses,
           overall_feedback,
           created_at,
-          employees!performance_reviews_employee_id_fkey (nome)
+          nexus_employees!performance_reviews_employee_id_fkey (nome)
         `,
         order: { column: 'created_at', ascending: false },
       });
@@ -61,7 +61,7 @@ export const usePerformanceReviews = () => {
       const mappedReviews: PerformanceReview[] = (data || []).map(review => ({
         id: review.id,
         employeeId: review.employee_id,
-        employeeName: (review.employees as any)?.nome || 'Colaborador',
+        employeeName: (review.nexus_employees as any)?.nome || 'Colaborador',
         date: review.date || new Date().toISOString().split('T')[0],
         status: review.status as PerformanceReview['status'],
         questions: (review.questions as unknown as ReviewQuestion[]) || DEFAULT_QUESTIONS,
@@ -85,6 +85,11 @@ export const usePerformanceReviews = () => {
 
   const saveReview = async (review: Omit<PerformanceReview, 'id' | 'createdAt'>) => {
     try {
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: userId });
+      const ownerAdminId = ownerIdData ?? userId;
+
       const { error } = await supabase
         .from('performance_reviews')
         .insert({
@@ -94,6 +99,7 @@ export const usePerformanceReviews = () => {
           questions: review.questions as any,
           responses: review.responses as any,
           overall_feedback: review.overallFeedback,
+          owner_admin_id: ownerAdminId,
         });
 
       if (error) throw error;
