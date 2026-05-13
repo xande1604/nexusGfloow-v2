@@ -21,7 +21,7 @@ const ENTITY_MAP: Record<string, { table: string; required: string[]; allowedFie
   cargos: {
     table: 'cargos',
     required: ['codigocargo', 'tituloreduzido'],
-    allowedFields: ['codigocargo', 'tituloreduzido', 'cbo2002', 'hard_skills', 'soft_skills', 'technical_knowledge', 'salary_min', 'salary_max', 'faz_parte_cota_aprendiz', 'idlancamento']
+    allowedFields: ['codigocargo', 'tituloreduzido', 'titulolongocargo', 'nivel_senioridade', 'cbo2002', 'hard_skills', 'soft_skills', 'technical_knowledge', 'entregas', 'tags', 'salary_min', 'salary_max', 'faz_parte_cota_aprendiz', 'idlancamento']
   },
   centros_de_custo: {
     table: 'centrodecustos',

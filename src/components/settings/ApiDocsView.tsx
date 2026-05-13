@@ -22,8 +22,8 @@ const CSV_TEMPLATES: Record<string, { label: string; headers: string[]; example:
   },
   cargos: {
     label: 'Cargos',
-    headers: ['codigocargo', 'tituloreduzido', 'cbo2002', 'salary_min', 'salary_max', 'hard_skills', 'soft_skills', 'technical_knowledge', 'faz_parte_cota_aprendiz'],
-    example: ['CARGO001', 'Analista RH', '2521-05', '3000', '6000', 'Excel;Power BI', 'Comunicação;Liderança', 'Gestão de pessoas', 'false'],
+    headers: ['codigocargo', 'tituloreduzido', 'titulolongocargo', 'nivel_senioridade', 'cbo2002', 'salary_min', 'salary_max', 'hard_skills', 'soft_skills', 'technical_knowledge', 'entregas', 'tags', 'faz_parte_cota_aprendiz'],
+    example: ['CARGO001', 'Analista RH', 'Analista de Recursos Humanos Pleno', 'Pleno', '2521-05', '3000', '6000', 'Excel;Power BI', 'Comunicação;Liderança', 'Graduação em RH;Conhecimento em legislação trabalhista', 'Relatórios mensais de headcount;Condução de processos seletivos', 'rh;gente;operacional', 'false'],
   },
   centros_de_custo: {
     label: 'Centros de Custo',

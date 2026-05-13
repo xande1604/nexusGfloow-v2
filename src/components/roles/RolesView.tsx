@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Briefcase, DollarSign, Users, LayoutGrid, List, Filter, ChevronDown } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Briefcase, DollarSign, Users, LayoutGrid, List, Filter, Target, BookOpen, Tag } from 'lucide-react';
 import { JobRole, Skill, Employee } from '@/types';
 import { RoleFormModal } from './RoleFormModal';
 import { supabase } from '@/integrations/supabase/client';
@@ -288,7 +288,51 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
                 <span className="text-xs text-muted-foreground">{role.department}</span>
               </div>
 
-              <p className="text-sm text-muted-foreground line-clamp-2 mb-4">{role.description || 'Sem descrição'}</p>
+              <p className="text-sm text-muted-foreground line-clamp-2 mb-3">{role.description || 'Sem descrição'}</p>
+
+              {/* Principais Entregas */}
+              {role.keyDeliverables && (
+                <div className="mb-2">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <Target className="w-3.5 h-3.5 text-emerald-500" />
+                    <span className="text-xs font-semibold text-foreground">Principais Entregas</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed pl-5">{role.keyDeliverables}</p>
+                </div>
+              )}
+
+              {/* Conhecimentos Técnicos */}
+              {role.technicalKnowledge && (
+                <div className="mb-2">
+                  <div className="flex items-center gap-1.5 mb-1">
+                    <BookOpen className="w-3.5 h-3.5 text-blue-500" />
+                    <span className="text-xs font-semibold text-foreground">Conhecimentos Técnicos</span>
+                  </div>
+                  <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed pl-5">{role.technicalKnowledge}</p>
+                </div>
+              )}
+
+              {/* Tags para Roadmap */}
+              {role.tags && role.tags.length > 0 && (
+                <div className="mb-3">
+                  <div className="flex items-center gap-1.5 mb-1.5">
+                    <Tag className="w-3.5 h-3.5 text-brand-500" />
+                    <span className="text-xs font-semibold text-foreground">Tags</span>
+                  </div>
+                  <div className="flex flex-wrap gap-1 pl-5">
+                    {role.tags.slice(0, 4).map(tag => (
+                      <span key={tag} className="text-xs px-2 py-0.5 bg-brand-50 text-brand-700 rounded-full border border-brand-200">
+                        {tag}
+                      </span>
+                    ))}
+                    {role.tags.length > 4 && (
+                      <span className="text-xs px-2 py-0.5 bg-secondary text-muted-foreground rounded-full">
+                        +{role.tags.length - 4}
+                      </span>
+                    )}
+                  </div>
+                </div>
+              )}
 
               <div className="flex items-center justify-between pt-3 border-t border-border">
                 <div className="flex items-center gap-1.5 text-success">
@@ -325,6 +369,15 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
                   <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Título</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Nível</th>
                   <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Departamento</th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">
+                    <span className="flex items-center gap-1"><Target className="w-3.5 h-3.5 text-emerald-500" />Entregas</span>
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">
+                    <span className="flex items-center gap-1"><BookOpen className="w-3.5 h-3.5 text-blue-500" />Conhecimentos Técnicos</span>
+                  </th>
+                  <th className="text-left px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">
+                    <span className="flex items-center gap-1"><Tag className="w-3.5 h-3.5 text-brand-500" />Tags</span>
+                  </th>
                   <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Faixa Salarial</th>
                   <th className="text-center px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Colaboradores</th>
                   <th className="text-right px-4 py-3 text-xs font-semibold text-muted-foreground uppercase">Ações</th>
@@ -348,6 +401,38 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
                         <span className="text-xs px-2 py-0.5 bg-brand-100 text-brand-700 rounded-full font-medium">{role.level}</span>
                       </td>
                       <td className="px-4 py-3 text-sm text-muted-foreground">{role.department}</td>
+                      <td className="px-4 py-3 max-w-[180px]">
+                        {role.keyDeliverables ? (
+                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{role.keyDeliverables}</p>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3 max-w-[180px]">
+                        {role.technicalKnowledge ? (
+                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">{role.technicalKnowledge}</p>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50">—</span>
+                        )}
+                      </td>
+                      <td className="px-4 py-3">
+                        {role.tags && role.tags.length > 0 ? (
+                          <div className="flex flex-wrap gap-1">
+                            {role.tags.slice(0, 3).map(tag => (
+                              <span key={tag} className="text-xs px-2 py-0.5 bg-brand-50 text-brand-700 rounded-full border border-brand-200 whitespace-nowrap">
+                                {tag}
+                              </span>
+                            ))}
+                            {role.tags.length > 3 && (
+                              <span className="text-xs px-2 py-0.5 bg-secondary text-muted-foreground rounded-full">
+                                +{role.tags.length - 3}
+                              </span>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-xs text-muted-foreground/50">—</span>
+                        )}
+                      </td>
                       <td className="px-4 py-3 text-right">
                         <span className="text-sm font-medium text-success">
                           R$ {role.salaryRange.min.toLocaleString('pt-BR')} - {role.salaryRange.max.toLocaleString('pt-BR')}
