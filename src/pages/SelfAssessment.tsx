@@ -1,6 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { Loader2, CheckCircle, User, LogOut, ClipboardCheck } from 'lucide-react';
+import { Loader2, CheckCircle, User, LogOut, ClipboardCheck, ExternalLink } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
@@ -30,8 +29,8 @@ interface PendingEvaluation {
 }
 
 export default function SelfAssessment() {
-  const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [pendingEvaluations, setPendingEvaluations] = useState<PendingEvaluation[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] = useState<PendingEvaluation | null>(null);
@@ -43,54 +42,140 @@ export default function SelfAssessment() {
   const [password, setPassword] = useState('');
   const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
 
+  // ── Restore session on mount ──────────────────────────────────
   useEffect(() => {
-    const storedEmployee = localStorage.getItem('employee_session');
-    if (storedEmployee) {
-      const data = JSON.parse(storedEmployee);
-      setEmployee(data.employee);
-      setPendingEvaluations(data.pendingEvaluations || []);
-    }
+    const restoreSession = async () => {
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          await loadEmployeeFromUser(session.user.id);
+        }
+      } catch (err) {
+        console.error('Error restoring session:', err);
+      } finally {
+        setInitializing(false);
+      }
+    };
+    restoreSession();
   }, []);
 
+  const loadEmployeeFromUser = async (userId: string) => {
+    const { data: emp } = await supabase
+      .from('nexus_employees')
+      .select('id, nome, email, codigocargo')
+      .eq('linked_user_id', userId)
+      .maybeSingle();
+
+    if (!emp) return;
+
+    setEmployee({ id: emp.id, name: emp.nome, email: emp.email || '', roleCode: emp.codigocargo || '' });
+
+    const { data: evals } = await supabase
+      .from('employee_evaluations')
+      .select(`
+        id,
+        cycle_id,
+        questions,
+        status,
+        evaluation_cycles!inner(title, description, status)
+      `)
+      .eq('employee_id', emp.id)
+      .eq('status', 'pending')
+      .eq('evaluation_cycles.status', 'active');
+
+    setPendingEvaluations((evals as PendingEvaluation[]) || []);
+  };
+
+  // ── Auth handler ──────────────────────────────────────────────
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
     try {
-      const { data, error } = await supabase.functions.invoke('employee-auth', {
-        body: { action: authMode, email, password }
-      });
+      if (authMode === 'register') {
+        // Call edge function to create Supabase Auth user + user_roles + link employee
+        const { data, error } = await supabase.functions.invoke('employee-auth', {
+          body: { action: 'register', email, password },
+        });
 
-      if (error) throw error;
-      if (data.error) {
-        toast.error(data.error);
-        return;
+        if (error) throw error;
+        if (data.error) {
+          toast.error(data.error);
+          return;
+        }
+
+        // Now sign in with the newly created account
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+        if (signInError) throw signInError;
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) await loadEmployeeFromUser(session.user.id);
+
+        toast.success('Cadastro realizado! Bem-vindo ao portal.');
+
+      } else {
+        // Login — use Supabase Auth directly
+        const { error: signInError } = await supabase.auth.signInWithPassword({ email, password });
+
+        if (signInError) {
+          if (
+            signInError.message.includes('Invalid login credentials') ||
+            signInError.message.includes('invalid_credentials')
+          ) {
+            toast.error('Email ou senha incorretos. Verifique seus dados.');
+          } else if (signInError.message.includes('Email not confirmed')) {
+            toast.error('Email não confirmado. Entre em contato com o RH.');
+          } else {
+            toast.error(signInError.message || 'Erro ao fazer login');
+          }
+          return;
+        }
+
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
+          toast.error('Sessão não encontrada. Tente novamente.');
+          return;
+        }
+
+        await loadEmployeeFromUser(session.user.id);
+
+        if (!employee) {
+          // Edge case: has Supabase Auth account but no linked employee
+          // Try to link via employee-auth
+          const { data, error } = await supabase.functions.invoke('employee-auth', {
+            body: { action: 'login', email, password },
+          });
+          if (!error && data?.employee) {
+            setEmployee(data.employee);
+            setPendingEvaluations(data.pendingEvaluations || []);
+          }
+        }
+
+        toast.success('Login realizado!');
       }
 
-      toast.success(authMode === 'login' ? 'Login realizado!' : 'Cadastro realizado!');
-      setEmployee(data.employee);
-      setPendingEvaluations(data.pendingEvaluations || []);
-      localStorage.setItem('employee_session', JSON.stringify(data));
     } catch (error) {
       console.error('Auth error:', error);
-      toast.error('Erro ao processar solicitação');
+      toast.error('Erro ao processar solicitação. Tente novamente.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleLogout = () => {
-    localStorage.removeItem('employee_session');
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
     setEmployee(null);
     setPendingEvaluations([]);
     setSelectedEvaluation(null);
     setResponses({});
+    setEmail('');
+    setPassword('');
   };
 
   const handleResponseChange = (questionId: string, field: 'rating' | 'response', value: number | string) => {
     setResponses(prev => ({
       ...prev,
-      [questionId]: { ...prev[questionId], [field]: value }
+      [questionId]: { ...prev[questionId], [field]: value },
     }));
   };
 
@@ -111,15 +196,15 @@ export default function SelfAssessment() {
     try {
       const formattedResponses = selectedEvaluation.questions.map(q => ({
         questionId: q.id,
-        ...responses[q.id]
+        ...responses[q.id],
       }));
 
       const { data, error } = await supabase.functions.invoke('submit-self-assessment', {
         body: {
           evaluationId: selectedEvaluation.id,
           employeeId: employee.id,
-          responses: formattedResponses
-        }
+          responses: formattedResponses,
+        },
       });
 
       if (error) throw error;
@@ -132,11 +217,6 @@ export default function SelfAssessment() {
       setPendingEvaluations(prev => prev.filter(e => e.id !== selectedEvaluation.id));
       setSelectedEvaluation(null);
       setResponses({});
-
-      // Update session storage
-      const stored = JSON.parse(localStorage.getItem('employee_session') || '{}');
-      stored.pendingEvaluations = stored.pendingEvaluations?.filter((e: PendingEvaluation) => e.id !== selectedEvaluation.id);
-      localStorage.setItem('employee_session', JSON.stringify(stored));
     } catch (error) {
       console.error('Submit error:', error);
       toast.error('Erro ao enviar avaliação');
@@ -145,7 +225,16 @@ export default function SelfAssessment() {
     }
   };
 
-  // Auth Screen
+  // ── Loading inicial ───────────────────────────────────────────
+  if (initializing) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-brand-600" />
+      </div>
+    );
+  }
+
+  // ── Tela de autenticação ──────────────────────────────────────
   if (!employee) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-brand-50 via-background to-brand-100 flex items-center justify-center p-4">
@@ -154,7 +243,7 @@ export default function SelfAssessment() {
             <div className="mx-auto w-12 h-12 bg-brand-600 rounded-xl flex items-center justify-center mb-4">
               <ClipboardCheck className="w-6 h-6 text-white" />
             </div>
-            <CardTitle className="text-2xl">Autoavaliação</CardTitle>
+            <CardTitle className="text-2xl">Portal do Colaborador</CardTitle>
             <CardDescription>
               Acesse com o email cadastrado na empresa para realizar sua autoavaliação
             </CardDescription>
@@ -180,7 +269,9 @@ export default function SelfAssessment() {
                 </div>
 
                 <div className="space-y-2">
-                  <Label htmlFor="password">Senha</Label>
+                  <Label htmlFor="password">
+                    {authMode === 'register' ? 'Crie uma senha' : 'Senha'}
+                  </Label>
                   <Input
                     id="password"
                     type="password"
@@ -190,15 +281,22 @@ export default function SelfAssessment() {
                     required
                     minLength={6}
                   />
+                  {authMode === 'register' && (
+                    <p className="text-xs text-muted-foreground">Mínimo 6 caracteres. Use esta senha também no portal completo.</p>
+                  )}
                 </div>
 
                 <Button type="submit" className="w-full" disabled={loading}>
-                  {loading ? (
-                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
-                  ) : null}
+                  {loading && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
                   {authMode === 'login' ? 'Entrar' : 'Criar Cadastro'}
                 </Button>
               </form>
+
+              {authMode === 'login' && (
+                <p className="text-xs text-center text-muted-foreground mt-4">
+                  Primeiro acesso? Clique em <button className="text-brand-600 font-medium" onClick={() => setAuthMode('register')}>Primeiro Acesso</button> para criar sua conta.
+                </p>
+              )}
             </Tabs>
           </CardContent>
         </Card>
@@ -206,7 +304,7 @@ export default function SelfAssessment() {
     );
   }
 
-  // Evaluation Form
+  // ── Formulário de avaliação ───────────────────────────────────
   if (selectedEvaluation) {
     const categorizedQuestions = selectedEvaluation.questions.reduce((acc, q) => {
       if (!acc[q.category]) acc[q.category] = [];
@@ -240,7 +338,7 @@ export default function SelfAssessment() {
                     <p className="font-medium text-foreground">
                       {idx + 1}. {q.question}
                     </p>
-                    
+
                     {q.type === 'rating' || q.type === 'scale' ? (
                       <div className="flex gap-2">
                         {[1, 2, 3, 4, 5].map(rating => (
@@ -277,7 +375,7 @@ export default function SelfAssessment() {
               Cancelar
             </Button>
             <Button onClick={handleSubmit} disabled={submitting}>
-              {submitting ? <Loader2 className="w-4 h-4 animate-spin mr-2" /> : null}
+              {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
               Enviar Autoavaliação
             </Button>
           </div>
@@ -286,7 +384,7 @@ export default function SelfAssessment() {
     );
   }
 
-  // Dashboard
+  // ── Dashboard do colaborador ──────────────────────────────────
   return (
     <div className="min-h-screen bg-background">
       <header className="bg-card border-b border-border">
@@ -300,14 +398,43 @@ export default function SelfAssessment() {
               <p className="text-sm text-muted-foreground">{employee.email}</p>
             </div>
           </div>
-          <Button variant="ghost" size="sm" onClick={handleLogout}>
-            <LogOut className="w-4 h-4 mr-2" />
-            Sair
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => window.open('https://nexus.gfloow.com.br', '_blank')}
+              className="hidden sm:flex items-center gap-1.5 text-brand-600 border-brand-200 hover:bg-brand-50"
+            >
+              <ExternalLink className="w-3.5 h-3.5" />
+              Portal Completo
+            </Button>
+            <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <LogOut className="w-4 h-4 mr-2" />
+              Sair
+            </Button>
+          </div>
         </div>
       </header>
 
       <main className="max-w-4xl mx-auto px-4 py-8">
+        {/* Banner portal completo */}
+        <div className="bg-brand-50 border border-brand-200 rounded-xl p-4 mb-6 flex items-center justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-brand-800">Acesse o portal completo</p>
+            <p className="text-xs text-brand-600 mt-0.5">
+              Veja seu roadmap, treinamentos, habilidades e histórico de avaliações em <strong>nexus.gfloow.com.br</strong>
+            </p>
+          </div>
+          <Button
+            size="sm"
+            className="shrink-0 bg-brand-600 hover:bg-brand-700"
+            onClick={() => window.open('https://nexus.gfloow.com.br', '_blank')}
+          >
+            <ExternalLink className="w-3.5 h-3.5 mr-1.5" />
+            Acessar
+          </Button>
+        </div>
+
         <h1 className="text-2xl font-bold text-foreground mb-6">Minhas Avaliações</h1>
 
         {pendingEvaluations.length === 0 ? (
@@ -321,7 +448,11 @@ export default function SelfAssessment() {
         ) : (
           <div className="space-y-4">
             {pendingEvaluations.map(evaluation => (
-              <Card key={evaluation.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => setSelectedEvaluation(evaluation)}>
+              <Card
+                key={evaluation.id}
+                className="hover:shadow-md transition-shadow cursor-pointer"
+                onClick={() => setSelectedEvaluation(evaluation)}
+              >
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
