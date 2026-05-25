@@ -1,7 +1,8 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Plus, Search, Edit2, Trash2, Briefcase, DollarSign, Users, LayoutGrid, List, Filter, Target, BookOpen, Tag } from 'lucide-react';
+import { Plus, Search, Edit2, Trash2, Briefcase, DollarSign, Users, LayoutGrid, List, Filter, Target, BookOpen, Tag, GitCompare } from 'lucide-react';
 import { JobRole, Skill, Employee } from '@/types';
 import { RoleFormModal } from './RoleFormModal';
+import { RoleComparisonView } from './RoleComparisonView';
 import { supabase } from '@/integrations/supabase/client';
 
 interface ExtendedEmployee extends Employee {
@@ -30,6 +31,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
   const [showFilters, setShowFilters] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingRole, setEditingRole] = useState<JobRole | null>(null);
+  const [activeTab, setActiveTab] = useState<'catalog' | 'compare'>('catalog');
 
   const extEmployees = employees as ExtendedEmployee[];
 
@@ -111,6 +113,43 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
 
   return (
     <div className="space-y-6 animate-fade-in" data-view="roles-v2">
+
+      {/* ── Tab switcher ── */}
+      <div className="flex items-center gap-1 p-1 bg-muted rounded-xl w-fit">
+        <button
+          onClick={() => setActiveTab('catalog')}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
+            activeTab === 'catalog'
+              ? 'bg-card shadow-soft text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <Briefcase className="w-4 h-4" />
+          Catálogo de Cargos
+        </button>
+        <button
+          onClick={() => setActiveTab('compare')}
+          className={cn(
+            'flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-all',
+            activeTab === 'compare'
+              ? 'bg-card shadow-soft text-foreground'
+              : 'text-muted-foreground hover:text-foreground'
+          )}
+        >
+          <GitCompare className="w-4 h-4" />
+          Comparativo
+        </button>
+      </div>
+
+      {/* ── Comparison tab ── */}
+      {activeTab === 'compare' && (
+        <RoleComparisonView roles={roles} skills={skills} employees={employees} />
+      )}
+
+      {/* ── Catalog tab ── */}
+      {activeTab === 'catalog' && (<>
+
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
         <div className="flex flex-1 gap-3 w-full sm:w-auto items-center">
@@ -475,6 +514,8 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
           </button>
         </div>
       )}
+
+      </>) /* end catalog tab */}
 
       <RoleFormModal
         isOpen={isModalOpen}
