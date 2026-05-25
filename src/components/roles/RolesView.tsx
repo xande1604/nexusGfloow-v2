@@ -4,6 +4,7 @@ import { JobRole, Skill, Employee } from '@/types';
 import { RoleFormModal } from './RoleFormModal';
 import { RoleComparisonView } from './RoleComparisonView';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 interface ExtendedEmployee extends Employee {
   codcentrodecustos?: string;
