@@ -149,7 +149,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
       )}
 
       {/* ── Catalog tab ── */}
-      {activeTab === 'catalog' && (<>
+      {activeTab === 'catalog' && <div className="space-y-6">
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
@@ -516,7 +516,7 @@ export const RolesView = ({ roles, skills, employees = [], onSaveRole, onDeleteR
         </div>
       )}
 
-      </>) /* end catalog tab */}
+      </div>}
 
       <RoleFormModal
         isOpen={isModalOpen}
