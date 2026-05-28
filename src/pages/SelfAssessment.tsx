@@ -28,12 +28,21 @@ interface PendingEvaluation {
   };
 }
 
+interface PendingStandaloneReview {
+  id: string;
+  date: string;
+  questions: Array<{ id: string; question: string; type: 'rating' | 'text' }>;
+  status: string;
+}
+
 export default function SelfAssessment() {
   const [loading, setLoading] = useState(false);
   const [initializing, setInitializing] = useState(true);
   const [employee, setEmployee] = useState<Employee | null>(null);
   const [pendingEvaluations, setPendingEvaluations] = useState<PendingEvaluation[]>([]);
+  const [pendingStandaloneReviews, setPendingStandaloneReviews] = useState<PendingStandaloneReview[]>([]);
   const [selectedEvaluation, setSelectedEvaluation] = useState<PendingEvaluation | null>(null);
+  const [selectedStandaloneReview, setSelectedStandaloneReview] = useState<PendingStandaloneReview | null>(null);
   const [responses, setResponses] = useState<Record<string, { rating?: number; response?: string }>>({});
   const [submitting, setSubmitting] = useState(false);
 
@@ -70,6 +79,7 @@ export default function SelfAssessment() {
 
     setEmployee({ id: emp.id, name: emp.nome, email: emp.email || '', roleCode: emp.codigocargo || '' });
 
+    // Fetch cycle-based evaluations (employee_evaluations)
     const { data: evals } = await supabase
       .from('employee_evaluations')
       .select(`
@@ -84,6 +94,15 @@ export default function SelfAssessment() {
       .eq('evaluation_cycles.status', 'active');
 
     setPendingEvaluations((evals as PendingEvaluation[]) || []);
+
+    // Fetch standalone reviews (performance_reviews) pending self-assessment
+    const { data: standaloneReviews } = await supabase
+      .from('performance_reviews')
+      .select('id, date, questions, status')
+      .eq('employee_id', emp.id)
+      .eq('status', 'PendingSelf');
+
+    setPendingStandaloneReviews((standaloneReviews as PendingStandaloneReview[]) || []);
   };
 
   // ── Auth handler ──────────────────────────────────────────────
@@ -166,7 +185,9 @@ export default function SelfAssessment() {
     await supabase.auth.signOut();
     setEmployee(null);
     setPendingEvaluations([]);
+    setPendingStandaloneReviews([]);
     setSelectedEvaluation(null);
+    setSelectedStandaloneReview(null);
     setResponses({});
     setEmail('');
     setPassword('');
@@ -219,6 +240,49 @@ export default function SelfAssessment() {
       setResponses({});
     } catch (error) {
       console.error('Submit error:', error);
+      toast.error('Erro ao enviar avaliação');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  const handleSubmitStandalone = async () => {
+    if (!selectedStandaloneReview || !employee) return;
+
+    const unansweredQuestions = selectedStandaloneReview.questions.filter(q => {
+      const response = responses[q.id];
+      return !response || (!response.rating && !response.response);
+    });
+
+    if (unansweredQuestions.length > 0) {
+      toast.error(`Por favor, responda todas as ${unansweredQuestions.length} perguntas restantes`);
+      return;
+    }
+
+    setSubmitting(true);
+    try {
+      const formattedResponses = selectedStandaloneReview.questions.map(q => ({
+        questionId: q.id,
+        rating: responses[q.id]?.rating,
+        text: responses[q.id]?.response,
+      }));
+
+      const { error } = await supabase
+        .from('performance_reviews')
+        .update({
+          responses: formattedResponses as any,
+          status: 'PendingManager',
+        })
+        .eq('id', selectedStandaloneReview.id);
+
+      if (error) throw error;
+
+      toast.success('Autoavaliação enviada com sucesso!');
+      setPendingStandaloneReviews(prev => prev.filter(r => r.id !== selectedStandaloneReview.id));
+      setSelectedStandaloneReview(null);
+      setResponses({});
+    } catch (error) {
+      console.error('Submit standalone error:', error);
       toast.error('Erro ao enviar avaliação');
     } finally {
       setSubmitting(false);
@@ -384,6 +448,82 @@ export default function SelfAssessment() {
     );
   }
 
+  // ── Formulário de avaliação avulsa ───────────────────────────
+  if (selectedStandaloneReview) {
+    const reviewDate = new Date(selectedStandaloneReview.date).toLocaleDateString('pt-BR', {
+      day: '2-digit', month: 'long', year: 'numeric',
+    });
+
+    return (
+      <div className="min-h-screen bg-background">
+        <header className="bg-card border-b border-border sticky top-0 z-10">
+          <div className="max-w-4xl mx-auto px-4 py-4 flex items-center justify-between">
+            <div>
+              <h1 className="text-lg font-semibold text-foreground">Autoavaliação — {reviewDate}</h1>
+              <p className="text-sm text-muted-foreground">{employee.name}</p>
+            </div>
+            <Button variant="ghost" onClick={() => { setSelectedStandaloneReview(null); setResponses({}); }}>
+              Voltar
+            </Button>
+          </div>
+        </header>
+
+        <main className="max-w-4xl mx-auto px-4 py-8 space-y-8">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Perguntas de Autoavaliação</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {selectedStandaloneReview.questions.map((q, idx) => (
+                <div key={q.id} className="space-y-3 pb-6 border-b border-border last:border-0 last:pb-0">
+                  <p className="font-medium text-foreground">
+                    {idx + 1}. {q.question}
+                  </p>
+
+                  {q.type === 'rating' ? (
+                    <div className="flex gap-2">
+                      {[1, 2, 3, 4, 5].map(rating => (
+                        <button
+                          key={rating}
+                          type="button"
+                          onClick={() => handleResponseChange(q.id, 'rating', rating)}
+                          className={`w-10 h-10 rounded-lg border-2 font-semibold transition-all ${
+                            responses[q.id]?.rating === rating
+                              ? 'bg-brand-600 border-brand-600 text-white'
+                              : 'border-border hover:border-brand-400 text-foreground'
+                          }`}
+                        >
+                          {rating}
+                        </button>
+                      ))}
+                    </div>
+                  ) : (
+                    <Textarea
+                      value={responses[q.id]?.response || ''}
+                      onChange={(e) => handleResponseChange(q.id, 'response', e.target.value)}
+                      placeholder="Sua resposta..."
+                      rows={3}
+                    />
+                  )}
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+
+          <div className="flex justify-end gap-3 pb-8">
+            <Button variant="outline" onClick={() => { setSelectedStandaloneReview(null); setResponses({}); }}>
+              Cancelar
+            </Button>
+            <Button onClick={handleSubmitStandalone} disabled={submitting}>
+              {submitting && <Loader2 className="w-4 h-4 animate-spin mr-2" />}
+              Enviar Autoavaliação
+            </Button>
+          </div>
+        </main>
+      </div>
+    );
+  }
+
   // ── Dashboard do colaborador ──────────────────────────────────
   return (
     <div className="min-h-screen bg-background">
@@ -437,7 +577,7 @@ export default function SelfAssessment() {
 
         <h1 className="text-2xl font-bold text-foreground mb-6">Minhas Avaliações</h1>
 
-        {pendingEvaluations.length === 0 ? (
+        {pendingEvaluations.length === 0 && pendingStandaloneReviews.length === 0 ? (
           <Card>
             <CardContent className="py-16 text-center">
               <CheckCircle className="w-12 h-12 text-emerald-500 mx-auto mb-4" />
@@ -447,6 +587,7 @@ export default function SelfAssessment() {
           </Card>
         ) : (
           <div className="space-y-4">
+            {/* Avaliações de ciclo */}
             {pendingEvaluations.map(evaluation => (
               <Card
                 key={evaluation.id}
@@ -456,6 +597,9 @@ export default function SelfAssessment() {
                 <CardContent className="p-6">
                   <div className="flex items-center justify-between">
                     <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium bg-brand-100 text-brand-700 px-2 py-0.5 rounded-full">Ciclo de Avaliação</span>
+                      </div>
                       <h3 className="font-semibold text-foreground">{evaluation.evaluation_cycles.title}</h3>
                       <p className="text-sm text-muted-foreground mt-1">
                         {evaluation.questions.length} perguntas
@@ -471,6 +615,35 @@ export default function SelfAssessment() {
                 </CardContent>
               </Card>
             ))}
+
+            {/* Avaliações avulsas */}
+            {pendingStandaloneReviews.map(review => {
+              const reviewDate = new Date(review.date).toLocaleDateString('pt-BR', {
+                day: '2-digit', month: 'long', year: 'numeric',
+              });
+              return (
+                <Card
+                  key={review.id}
+                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => { setSelectedStandaloneReview(review); setResponses({}); }}
+                >
+                  <CardContent className="p-6">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-xs font-medium bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full">Avaliação Avulsa</span>
+                        </div>
+                        <h3 className="font-semibold text-foreground">Autoavaliação — {reviewDate}</h3>
+                        <p className="text-sm text-muted-foreground mt-1">
+                          {review.questions.length} perguntas
+                        </p>
+                      </div>
+                      <Button>Responder</Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         )}
       </main>
