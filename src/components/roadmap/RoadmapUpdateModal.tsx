@@ -706,7 +706,7 @@ export const RoadmapUpdateModal = ({
           </Tabs>
 
           {/* Summary of selections */}
-          {(selectedSkills.length > 0 || trainings.some(t => t.name.trim())) && (
+          {(selectedSkills.length > 0 || trainings.some(t => t.name.trim()) || selectedFromDB.evaluationIds.length > 0) && (
             <div className="bg-secondary/50 rounded-lg p-4 border border-border">
               <p className="text-sm font-medium text-foreground mb-2">Resumo da atualização:</p>
               <div className="text-sm text-muted-foreground space-y-1">
@@ -715,6 +715,9 @@ export const RoadmapUpdateModal = ({
                 )}
                 {trainings.filter(t => t.name.trim()).length > 0 && (
                   <p>• {trainings.filter(t => t.name.trim()).length} treinamento{trainings.filter(t => t.name.trim()).length !== 1 ? 's' : ''} selecionado{trainings.filter(t => t.name.trim()).length !== 1 ? 's' : ''}</p>
+                )}
+                {selectedFromDB.evaluationIds.length > 0 && (
+                  <p>• {selectedFromDB.evaluationIds.length} avaliação{selectedFromDB.evaluationIds.length !== 1 ? 'ões' : ''} selecionada{selectedFromDB.evaluationIds.length !== 1 ? 's' : ''}</p>
                 )}
               </div>
             </div>
@@ -745,10 +748,10 @@ export const RoadmapUpdateModal = ({
           </button>
           <button
             onClick={handleSubmit}
-            disabled={isSubmitting || (selectedSkills.length === 0 && trainings.every(t => !t.name.trim()))}
+            disabled={isSubmitting || (selectedSkills.length === 0 && trainings.every(t => !t.name.trim()) && selectedFromDB.evaluationIds.length === 0)}
             className={cn(
               "flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all",
-              !isSubmitting && (selectedSkills.length > 0 || trainings.some(t => t.name.trim()))
+              !isSubmitting && (selectedSkills.length > 0 || trainings.some(t => t.name.trim()) || selectedFromDB.evaluationIds.length > 0)
                 ? "bg-gradient-to-r from-brand-600 to-brand-700 text-primary-foreground hover:from-brand-700 hover:to-brand-800"
                 : "bg-secondary text-muted-foreground cursor-not-allowed"
             )}
