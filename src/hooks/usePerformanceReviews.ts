@@ -22,8 +22,10 @@ export interface PerformanceReview {
   date: string;
   status: 'PendingSelf' | 'PendingManager' | 'Completed';
   questions: ReviewQuestion[];
-  responses: ReviewResponse[];
-  overallFeedback: string | null;
+  responses: ReviewResponse[];          // employee self-assessment responses
+  managerResponses: ReviewResponse[];   // manager evaluation responses
+  overallFeedback: string | null;       // employee's additional notes (legacy)
+  managerOverallFeedback: string | null; // manager's written feedback
   createdAt: string;
 }
 
@@ -51,7 +53,9 @@ export const usePerformanceReviews = () => {
           status,
           questions,
           responses,
+          manager_responses,
           overall_feedback,
+          manager_overall_feedback,
           created_at,
           nexus_employees(nome)
         `,
@@ -66,7 +70,9 @@ export const usePerformanceReviews = () => {
         status: review.status as PerformanceReview['status'],
         questions: (review.questions as unknown as ReviewQuestion[]) || DEFAULT_QUESTIONS,
         responses: (review.responses as unknown as ReviewResponse[]) || [],
+        managerResponses: ((review as any).manager_responses as unknown as ReviewResponse[]) || [],
         overallFeedback: review.overall_feedback,
+        managerOverallFeedback: (review as any).manager_overall_feedback || null,
         createdAt: review.created_at || new Date().toISOString(),
       }));
 
@@ -131,7 +137,9 @@ export const usePerformanceReviews = () => {
         .update({
           status: updates.status,
           responses: updates.responses as any,
+          manager_responses: updates.managerResponses as any,
           overall_feedback: updates.overallFeedback,
+          manager_overall_feedback: updates.managerOverallFeedback,
         })
         .eq('id', id);
 

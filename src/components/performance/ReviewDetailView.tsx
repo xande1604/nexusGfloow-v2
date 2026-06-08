@@ -16,7 +16,9 @@ interface ReviewDetailViewProps {
 
 export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: ReviewDetailViewProps) => {
   const [responses, setResponses] = useState<ReviewResponse[]>(review.responses || []);
+  const [managerResponses, setManagerResponses] = useState<ReviewResponse[]>(review.managerResponses || []);
   const [overallFeedback, setOverallFeedback] = useState(review.overallFeedback || '');
+  const [managerOverallFeedback, setManagerOverallFeedback] = useState(review.managerOverallFeedback || '');
   const [isSaving, setIsSaving] = useState(false);
   const [isSendingInvite, setIsSendingInvite] = useState(false);
 
@@ -39,7 +41,6 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
       questionId,
       ...(type === 'rating' ? { rating: value as number } : { text: value as string }),
     };
-
     if (existingIndex >= 0) {
       const updated = [...responses];
       updated[existingIndex] = newResponse;
@@ -49,8 +50,27 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
     }
   };
 
+  const handleManagerResponseChange = (questionId: string, value: number | string, type: 'rating' | 'text') => {
+    const existingIndex = managerResponses.findIndex(r => r.questionId === questionId);
+    const newResponse: ReviewResponse = {
+      questionId,
+      ...(type === 'rating' ? { rating: value as number } : { text: value as string }),
+    };
+    if (existingIndex >= 0) {
+      const updated = [...managerResponses];
+      updated[existingIndex] = newResponse;
+      setManagerResponses(updated);
+    } else {
+      setManagerResponses([...managerResponses, newResponse]);
+    }
+  };
+
   const getResponse = (questionId: string) => {
     return responses.find(r => r.questionId === questionId);
+  };
+
+  const getManagerResponse = (questionId: string) => {
+    return managerResponses.find(r => r.questionId === questionId);
   };
 
   const calculateProgress = () => {
@@ -70,7 +90,9 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
     try {
       await onUpdate(review.id, {
         responses,
+        managerResponses,
         overallFeedback: overallFeedback || null,
+        managerOverallFeedback: managerOverallFeedback || null,
         status: newStatus || review.status,
       });
     } finally {
@@ -80,6 +102,18 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
 
   const handleComplete = () => {
     handleSave('Completed');
+  };
+
+  const calculateManagerProgress = () => {
+    const totalQuestions = review.questions.length;
+    const answered = managerResponses.filter(r => r.rating || r.text).length;
+    return Math.round((answered / totalQuestions) * 100);
+  };
+
+  const calculateManagerAverage = () => {
+    const ratings = managerResponses.filter(r => r.rating).map(r => r.rating!);
+    if (ratings.length === 0) return null;
+    return (ratings.reduce((a, b) => a + b, 0) / ratings.length).toFixed(1);
   };
 
   const handleSendInvite = async () => {
@@ -447,16 +481,134 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
         </div>
       </div>
 
-      {/* Overall Feedback */}
-      <div className="bg-card rounded-xl p-6 shadow-medium">
-        <h3 className="text-lg font-semibold text-foreground mb-4">Feedback Geral</h3>
-        <textarea
-          value={overallFeedback}
-          onChange={(e) => setOverallFeedback(e.target.value)}
-          placeholder="Adicione comentários gerais sobre o desempenho do colaborador..."
-          className="w-full h-32 px-4 py-3 bg-secondary border border-border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
-        />
-      </div>
+      {/* Manager Evaluation Section — shown when PendingManager or Completed */}
+      {(review.status === 'PendingManager' || review.status === 'Completed') && (
+        <div className="bg-card rounded-xl p-6 shadow-medium border-l-4 border-brand-500">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h3 className="text-lg font-semibold text-foreground">Avaliação do Gestor</h3>
+              <p className="text-sm text-muted-foreground mt-0.5">
+                {review.status === 'PendingManager'
+                  ? 'Avalie cada critério com sua perspectiva como gestor'
+                  : 'Avaliação registrada pelo gestor'}
+              </p>
+            </div>
+            {calculateManagerAverage() && (
+              <div className="flex items-center gap-1.5">
+                <Star className="w-5 h-5 text-brand-500 fill-brand-500" />
+                <span className="text-xl font-bold text-foreground">{calculateManagerAverage()}</span>
+                <span className="text-sm text-muted-foreground">/5</span>
+              </div>
+            )}
+          </div>
+
+          <div className="space-y-5">
+            {review.questions.map((q, index) => {
+              const empResponse = getResponse(q.id);
+              const mgrResponse = getManagerResponse(q.id);
+              return (
+                <div key={q.id} className="p-4 rounded-xl border bg-secondary/30 border-border">
+                  <div className="flex items-start gap-3 mb-3">
+                    <div className="w-7 h-7 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center flex-shrink-0 text-sm font-bold">
+                      {index + 1}
+                    </div>
+                    <p className="text-foreground font-medium pt-0.5 text-sm">{q.question}</p>
+                  </div>
+
+                  {/* Employee's answer for reference */}
+                  {empResponse && (q.type === 'rating' ? empResponse.rating : empResponse.text) && (
+                    <div className="pl-10 mb-3 text-xs text-muted-foreground flex items-center gap-1.5">
+                      <span className="font-medium">Colaborador:</span>
+                      {q.type === 'rating' ? (
+                        <span className="flex items-center gap-0.5">
+                          {[1,2,3,4,5].map(s => (
+                            <Star key={s} className={cn("w-3.5 h-3.5", (empResponse.rating||0) >= s ? "text-amber-400 fill-amber-400" : "text-muted-foreground/30")} />
+                          ))}
+                          <span className="ml-1">{empResponse.rating}/5</span>
+                        </span>
+                      ) : (
+                        <span className="italic">"{empResponse.text}"</span>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Manager's input */}
+                  {q.type === 'rating' ? (
+                    <div className="pl-10 flex items-center gap-3">
+                      <span className="text-xs font-medium text-foreground">Sua nota:</span>
+                      <div className="flex gap-1">
+                        {[1, 2, 3, 4, 5].map(star => (
+                          <button
+                            key={star}
+                            onClick={() => review.status === 'PendingManager' && handleManagerResponseChange(q.id, star, 'rating')}
+                            disabled={review.status === 'Completed'}
+                            className={cn(
+                              "p-1 transition-transform focus:outline-none rounded",
+                              review.status === 'PendingManager' ? "hover:scale-110" : "cursor-default"
+                            )}
+                          >
+                            <Star className={cn(
+                              "w-6 h-6 transition-colors",
+                              (mgrResponse?.rating || 0) >= star
+                                ? "text-brand-500 fill-brand-500"
+                                : "text-muted-foreground/40"
+                            )} />
+                          </button>
+                        ))}
+                      </div>
+                      {mgrResponse?.rating && (
+                        <span className="text-sm font-semibold text-brand-600">{mgrResponse.rating}/5</span>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="pl-10">
+                      <textarea
+                        value={mgrResponse?.text || ''}
+                        onChange={(e) => review.status === 'PendingManager' && handleManagerResponseChange(q.id, e.target.value, 'text')}
+                        readOnly={review.status === 'Completed'}
+                        placeholder={review.status === 'Completed' ? '(sem comentário do gestor)' : 'Seu comentário como gestor...'}
+                        className={cn(
+                          "w-full h-20 px-3 py-2 border border-border rounded-lg text-sm resize-none focus:outline-none transition-all",
+                          review.status === 'PendingManager'
+                            ? "bg-background focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                            : "bg-secondary/50 text-muted-foreground cursor-default"
+                        )}
+                      />
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Manager's overall written feedback */}
+          <div className="mt-6">
+            <label className="block text-sm font-medium text-foreground mb-2">
+              Feedback Geral do Gestor
+            </label>
+            <textarea
+              value={managerOverallFeedback}
+              onChange={(e) => setManagerOverallFeedback(e.target.value)}
+              readOnly={review.status === 'Completed'}
+              placeholder={review.status === 'Completed' ? '(sem feedback registrado)' : 'Adicione suas observações gerais sobre o desempenho do colaborador...'}
+              className={cn(
+                "w-full h-28 px-4 py-3 border border-border rounded-lg text-sm resize-none focus:outline-none transition-all",
+                review.status === 'PendingManager'
+                  ? "bg-background focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                  : "bg-secondary/50 text-muted-foreground cursor-default"
+              )}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Overall Feedback (legacy / employee notes) — only show if filled */}
+      {overallFeedback && (
+        <div className="bg-card rounded-xl p-6 shadow-medium">
+          <h3 className="text-lg font-semibold text-foreground mb-4">Observações do Colaborador</h3>
+          <p className="text-sm text-muted-foreground whitespace-pre-wrap">{overallFeedback}</p>
+        </div>
+      )}
 
       {/* Actions */}
       <div className="flex justify-end gap-3 flex-wrap">

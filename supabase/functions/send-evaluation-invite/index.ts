@@ -6,7 +6,8 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const APP_URL = 'https://nexus.gfloow.com.br/autoavaliacao';
+const EMPLOYEE_URL = 'https://nexus.gfloow.com.br/autoavaliacao';
+const MANAGER_URL = 'https://nexus.gfloow.com.br';
 
 interface InviteRequest {
   type: 'self_assessment' | 'manager_evaluation';
@@ -96,23 +97,23 @@ serve(async (req) => {
         ? `
           <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
             <p style="color:#1e40af;margin:0 0 12px;font-size:15px;">Você já possui cadastro. Clique no botão abaixo para acessar:</p>
-            <a href="${APP_URL}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:bold;font-size:15px;">
+            <a href="${EMPLOYEE_URL}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:bold;font-size:15px;">
               Acessar Autoavaliação
             </a>
-            <p style="color:#6b7280;font-size:12px;margin:12px 0 0;">Ou acesse diretamente: <a href="${APP_URL}" style="color:#4f46e5;">${APP_URL}</a></p>
+            <p style="color:#6b7280;font-size:12px;margin:12px 0 0;">Ou acesse diretamente: <a href="${EMPLOYEE_URL}" style="color:#4f46e5;">${EMPLOYEE_URL}</a></p>
           </div>`
         : `
           <div style="background:#fef3c7;border:1px solid #fcd34d;border-radius:8px;padding:20px;margin:20px 0;">
             <p style="color:#92400e;font-weight:bold;margin:0 0 8px;">⚠️ Primeiro acesso — cadastro necessário</p>
             <p style="color:#78350f;margin:0 0 12px;font-size:14px;">Você ainda não possui cadastro na plataforma. Para realizar sua autoavaliação, siga os passos abaixo:</p>
             <ol style="color:#78350f;font-size:14px;margin:0 0 12px;padding-left:20px;">
-              <li>Acesse <a href="${APP_URL}" style="color:#4f46e5;font-weight:bold;">${APP_URL}</a></li>
+              <li>Acesse <a href="${EMPLOYEE_URL}" style="color:#4f46e5;font-weight:bold;">${EMPLOYEE_URL}</a></li>
               <li>Clique em <strong>"Criar conta"</strong></li>
               <li>Use este e-mail (<strong>${payload.employeeEmail}</strong>) para se cadastrar</li>
               <li>Após criar a conta, sua avaliação pendente aparecerá automaticamente</li>
             </ol>
             <div style="text-align:center;">
-              <a href="${APP_URL}" style="display:inline-block;background:#f59e0b;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:bold;font-size:15px;">
+              <a href="${EMPLOYEE_URL}" style="display:inline-block;background:#f59e0b;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:bold;font-size:15px;">
                 Criar Conta e Avaliar
               </a>
             </div>
@@ -138,6 +139,7 @@ serve(async (req) => {
         ? `Avaliação de Colaborador Pendente`
         : `Avaliação de Colaborador Pendente — ${contextTitle}`;
 
+      const managerPortalUrl = `${MANAGER_URL}/app?view=PERFORMANCE`;
       htmlBody = `
         <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
           <div style="background:#4f46e5;border-radius:8px 8px 0 0;padding:28px 24px;">
@@ -148,10 +150,11 @@ serve(async (req) => {
             <p style="color:#374151;">O colaborador <strong>${payload.employeeName}</strong> já completou sua autoavaliação${isStandalone ? '' : ` no ciclo <strong>${contextTitle}</strong>`} e aguarda sua avaliação como gestor.</p>
             ${deadline ? `<p style="color:#374151;">Prazo para conclusão: <strong>${deadline}</strong></p>` : ''}
             <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:20px;margin:20px 0;text-align:center;">
-              <a href="${APP_URL}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:bold;font-size:15px;">
-                Acessar Sistema
+              <p style="color:#1e40af;margin:0 0 12px;font-size:14px;">Acesse o portal Nexus, vá em <strong>Desempenho → Avaliações Avulsas</strong> e abra a avaliação de <strong>${payload.employeeName}</strong>.</p>
+              <a href="${managerPortalUrl}" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:12px 32px;border-radius:8px;font-weight:bold;font-size:15px;">
+                Acessar Portal Nexus
               </a>
-              <p style="color:#6b7280;font-size:12px;margin:12px 0 0;"><a href="${APP_URL}" style="color:#4f46e5;">${APP_URL}</a></p>
+              <p style="color:#6b7280;font-size:12px;margin:12px 0 0;"><a href="${managerPortalUrl}" style="color:#4f46e5;">${MANAGER_URL}</a></p>
             </div>
             <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
             <p style="color:#6b7280;font-size:13px;margin:0;">Atenciosamente,<br/><strong>Equipe de RH — Gfloow</strong></p>
