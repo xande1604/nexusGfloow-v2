@@ -19,7 +19,7 @@ interface RoadmapViewProps {
   roadmaps: CareerRoadmap[];
   skills: Skill[];
   onGenerateRoadmap: (sourceRole: string, targetRole: string, employeeName?: string) => void;
-  onUpdateProgress: (roadmapId: string, employeeId: string | undefined, data: RoadmapProgressData, roadmap: CareerRoadmap) => Promise<void>;
+  onUpdateProgress: (roadmapId: string, employeeId: string | undefined, data: RoadmapProgressData, roadmap: CareerRoadmap) => Promise<any>;
   onUpdateEmployee?: (roadmapId: string, employeeId: string | null) => Promise<boolean>;
   prefilledUpdateData?: {
     employeeId: string;
@@ -210,12 +210,13 @@ export const RoadmapView = ({ roles, employees, roadmaps = [], skills, onGenerat
 
   const handleUpdateProgress = async (data: RoadmapProgressData) => {
     if (selectedRoadmap) {
-      await onUpdateProgress(selectedRoadmap.id, selectedRoadmap.employeeId, data, selectedRoadmap);
+      const result = await onUpdateProgress(selectedRoadmap.id, selectedRoadmap.employeeId, data, selectedRoadmap);
       // Refresh the selected roadmap
       const updatedRoadmap = roadmaps?.find(r => r.id === selectedRoadmap.id);
       if (updatedRoadmap) {
         setSelectedRoadmap(updatedRoadmap);
       }
+      return result;
     }
   };
 
