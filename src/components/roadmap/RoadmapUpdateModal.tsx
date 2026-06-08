@@ -45,7 +45,7 @@ interface RoadmapUpdateModalProps {
   onClose: () => void;
   roadmap: CareerRoadmap;
   availableSkills: Skill[];
-  onUpdate: (data: RoadmapProgressData) => Promise<void>;
+  onUpdate: (data: RoadmapProgressData) => Promise<any>;
   prefilledData?: PrefilledTrainingData;
 }
 
@@ -71,6 +71,7 @@ export const RoadmapUpdateModal = ({
   const [additionalNotes, setAdditionalNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [skillSearch, setSkillSearch] = useState('');
+  const [updateResult, setUpdateResult] = useState<any>(null); // AI result log
   const [activeTab, setActiveTab] = useState('manual');
   
   // Employee data from database
@@ -186,6 +187,7 @@ export const RoadmapUpdateModal = ({
         setActiveTab('registros');
       }
       setSkillSearch('');
+      setUpdateResult(null);
       setSelectedFromDB({ trainingIds: [], skillIds: [], evaluationIds: [] });
       fetchEmployeeData();
     }
@@ -311,19 +313,111 @@ export const RoadmapUpdateModal = ({
 
     setIsSubmitting(true);
     try {
-      await onUpdate({
+      const result = await onUpdate({
         acquiredSkills: selectedSkills,
         completedTrainings: validTrainings,
         additionalNotes: additionalNotes.trim() || undefined,
         selectedEvaluationIds: selectedFromDB.evaluationIds.length > 0 ? selectedFromDB.evaluationIds : undefined
       });
-      onClose();
+      // Show AI result log instead of closing immediately
+      if (result) {
+        setUpdateResult(result);
+      } else {
+        onClose();
+      }
     } finally {
       setIsSubmitting(false);
     }
   };
 
   if (!isOpen) return null;
+
+  // ── Result log panel ──────────────────────────────────────────
+  if (updateResult) {
+    const { summary, achievements = [], gaps = [], nextActions = [], progressPercentage } = updateResult;
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center">
+        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+        <div className="relative bg-card rounded-xl shadow-hard max-w-2xl w-full mx-4 max-h-[90vh] overflow-hidden animate-scale-in">
+          <div className="flex items-center justify-between p-6 border-b border-border">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center">
+                <CheckCircle2 className="w-5 h-5 text-white" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold text-foreground">Roadmap Atualizado</h2>
+                <p className="text-sm text-muted-foreground">{roadmap.sourceRoleTitle} → {roadmap.targetRoleTitle}</p>
+              </div>
+            </div>
+            {progressPercentage !== undefined && (
+              <div className="text-right">
+                <p className="text-2xl font-bold text-emerald-600">{progressPercentage}%</p>
+                <p className="text-xs text-muted-foreground">progresso</p>
+              </div>
+            )}
+          </div>
+
+          <div className="p-6 overflow-y-auto max-h-[calc(90vh-160px)] space-y-5">
+            {/* AI Summary */}
+            {summary && (
+              <div className="bg-brand-50 border border-brand-200 rounded-xl p-4">
+                <p className="text-sm font-semibold text-brand-800 mb-1">📊 Análise da IA</p>
+                <p className="text-sm text-brand-700">{summary}</p>
+              </div>
+            )}
+
+            {/* What was applied */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {achievements.length > 0 && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4">
+                  <p className="text-sm font-semibold text-emerald-800 mb-2">✅ Considerado ({achievements.length})</p>
+                  <ul className="space-y-1">
+                    {achievements.map((a: string, i: number) => (
+                      <li key={i} className="text-xs text-emerald-700 flex items-start gap-1.5">
+                        <span className="mt-0.5">•</span><span>{a}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {gaps.length > 0 && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <p className="text-sm font-semibold text-amber-800 mb-2">⚠️ Lacunas identificadas ({gaps.length})</p>
+                  <ul className="space-y-1">
+                    {gaps.map((g: string, i: number) => (
+                      <li key={i} className="text-xs text-amber-700 flex items-start gap-1.5">
+                        <span className="mt-0.5">•</span><span>{g}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* Next actions */}
+            {nextActions.length > 0 && (
+              <div className="bg-secondary/50 border border-border rounded-xl p-4">
+                <p className="text-sm font-semibold text-foreground mb-2">🎯 Próximas ações recomendadas</p>
+                <ul className="space-y-1">
+                  {nextActions.map((a: string, i: number) => (
+                    <li key={i} className="text-sm text-muted-foreground flex items-start gap-2">
+                      <span className="font-semibold text-brand-600 shrink-0">{i + 1}.</span><span>{a}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+
+          <div className="flex justify-end p-6 border-t border-border">
+            <button onClick={onClose} className="flex items-center gap-2 px-5 py-2 bg-brand-600 text-white rounded-lg text-sm font-semibold hover:bg-brand-700 transition-colors">
+              Fechar
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center">

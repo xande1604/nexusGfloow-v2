@@ -10,7 +10,7 @@ const EMPLOYEE_URL = 'https://nexus.gfloow.com.br/autoavaliacao';
 const MANAGER_URL = 'https://nexus.gfloow.com.br';
 
 interface InviteRequest {
-  type: 'self_assessment' | 'manager_evaluation';
+  type: 'self_assessment' | 'manager_evaluation' | 'hr_completion';
   reviewType?: 'cycle' | 'standalone';
   employeeName: string;
   employeeEmail: string;
@@ -21,6 +21,10 @@ interface InviteRequest {
   evaluationId?: string;
   performanceReviewId?: string;
   cycleEndDate?: string;
+  // hr_completion extras
+  empAvg?: string | null;
+  mgrAvg?: string | null;
+  managerFeedback?: string;
 }
 
 serve(async (req) => {
@@ -131,6 +135,47 @@ serve(async (req) => {
             ${accessBlock}
             <hr style="border:none;border-top:1px solid #e5e7eb;margin:24px 0;" />
             <p style="color:#6b7280;font-size:13px;margin:0;">Atenciosamente,<br/><strong>Equipe de RH — Gfloow</strong></p>
+          </div>
+        </div>`;
+
+    } else if (payload.type === 'hr_completion') {
+      subject = `✅ Avaliação Concluída — ${payload.employeeName}`;
+
+      const scoreBlock = (payload.empAvg || payload.mgrAvg) ? `
+        <div style="display:flex;gap:20px;margin:16px 0;">
+          ${payload.empAvg ? `<div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:14px 20px;text-align:center;">
+            <p style="color:#92400e;font-size:11px;margin:0 0 4px;">Colaborador</p>
+            <p style="color:#b45309;font-size:24px;font-weight:bold;margin:0;">⭐ ${payload.empAvg}/5</p>
+          </div>` : ''}
+          ${payload.mgrAvg ? `<div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:14px 20px;text-align:center;">
+            <p style="color:#1e40af;font-size:11px;margin:0 0 4px;">Gestor</p>
+            <p style="color:#1d4ed8;font-size:24px;font-weight:bold;margin:0;">⭐ ${payload.mgrAvg}/5</p>
+          </div>` : ''}
+        </div>` : '';
+
+      const feedbackBlock = payload.managerFeedback ? `
+        <div style="background:#f9fafb;border:1px solid #e5e7eb;border-radius:8px;padding:16px;margin:16px 0;">
+          <p style="color:#6b7280;font-size:11px;margin:0 0 6px;text-transform:uppercase;letter-spacing:0.5px;">Feedback do Gestor</p>
+          <p style="color:#374151;font-size:14px;margin:0;">${payload.managerFeedback}</p>
+        </div>` : '';
+
+      htmlBody = `
+        <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;padding:24px;">
+          <div style="background:#059669;border-radius:8px 8px 0 0;padding:28px 24px;">
+            <h1 style="color:#ffffff;margin:0;font-size:22px;">✅ Avaliação Concluída</h1>
+          </div>
+          <div style="background:#f9fafb;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 8px 8px;padding:24px;">
+            <p style="color:#111827;font-size:16px;margin-top:0;">O processo de avaliação de <strong>${payload.employeeName}</strong> foi concluído.</p>
+            ${scoreBlock}
+            ${feedbackBlock}
+            <div style="background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:16px;margin:16px 0;text-align:center;">
+              <p style="color:#1e40af;margin:0 0 10px;font-size:14px;">Acesse o portal para ver o relatório completo e exportar o PDF.</p>
+              <a href="${MANAGER_URL}/app?view=PERFORMANCE" style="display:inline-block;background:#4f46e5;color:#ffffff;text-decoration:none;padding:10px 28px;border-radius:8px;font-weight:bold;font-size:14px;">
+                Ver Relatório
+              </a>
+            </div>
+            <hr style="border:none;border-top:1px solid #e5e7eb;margin:20px 0;" />
+            <p style="color:#6b7280;font-size:13px;margin:0;">Atenciosamente,<br/><strong>Sistema Nexus — Gfloow</strong></p>
           </div>
         </div>`;
 

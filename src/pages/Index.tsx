@@ -170,7 +170,7 @@ const Index = () => {
       return;
     }
     
-    await updateRoadmapProgress(
+    return await updateRoadmapProgress(
       roadmapId,
       employeeId,
       data.acquiredSkills,
