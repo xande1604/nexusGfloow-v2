@@ -278,6 +278,41 @@ export default function SelfAssessment() {
       if (error) throw error;
 
       toast.success('Autoavaliação enviada com sucesso!');
+
+      // Notify manager, if the employee has one
+      try {
+        const { data: empData } = await supabase
+          .from('nexus_employees')
+          .select('gestor_id')
+          .eq('id', employee.id)
+          .maybeSingle();
+
+        if (empData?.gestor_id) {
+          const { data: manager } = await supabase
+            .from('nexus_employees')
+            .select('nome, email')
+            .eq('id', empData.gestor_id)
+            .maybeSingle();
+
+          if (manager?.email) {
+            await supabase.functions.invoke('send-evaluation-invite', {
+              body: {
+                type: 'manager_evaluation',
+                reviewType: 'standalone',
+                employeeName: employee.name,
+                employeeEmail: employee.email,
+                managerName: manager.nome,
+                managerEmail: manager.email,
+                performanceReviewId: selectedStandaloneReview.id,
+              },
+            });
+          }
+        }
+      } catch (emailErr) {
+        // Non-fatal — avaliação já foi salva
+        console.warn('Could not notify manager:', emailErr);
+      }
+
       setPendingStandaloneReviews(prev => prev.filter(r => r.id !== selectedStandaloneReview.id));
       setSelectedStandaloneReview(null);
       setResponses({});

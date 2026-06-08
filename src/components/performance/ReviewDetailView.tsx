@@ -111,6 +111,60 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
     }
   };
 
+  const handleNotifyManager = async () => {
+    const employee = employees.find(e => e.id === review.employeeId);
+    if (!employee) {
+      toast.error('Colaborador não encontrado.');
+      return;
+    }
+
+    setIsSendingInvite(true);
+    try {
+      // Fetch manager info via gestor_id
+      const { data: empData } = await supabase
+        .from('nexus_employees')
+        .select('gestor_id')
+        .eq('id', review.employeeId!)
+        .maybeSingle();
+
+      if (!empData?.gestor_id) {
+        toast.warning('Este colaborador não possui gestor cadastrado.');
+        return;
+      }
+
+      const { data: manager } = await supabase
+        .from('nexus_employees')
+        .select('nome, email')
+        .eq('id', empData.gestor_id)
+        .maybeSingle();
+
+      if (!manager?.email) {
+        toast.warning('Gestor sem e-mail cadastrado.');
+        return;
+      }
+
+      const { error } = await supabase.functions.invoke('send-evaluation-invite', {
+        body: {
+          type: 'manager_evaluation',
+          reviewType: 'standalone',
+          employeeName: review.employeeName || employee.name,
+          employeeEmail: employee.email,
+          managerName: manager.nome,
+          managerEmail: manager.email,
+          performanceReviewId: review.id,
+        }
+      });
+
+      if (error) throw error;
+      toast.success(`Aviso enviado para o gestor ${manager.nome} (${manager.email})`);
+    } catch (error) {
+      console.error('Error notifying manager:', error);
+      toast.error('Erro ao notificar gestor. Tente novamente.');
+    } finally {
+      setIsSendingInvite(false);
+    }
+  };
+
   const exportToPDF = () => {
     const doc = new jsPDF();
     const pageWidth = doc.internal.pageSize.getWidth();
@@ -307,7 +361,16 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
 
       {/* Questions */}
       <div className="bg-card rounded-xl p-6 shadow-medium">
-        <h3 className="text-lg font-semibold text-foreground mb-6">Perguntas da Avaliação</h3>
+        <div className="flex items-center justify-between mb-6">
+          <h3 className="text-lg font-semibold text-foreground">
+            {review.status === 'PendingManager' ? 'Autoavaliação do Colaborador' : 'Perguntas da Avaliação'}
+          </h3>
+          {review.status === 'PendingManager' && (
+            <span className="text-xs bg-amber-100 text-amber-700 px-2.5 py-1 rounded-full font-medium">
+              Respostas do colaborador — somente leitura
+            </span>
+          )}
+        </div>
 
         <div className="space-y-6">
           {review.questions.map((q, index) => {
@@ -340,8 +403,12 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
                       {[1, 2, 3, 4, 5].map(star => (
                         <button
                           key={star}
-                          onClick={() => handleResponseChange(q.id, star, 'rating')}
-                          className="p-1.5 transition-transform hover:scale-110 focus:outline-none focus:ring-2 focus:ring-brand-500/20 rounded"
+                          onClick={() => review.status !== 'PendingManager' && handleResponseChange(q.id, star, 'rating')}
+                          disabled={review.status === 'PendingManager'}
+                          className={cn(
+                            "p-1.5 transition-transform focus:outline-none focus:ring-2 focus:ring-brand-500/20 rounded",
+                            review.status === 'PendingManager' ? "cursor-default" : "hover:scale-110"
+                          )}
                         >
                           <Star
                             className={cn(
@@ -362,9 +429,15 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
                   <div className="pl-11">
                     <textarea
                       value={response?.text || ''}
-                      onChange={(e) => handleResponseChange(q.id, e.target.value, 'text')}
-                      placeholder="Digite sua resposta..."
-                      className="w-full h-24 px-4 py-3 bg-background border border-border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500 transition-all"
+                      onChange={(e) => review.status !== 'PendingManager' && handleResponseChange(q.id, e.target.value, 'text')}
+                      readOnly={review.status === 'PendingManager'}
+                      placeholder={review.status === 'PendingManager' ? '(sem resposta)' : 'Digite sua resposta...'}
+                      className={cn(
+                        "w-full h-24 px-4 py-3 border border-border rounded-lg text-sm resize-none focus:outline-none transition-all",
+                        review.status === 'PendingManager'
+                          ? "bg-secondary/50 text-muted-foreground cursor-default"
+                          : "bg-background focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+                      )}
                     />
                   </div>
                 )}
@@ -386,7 +459,8 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
       </div>
 
       {/* Actions */}
-      <div className="flex justify-end gap-3">
+      <div className="flex justify-end gap-3 flex-wrap">
+        {/* PendingSelf: convite para colaborador */}
         {review.status === 'PendingSelf' && (
           <button
             onClick={handleSendInvite}
@@ -402,6 +476,23 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
           </button>
         )}
 
+        {/* PendingManager: notificar gestor + concluir */}
+        {review.status === 'PendingManager' && (
+          <button
+            onClick={handleNotifyManager}
+            disabled={isSendingInvite}
+            className="flex items-center gap-2 h-11 px-5 bg-brand-600 text-white rounded-lg font-medium text-sm hover:bg-brand-700 transition-colors disabled:opacity-50"
+          >
+            {isSendingInvite ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Mail className="w-4 h-4" />
+            )}
+            Notificar Gestor
+          </button>
+        )}
+
+        {/* Completed: exportar PDF */}
         {review.status === 'Completed' && (
           <button
             onClick={exportToPDF}
@@ -411,30 +502,29 @@ export const ReviewDetailView = ({ review, onBack, onUpdate, employees = [] }: R
             Exportar PDF
           </button>
         )}
-        
-        <button
-          onClick={() => handleSave()}
-          disabled={isSaving}
-          className="flex items-center gap-2 h-11 px-5 bg-secondary text-foreground rounded-lg font-medium text-sm hover:bg-secondary/80 transition-colors disabled:opacity-50"
-        >
-          {isSaving ? (
-            <Loader2 className="w-4 h-4 animate-spin" />
-          ) : (
-            <Save className="w-4 h-4" />
-          )}
-          Salvar Rascunho
-        </button>
-        
-        {review.status !== 'Completed' && (
+
+        {/* Salvar rascunho — apenas quando gestor pode editar */}
+        {review.status !== 'PendingSelf' && review.status !== 'Completed' && (
+          <button
+            onClick={() => handleSave()}
+            disabled={isSaving}
+            className="flex items-center gap-2 h-11 px-5 bg-secondary text-foreground rounded-lg font-medium text-sm hover:bg-secondary/80 transition-colors disabled:opacity-50"
+          >
+            {isSaving ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Save className="w-4 h-4" />
+            )}
+            Salvar Rascunho
+          </button>
+        )}
+
+        {/* Concluir: APENAS quando PendingManager (gestor já pode fechar) */}
+        {review.status === 'PendingManager' && (
           <button
             onClick={handleComplete}
-            disabled={isSaving || progress < 100}
-            className={cn(
-              "flex items-center gap-2 h-11 px-6 rounded-lg font-semibold text-sm transition-all",
-              progress >= 100
-                ? "bg-emerald-600 text-white hover:bg-emerald-700"
-                : "bg-secondary text-muted-foreground cursor-not-allowed"
-            )}
+            disabled={isSaving}
+            className="flex items-center gap-2 h-11 px-6 bg-emerald-600 text-white hover:bg-emerald-700 rounded-lg font-semibold text-sm transition-all disabled:opacity-50"
           >
             <CheckCircle className="w-4 h-4" />
             Concluir Avaliação
