@@ -17,6 +17,7 @@ export interface EmployeeEvaluation {
   id: string;
   cycle_id: string;
   employee_id: string;
+  hr_responsible_id: string | null;
   questions: Array<{ id: string; question: string; category: string; type: string }>;
   self_assessment_responses: Array<{ questionId: string; rating?: number; response?: string }> | null;
   self_assessment_completed_at: string | null;
@@ -112,7 +113,8 @@ export const useEvaluationCycles = () => {
   const addEmployeesToCycle = async (
     cycleId: string,
     employeeIds: string[],
-    questions: Array<{ id: string; question: string; category: string; type: string }>
+    questions: Array<{ id: string; question: string; category: string; type: string }>,
+    hrResponsibleId?: string | null
   ) => {
     const { data: userData } = await supabase.auth.getUser();
     const userId = userData?.user?.id;
@@ -124,7 +126,8 @@ export const useEvaluationCycles = () => {
       employee_id: employeeId,
       questions,
       status: 'pending',
-      owner_admin_id: ownerAdminId
+      owner_admin_id: ownerAdminId,
+      hr_responsible_id: hrResponsibleId || null,
     }));
 
     const { data: insertedEvaluations, error } = await supabase

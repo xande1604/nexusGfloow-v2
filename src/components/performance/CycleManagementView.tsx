@@ -61,6 +61,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
   // Add employee form (single selection with AI questions)
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>('');
   const [selectedRoleId, setSelectedRoleId] = useState<string>('');
+  const [selectedHrResponsibleId, setSelectedHrResponsibleId] = useState<string>('');
   const [generatedQuestions, setGeneratedQuestions] = useState<GeneratedQuestion[]>([]);
   const [isGeneratingQuestions, setIsGeneratingQuestions] = useState(false);
   
@@ -140,7 +141,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
   const handleAddEmployeeWithQuestions = async () => {
     if (!selectedCycle || !selectedEmployeeId || generatedQuestions.length === 0) return;
 
-    const newEvaluations = await addEmployeesToCycle(selectedCycle.id, [selectedEmployeeId], generatedQuestions);
+    const newEvaluations = await addEmployeesToCycle(selectedCycle.id, [selectedEmployeeId], generatedQuestions, selectedHrResponsibleId || null);
 
     // Auto-send self-assessment invite if employee has email
     if (newEvaluations && newEvaluations.length > 0) {
@@ -168,6 +169,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
 
     setIsAddEmployeesModalOpen(false);
     setSelectedEmployeeId('');
+    setSelectedHrResponsibleId('');
     setGeneratedQuestions([]);
   };
 
@@ -603,6 +605,7 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
           if (!open) {
             setSelectedEmployeeId('');
             setSelectedRoleId('');
+            setSelectedHrResponsibleId('');
             setGeneratedQuestions([]);
           }
         }}>
@@ -656,6 +659,26 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                     {roles.map(role => (
                       <SelectItem key={role.id} value={role.id}>
                         {role.codigocargo ? `${role.codigocargo} - ${role.title}` : role.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div>
+                <Label className="mb-3 block">Responsável RH <span className="text-muted-foreground font-normal text-xs">(opcional)</span></Label>
+                <Select
+                  value={selectedHrResponsibleId}
+                  onValueChange={setSelectedHrResponsibleId}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Nenhum..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Nenhum</SelectItem>
+                    {employees.map(emp => (
+                      <SelectItem key={emp.id} value={emp.id}>
+                        {emp.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

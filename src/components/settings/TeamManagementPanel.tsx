@@ -16,6 +16,7 @@ const ROLE_LABELS: Record<string, string> = {
   gestor: 'Gestor',
   analista: 'Analista',
   visualizador: 'Visualizador',
+  rh: 'RH',
 };
 
 const ROLE_COLORS: Record<string, string> = {
@@ -23,6 +24,7 @@ const ROLE_COLORS: Record<string, string> = {
   gestor: 'bg-blue-100 text-blue-700',
   analista: 'bg-emerald-100 text-emerald-700',
   visualizador: 'bg-muted text-muted-foreground',
+  rh: 'bg-rose-100 text-rose-700',
 };
 
 export const TeamManagementPanel = () => {
@@ -293,6 +295,7 @@ export const TeamManagementPanel = () => {
                     <SelectItem value="gestor">Gestor</SelectItem>
                     <SelectItem value="analista">Analista</SelectItem>
                     <SelectItem value="visualizador">Visualizador</SelectItem>
+                    <SelectItem value="rh">RH</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -344,6 +347,7 @@ export const TeamManagementPanel = () => {
                 <SelectItem value="gestor">Gestor</SelectItem>
                 <SelectItem value="analista">Analista</SelectItem>
                 <SelectItem value="visualizador">Visualizador</SelectItem>
+                <SelectItem value="rh">RH</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -381,6 +385,7 @@ export const TeamManagementPanel = () => {
                 <SelectItem value="gestor">Gestor</SelectItem>
                 <SelectItem value="analista">Analista</SelectItem>
                 <SelectItem value="visualizador">Visualizador</SelectItem>
+                <SelectItem value="rh">RH</SelectItem>
               </SelectContent>
             </Select>
           </div>

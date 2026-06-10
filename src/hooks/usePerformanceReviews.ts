@@ -26,6 +26,7 @@ export interface PerformanceReview {
   managerResponses: ReviewResponse[];   // manager evaluation responses
   overallFeedback: string | null;       // employee's additional notes (legacy)
   managerOverallFeedback: string | null; // manager's written feedback
+  hrResponsibleId: string | null;
   createdAt: string;
 }
 
@@ -56,6 +57,7 @@ export const usePerformanceReviews = () => {
           manager_responses,
           overall_feedback,
           manager_overall_feedback,
+          hr_responsible_id,
           created_at,
           nexus_employees(nome)
         `,
@@ -73,6 +75,7 @@ export const usePerformanceReviews = () => {
         managerResponses: ((review as any).manager_responses as unknown as ReviewResponse[]) || [],
         overallFeedback: review.overall_feedback,
         managerOverallFeedback: (review as any).manager_overall_feedback || null,
+        hrResponsibleId: (review as any).hr_responsible_id || null,
         createdAt: review.created_at || new Date().toISOString(),
       }));
 
@@ -105,6 +108,7 @@ export const usePerformanceReviews = () => {
           questions: review.questions as any,
           responses: review.responses as any,
           overall_feedback: review.overallFeedback,
+          hr_responsible_id: review.hrResponsibleId || null,
           owner_admin_id: ownerAdminId,
         })
         .select()

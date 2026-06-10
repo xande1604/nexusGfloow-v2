@@ -22,6 +22,9 @@ interface ReviewFormModalProps {
     questions: ReviewQuestion[];
     responses: ReviewResponse[];
     overallFeedback: string | null;
+    hrResponsibleId: string | null;
+    managerResponses: ReviewResponse[];
+    managerOverallFeedback: string | null;
   }) => void;
   employees: Employee[];
   roles: JobRole[];
@@ -41,6 +44,7 @@ export const ReviewFormModal = ({
   defaultQuestions,
 }: ReviewFormModalProps) => {
   const [employeeId, setEmployeeId] = useState('');
+  const [hrResponsibleId, setHrResponsibleId] = useState('');
   const [date, setDate] = useState(new Date().toISOString().split('T')[0]);
   const [questions, setQuestions] = useState<ReviewQuestion[]>([]);
   const [responses, setResponses] = useState<ReviewResponse[]>([]);
@@ -244,10 +248,14 @@ export const ReviewFormModal = ({
       questions,
       responses,
       overallFeedback: overallFeedback || null,
+      hrResponsibleId: hrResponsibleId || null,
+      managerResponses: [],
+      managerOverallFeedback: null,
     });
 
     // Reset form
     setEmployeeId('');
+    setHrResponsibleId('');
     setSelectedRoleId('');
     setDate(new Date().toISOString().split('T')[0]);
     setQuestions([]);
@@ -271,7 +279,7 @@ export const ReviewFormModal = ({
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Basic Info */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">Colaborador *</label>
               <select
@@ -320,6 +328,19 @@ export const ReviewFormModal = ({
                 onChange={(e) => setDate(e.target.value)}
                 className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
               />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Responsável RH <span className="text-muted-foreground font-normal">(opcional)</span></label>
+              <select
+                value={hrResponsibleId}
+                onChange={(e) => setHrResponsibleId(e.target.value)}
+                className="w-full h-10 px-3 bg-secondary border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand-500/20 focus:border-brand-500"
+              >
+                <option value="">Nenhum</option>
+                {employees.map(emp => (
+                  <option key={emp.id} value={emp.id}>{emp.name}</option>
+                ))}
+              </select>
             </div>
           </div>
 
