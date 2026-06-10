@@ -59,7 +59,7 @@ export const usePerformanceReviews = () => {
           manager_overall_feedback,
           hr_responsible_id,
           created_at,
-          nexus_employees!employee_id(nome)
+          nexus_employees!performance_reviews_employee_id_fkey(nome)
         `,
         order: { column: 'created_at', ascending: false },
       });

@@ -99,8 +99,8 @@ const ownerAdminId = ownerIdData ?? userId;
 `employee_evaluations` and `performance_reviews` each have **two FKs to `nexus_employees`** (`employee_id` and `hr_responsible_id`). Always use the explicit column hint to avoid PostgREST HTTP 300 errors:
 ```typescript
 // Correct — disambiguate with column name hint
-select: 'id, employee_id, nexus_employees!employee_id(nome)'
-select: '*, employee:nexus_employees!employee_id(id, nome, email, codigocargo, gestor_id)'
+select: 'id, employee_id, nexus_employees!performance_reviews_employee_id_fkey(nome)'
+select: '*, employee:nexus_employees!employee_evaluations_employee_id_fkey(id, nome, email, codigocargo, gestor_id)'
 
 // Wrong — ambiguous when multiple FKs exist to same table
 select: 'id, employee_id, nexus_employees(nome)'
