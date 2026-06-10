@@ -58,7 +58,7 @@ export const useEvaluationCycles = () => {
       const data = await fetchAllRows('employee_evaluations', {
         select: `
           *,
-          employee:nexus_employees(id, nome, email, codigocargo, gestor_id)
+          employee:nexus_employees!employee_id(id, nome, email, codigocargo, gestor_id)
         `,
         order: { column: 'created_at', ascending: false },
         filters: cycleId ? (q: any) => q.eq('cycle_id', cycleId) : undefined,
