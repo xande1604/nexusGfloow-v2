@@ -51,7 +51,11 @@ export const useEmployeeSkills = (employeeId?: string) => {
 
   const saveSkills = async (skillsToSave: SaveEmployeeSkillInput[]): Promise<boolean> => {
     try {
-      // Use upsert to handle duplicates gracefully
+      const { data: userData } = await supabase.auth.getUser();
+      const userId = userData?.user?.id;
+      const { data: ownerIdData } = await supabase.rpc('get_owner_admin_id', { _user_id: userId });
+      const ownerAdminId = ownerIdData ?? userId;
+
       const { error } = await supabase
         .from('employee_skills')
         .upsert(
@@ -63,6 +67,7 @@ export const useEmployeeSkills = (employeeId?: string) => {
             source_id: skill.source_id || null,
             source_name: skill.source_name || null,
             acquired_at: new Date().toISOString(),
+            owner_admin_id: ownerAdminId,
           })),
           { onConflict: 'employee_id,skill_name' }
         );
