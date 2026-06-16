@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle, Sparkles, RefreshCw, Pencil, Trash2, Send, History } from 'lucide-react';
+import { Plus, Users, Calendar, ChevronRight, Loader2, Lock, CheckCircle, Clock, FileText, Download, Mail, AlertCircle, Sparkles, RefreshCw, Pencil, Trash2, Send, History, RotateCcw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { generateCycleReport } from '@/lib/generateCycleReport';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -17,6 +17,7 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useDemo } from '@/contexts/DemoContext';
 import { demoEvaluationCycles, demoEvaluations } from '@/components/demo/demoData';
+import { useUserRole } from '@/hooks/useUserRole';
 
 interface InviteHistoryItem {
   id: string;
@@ -41,7 +42,9 @@ interface GeneratedQuestion {
 
 export const CycleManagementView = ({ employees, roles }: CycleManagementViewProps) => {
   const { isDemoMode } = useDemo();
-  const { cycles: realCycles, evaluations: realEvaluations, loading, createCycle, closeCycle, addEmployeesToCycle, submitManagerEvaluation, fetchEvaluations } = useEvaluationCycles();
+  const { role } = useUserRole();
+  const isAdmin = role === 'admin';
+  const { cycles: realCycles, evaluations: realEvaluations, loading, createCycle, closeCycle, addEmployeesToCycle, submitManagerEvaluation, reopenEvaluation, fetchEvaluations } = useEvaluationCycles();
   
   // Use demo data when in demo mode
   const cycles = isDemoMode ? demoEvaluationCycles as EvaluationCycle[] : realCycles;
@@ -520,9 +523,22 @@ export const CycleManagementView = ({ employees, roles }: CycleManagementViewPro
                       )}
                       
                       {evaluation.status === 'completed' && (
-                        <Button size="sm" variant="outline" onClick={() => handleOpenManagerEvaluation(evaluation)}>
-                          Ver detalhes
-                        </Button>
+                        <>
+                          {isAdmin && (
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="text-amber-600 hover:text-amber-700 hover:bg-amber-50"
+                              onClick={() => reopenEvaluation(evaluation.id)}
+                            >
+                              <RotateCcw className="w-3.5 h-3.5 mr-1" />
+                              Reabrir
+                            </Button>
+                          )}
+                          <Button size="sm" variant="outline" onClick={() => handleOpenManagerEvaluation(evaluation)}>
+                            Ver detalhes
+                          </Button>
+                        </>
                       )}
                     </div>
                   </div>

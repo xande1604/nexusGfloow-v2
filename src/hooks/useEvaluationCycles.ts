@@ -179,6 +179,28 @@ export const useEvaluationCycles = () => {
     return true;
   };
 
+  const reopenEvaluation = async (evaluationId: string) => {
+    const { error } = await supabase
+      .from('employee_evaluations')
+      .update({
+        status: 'self_assessment_done',
+        manager_evaluation_responses: null,
+        manager_feedback: null,
+        manager_evaluation_completed_at: null,
+      })
+      .eq('id', evaluationId);
+
+    if (error) {
+      console.error('Error reopening evaluation:', error);
+      toast.error('Erro ao reabrir avaliação');
+      return false;
+    }
+
+    toast.success('Avaliação reaberta para reavaliação do gestor');
+    await fetchEvaluations();
+    return true;
+  };
+
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -196,6 +218,7 @@ export const useEvaluationCycles = () => {
     closeCycle,
     addEmployeesToCycle,
     submitManagerEvaluation,
+    reopenEvaluation,
     fetchEvaluations,
     refetch: () => Promise.all([fetchCycles(), fetchEvaluations()])
   };
